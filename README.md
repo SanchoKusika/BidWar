@@ -55,6 +55,38 @@ supabase/
   functions/      Edge Functions
 ```
 
+## Деплой
+
+Фронт живёт на Cloudflare Pages, выкладывает его GitHub Actions
+(`.github/workflows/deploy.yml`): пуш в `main` — продакшн, любая другая ветка —
+превью-окружение. Сборка идёт в CI, потому что `VITE_*` вшиваются в бандл на
+этапе сборки, а не читаются в рантайме.
+
+Что нужно завести один раз:
+
+| Где                 | Что                      | Значение                                  |
+| ------------------- | ------------------------ | ----------------------------------------- |
+| Actions → Secrets   | `CLOUDFLARE_API_TOKEN`   | токен с правом `Cloudflare Pages: Edit`   |
+| Actions → Secrets   | `CLOUDFLARE_ACCOUNT_ID`  | ID аккаунта Cloudflare                    |
+| Actions → Variables | `VITE_SUPABASE_URL`      | URL проекта Supabase                      |
+| Actions → Variables | `VITE_SUPABASE_ANON_KEY` | публикуемый ключ, он и так уходит в бандл |
+
+Без секретов Cloudflare шаг деплоя пропускается, а не валит проверки на pull
+request. Без переменных `VITE_*` сборка падает намеренно: молча выложенное
+приложение без бэкенда хуже упавшего деплоя.
+
+Вручную, с локальной машины:
+
+```bash
+npx wrangler login
+npm run build
+npx wrangler pages deploy dist --project-name bidwar
+```
+
+`public/_headers` задаёт CSP и кеширование. Там намеренно **нет**
+`X-Frame-Options` и есть `frame-ancestors` с доменами Telegram: Mini App
+открывается внутри айфрейма, и запрет фрейминга её сломает.
+
 ## Правила, которые проверяет CI
 
 - **Прямых обращений к `window.Telegram` вне `shared/platform` и `app/telegram` нет.**
