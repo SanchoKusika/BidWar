@@ -19,6 +19,13 @@ export interface IconProps {
 export function Icon({ name, size = 20, color = 'currentColor', title, style }: IconProps) {
   const Glyph = ICONS[name];
 
+  // Реестр собран вручную, поэтому опечатка или новая иконка в макете возможны.
+  // Отсутствующая иконка не должна ронять экран — только шуметь в разработке.
+  if (!Glyph) {
+    if (import.meta.env.DEV) console.warn(`Icon: нет в реестре — "${name}"`);
+    return null;
+  }
+
   return (
     <Glyph
       width={size}

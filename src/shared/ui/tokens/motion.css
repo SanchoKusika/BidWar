@@ -114,3 +114,10 @@
     --press-scale: 1; /* @kind other */
   }
 }
+
+/* Спиннер живёт только внутри кнопки, пока идёт платёж. В ленте спиннеров нет. */
+@keyframes ds-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
