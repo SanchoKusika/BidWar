@@ -91,14 +91,17 @@ export function serve(name: string, handler: Handler): void {
         path: url.pathname,
         status: failure.status,
         code: failure.code,
-        // Наружу уходит только код и сообщение HttpError, детали остаются в логе.
+        // Наружу уходит только код и сообщение HttpError, meta и стек остаются
+        // в логе — meta может нести что угодно, вплоть до чувствительных
+        // значений, которые вызывающий передал для отладки.
+        meta: failure.meta,
         detail: error instanceof Error ? error.stack : String(error),
         ms: Math.round(performance.now() - startedAt),
       });
 
       return withHeaders(
         json(
-          { error: { code: failure.code, message: failure.message, requestId, ...failure.meta } },
+          { error: { code: failure.code, message: failure.message, requestId } },
           failure.status,
         ),
         requestId,
