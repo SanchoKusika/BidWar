@@ -9,7 +9,7 @@ export const rules: readonly RuleSection[] = [
     facts: [
       ['Ranked by', 'Bid size'],
       ['Minimum bid', "50 000 so'm"],
-      ['Minimum raise', "10 000 so'm"],
+      ['Minimum raise', "50 000 so'm"],
       ['Position updates', 'Live'],
       ['Bid decay', 'None'],
       ['Currency', 'UZS'],
