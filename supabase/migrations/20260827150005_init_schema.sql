@@ -133,6 +133,27 @@ create trigger projects_set_updated_at
   before update on projects
   for each row execute function set_updated_at();
 
+-- type неизменяем после создания: смена free → paid это обходной путь к
+-- конвертации накопленной бесплатной репутации в платную позицию. Держится
+-- на триггере, а не на дисциплине кода — все операции идут под service_role,
+-- которому RLS не указ, а триггер указ.
+create or replace function forbid_project_type_change() returns trigger
+  language plpgsql
+  set search_path = ''
+as $$
+begin
+  if new.type is distinct from old.type then
+    raise exception 'projects.type неизменяем после создания (% -> %)', old.type, new.type
+      using errcode = 'check_violation';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger projects_type_is_immutable
+  before update of type on projects
+  for each row execute function forbid_project_type_change();
+
 -- Дедупликация кликов, не аналитика: конфликт по первичному ключу означает
 -- «этот человек уже кликал сюда сегодня» — счётчик не растёт.
 create table project_clicks (
