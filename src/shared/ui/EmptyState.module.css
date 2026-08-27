@@ -1,0 +1,63 @@
+/*
+  Пустое состояние ленты, списка заданий или поиска. Две строки: что
+  отсутствует, затем что сделать. Только текст — иллюстраций в бренде нет.
+*/
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-5);
+  padding: var(--space-20) var(--space-8);
+  background: var(--surface-card);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-card);
+}
+
+.empty[data-compact='true'] {
+  padding: var(--space-12) var(--space-8);
+}
+
+.empty[data-segment='neutral'] {
+  --empty-tint: var(--surface-sunken);
+  --empty-fg: var(--text-muted);
+}
+
+.empty[data-segment='paid'] {
+  --empty-tint: var(--paid-tint);
+  --empty-fg: var(--paid-accent);
+}
+
+.empty[data-segment='free'] {
+  --empty-tint: var(--free-tint);
+  --empty-fg: var(--free-accent);
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  background: var(--empty-tint);
+  color: var(--empty-fg);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 280px;
+}
+
+.title {
+  font: var(--type-section);
+  color: var(--text-primary);
+}
+
+.description {
+  font: var(--type-caption);
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}

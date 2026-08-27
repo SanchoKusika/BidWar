@@ -1,0 +1,69 @@
+.preview {
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--og-size);
+  height: var(--og-size);
+  border-radius: var(--og-radius);
+  overflow: hidden;
+  background: var(--surface-sunken);
+  border: var(--border-w) solid var(--border-subtle);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+
+.image[data-state='ready'] {
+  opacity: 1;
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder[data-state='loading'] {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 8%,
+    var(--skeleton-sheen) 18%,
+    var(--skeleton-base) 33%
+  );
+  background-size: 260% 100%;
+  animation: ds-skeleton 1.3s linear infinite;
+}
+
+/* Отсутствующее превью — норма, а не ошибка: сайт мог не отдать og-теги. */
+.placeholder[data-state='empty'] {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--surface-sunken) 0 6px,
+    var(--surface-inset) 6px 12px
+  );
+}
+
+.fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.initial {
+  font: var(--type-amount-md);
+  font-size: calc(var(--og-size) * 0.34);
+  letter-spacing: var(--ls-tighter);
+  color: var(--paid-accent);
+}
+
+.preview[data-segment='free'] .initial {
+  color: var(--free-accent);
+}

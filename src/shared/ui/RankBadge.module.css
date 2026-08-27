@@ -1,0 +1,184 @@
+/*
+  Пьедестал горит. Первые три места несут силуэт пламени, но каждое в своём
+  металле — ранг читается по цвету раньше, чем по цифре. Габарит одинаков на
+  любом месте, поэтому колонка бейджей никогда не съезжает.
+
+  Исходник силуэта — assets/flame.svg, вставлен маской: так он берёт градиент
+  и работает на любой глубине страницы.
+*/
+.badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.badge[data-size='sm'] {
+  --rank-dim: 26px;
+  --rank-fs: var(--fs-13);
+  --rank-fs-medal: var(--fs-15);
+}
+
+.badge[data-size='md'] {
+  --rank-dim: 32px;
+  --rank-fs: var(--fs-15);
+  --rank-fs-medal: var(--fs-18);
+}
+
+.badge[data-size='lg'] {
+  --rank-dim: 40px;
+  --rank-fs: var(--fs-18);
+  --rank-fs-medal: var(--fs-24);
+}
+
+.chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--rank-dim);
+  height: var(--rank-dim);
+  padding: 0 6px;
+  border-radius: var(--radius-md);
+  background: var(--rank-default-tint);
+  color: var(--rank-default-text);
+}
+
+.chip[data-medal] {
+  /* Файл остаётся источником правды силуэта — если он изменится, менять его тут. */
+  --flame-mask: url('./assets/flame.svg');
+
+  border-radius: 0;
+  background: transparent;
+}
+
+/*
+  Периоды намеренно неравные: колонка из трёх бейджей не должна пульсировать
+  в унисон. Золото горит крупнее и быстрее, бронза мельче и медленнее.
+*/
+.chip[data-medal='1'] {
+  --flame-scale: 1.38;
+  --flame-dur: 1.9s;
+  --core-dur: 1.15s;
+  --halo-dur: 2.6s;
+  --halo-opacity: 1;
+  --glow-blur: 7px;
+  --metal-hi: var(--medal-1-hi);
+  --metal-mid: var(--medal-1-mid);
+  --metal-lo: var(--medal-1-lo);
+  --metal-glow: var(--medal-1-glow);
+
+  color: var(--medal-1-ink);
+}
+
+.chip[data-medal='2'] {
+  --flame-scale: 1.32;
+  --flame-dur: 2.3s;
+  --core-dur: 1.45s;
+  --halo-dur: 3.1s;
+  --halo-opacity: 0.7;
+  --glow-blur: 5px;
+  --metal-hi: var(--medal-2-hi);
+  --metal-mid: var(--medal-2-mid);
+  --metal-lo: var(--medal-2-lo);
+  --metal-glow: var(--medal-2-glow);
+
+  color: var(--medal-2-ink);
+}
+
+.chip[data-medal='3'] {
+  --flame-scale: 1.26;
+  --flame-dur: 2.7s;
+  --core-dur: 1.75s;
+  --halo-dur: 3.6s;
+  --halo-opacity: 0.55;
+  --glow-blur: 4px;
+  --metal-hi: var(--medal-3-hi);
+  --metal-mid: var(--medal-3-mid);
+  --metal-lo: var(--medal-3-lo);
+  --metal-glow: var(--medal-3-glow);
+
+  color: var(--medal-3-ink);
+}
+
+.halo {
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  width: calc(var(--rank-dim) * 2);
+  height: calc(var(--rank-dim) * 2);
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, var(--metal-glow) 0%, transparent 66%);
+  opacity: var(--halo-opacity);
+  animation: ds-flame-halo var(--halo-dur) var(--ease-in-out) infinite;
+  pointer-events: none;
+}
+
+.flame {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transform-origin: 50% 78%;
+  -webkit-mask-image: var(--flame-mask);
+  mask-image: var(--flame-mask);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+.body {
+  width: calc(var(--rank-dim) * var(--flame-scale));
+  height: calc(var(--rank-dim) * var(--flame-scale));
+  background-image: linear-gradient(
+    166deg,
+    var(--metal-hi) 2%,
+    var(--metal-mid) 48%,
+    var(--metal-lo) 100%
+  );
+  filter: drop-shadow(0 1px var(--glow-blur) var(--metal-glow));
+  animation: ds-flame-breathe var(--flame-dur) var(--ease-in-out) infinite;
+}
+
+.core {
+  top: 58%;
+  width: calc(var(--rank-dim) * var(--flame-scale) * 0.52);
+  height: calc(var(--rank-dim) * var(--flame-scale) * 0.52);
+  background: var(--metal-hi);
+  mix-blend-mode: soft-light;
+  animation: ds-flame-core var(--core-dur) var(--ease-in-out) infinite;
+}
+
+.digit {
+  position: relative;
+  font: var(--type-rank);
+  font-size: var(--rank-fs);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tight);
+}
+
+/* На медали цифра сидит в брюшке пламени, поэтому сдвигается вниз. */
+.chip[data-medal] .digit {
+  font-size: var(--rank-fs-medal);
+  margin-top: calc(var(--rank-dim) * 0.13);
+}
+
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font: var(--type-label);
+  letter-spacing: var(--ls-wide);
+  color: var(--delta-flat);
+}
+
+.delta[data-dir='up'] {
+  color: var(--delta-up);
+}
+
+.delta[data-dir='down'] {
+  color: var(--delta-down);
+}

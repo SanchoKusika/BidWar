@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react';
 import { ICONS, type IconName } from './icons';
+import { cx } from '@/shared/lib/cx';
+import styles from './Icon.module.css';
 
 export type { IconName };
 
@@ -9,6 +11,7 @@ export interface IconProps {
   color?: string;
   /** Задаёт доступное имя. Без него иконка считается декоративной. */
   title?: string;
+  className?: string;
   style?: CSSProperties;
 }
 
@@ -16,7 +19,14 @@ export interface IconProps {
  * Единственный способ вставить иконку. Никаких инлайновых path, PNG и эмодзи —
  * иконка обязана наследовать currentColor и работать в обеих темах.
  */
-export function Icon({ name, size = 20, color = 'currentColor', title, style }: IconProps) {
+export function Icon({
+  name,
+  size = 20,
+  color = 'currentColor',
+  title,
+  className,
+  style,
+}: IconProps) {
   const Glyph = ICONS[name];
 
   // Реестр собран вручную, поэтому опечатка или новая иконка в макете возможны.
@@ -36,7 +46,8 @@ export function Icon({ name, size = 20, color = 'currentColor', title, style }: 
       role={title ? 'img' : undefined}
       aria-label={title}
       aria-hidden={title ? undefined : true}
-      style={{ flex: '0 0 auto', display: 'block', ...style }}
+      className={cx(styles.icon, className)}
+      style={style}
     />
   );
 }

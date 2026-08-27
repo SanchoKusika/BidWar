@@ -1,0 +1,116 @@
+/*
+  Числовой блок ранжированной строки: деньги в Paid, голоса в Free — никогда
+  оба сразу. Сегмент задаёт цвет; единица обязательна, потому что голое число
+  позволяет спутать две экономики.
+*/
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat[data-segment='paid'] {
+  --stat-color: var(--paid-amount);
+  --stat-accent: var(--paid-accent);
+}
+
+.stat[data-segment='free'] {
+  --stat-color: var(--free-amount);
+  --stat-accent: var(--free-accent);
+}
+
+.stat[data-align='left'] {
+  align-items: flex-start;
+}
+
+.stat[data-align='right'] {
+  align-items: flex-end;
+}
+
+.stat[data-inline='true'] {
+  flex-direction: row;
+  align-items: baseline;
+  gap: var(--space-4);
+}
+
+.stat[data-inline='true'][data-align='left'] {
+  justify-content: flex-start;
+}
+
+.stat[data-inline='true'][data-align='right'] {
+  justify-content: flex-end;
+}
+
+.caption {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.amount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.icon {
+  align-self: center;
+}
+
+.value {
+  font: var(--stat-font);
+  color: var(--stat-color);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tighter);
+  white-space: nowrap;
+}
+
+.unit {
+  font: var(--type-micro);
+  font-size: var(--stat-unit-fs);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.stat[data-size='sm'] {
+  --stat-font: var(--type-amount-sm);
+  --stat-unit-fs: var(--fs-10);
+}
+
+.stat[data-size='md'] {
+  --stat-font: var(--type-amount-md);
+  --stat-unit-fs: var(--fs-11);
+}
+
+.stat[data-size='lg'] {
+  --stat-font: var(--type-amount-lg);
+  --stat-unit-fs: var(--fs-12);
+}
+
+.stat[data-size='hero'] {
+  --stat-font: var(--type-amount-hero);
+  --stat-unit-fs: var(--fs-13);
+}
+
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+  font: var(--type-label);
+}
+
+.delta[data-dir='up'] {
+  background: var(--free-tint);
+  color: var(--delta-up);
+}
+
+.delta[data-dir='down'] {
+  background: var(--attack-tint);
+  color: var(--delta-down);
+}

@@ -1,0 +1,241 @@
+/*
+  Строка рейтинга в двух полосах: сверху идентичность (позиция, превью, имя,
+  описание во всю ширину), под ней — деньги или голоса отдельной строкой.
+  Сумма никогда не конкурирует с именем за горизонталь.
+*/
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--card-pad);
+  background: var(--surface-card);
+  border: var(--border-w) solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-xs);
+  transition: box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.card[data-segment='paid'] {
+  --card-accent: var(--paid-accent);
+  --card-tint: var(--paid-tint);
+  --card-tint-line: var(--paid-tint-border);
+}
+
+.card[data-segment='free'] {
+  --card-accent: var(--free-accent);
+  --card-tint: var(--free-tint);
+  --card-tint-line: var(--free-tint-border);
+}
+
+.card[data-pressable='true'] {
+  cursor: pointer;
+}
+
+.card[data-pressable='true']:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/*
+  Пьедестал: первые три несут металл и на карточке — металлическая линия и
+  размывка, гаснущая к трети строки, поэтому цвет читается раньше бейджа.
+*/
+.card[data-medal='1'] {
+  background: linear-gradient(101deg, var(--medal-1-wash) 0%, var(--surface-card) 34%);
+  border-color: var(--medal-1-line);
+}
+
+.card[data-medal='2'] {
+  background: linear-gradient(101deg, var(--medal-2-wash) 0%, var(--surface-card) 34%);
+  border-color: var(--medal-2-line);
+}
+
+.card[data-medal='3'] {
+  background: linear-gradient(101deg, var(--medal-3-wash) 0%, var(--surface-card) 34%);
+  border-color: var(--medal-3-line);
+}
+
+/* Своя строка помечается тонированной подложкой и чипом, а не цветной рамкой. */
+.card[data-own='true'] {
+  background: var(--card-tint);
+  border-color: var(--card-tint-line);
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.name {
+  flex: 0 1 auto;
+  font: var(--type-section);
+  color: var(--text-primary);
+  letter-spacing: var(--ls-tight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  border-radius: var(--radius-pill);
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  white-space: nowrap;
+}
+
+.catLeader {
+  padding: 1px 6px 1px 4px;
+  border: var(--border-w) solid var(--card-tint-line);
+  background: var(--card-tint);
+  color: var(--card-accent);
+}
+
+.own {
+  padding: 1px 5px;
+  background: var(--card-accent);
+  color: #fff;
+}
+
+.description {
+  margin: 0;
+  font: var(--type-caption);
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-wrap: pretty;
+}
+
+.numbers {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  border-top: var(--border-w) solid var(--border-subtle);
+  padding-top: var(--space-5);
+}
+
+/*
+  Второстепенные счётчики собираются справа одной приглушённой группой, чтобы
+  сумма держала строку за собой: сначала срок на первом месте, затем клики.
+*/
+.counters {
+  margin-left: auto;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  color: var(--text-secondary);
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  font: var(--type-amount-sm);
+  letter-spacing: var(--ls-tight);
+}
+
+.counter[data-tabular='true'] {
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+  Цена конкретной позиции: строка перестаёт быть числом для сравнения и
+  становится тем, что можно купить.
+*/
+.spot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 7px 10px;
+  border-radius: var(--radius-md);
+  background: var(--card-tint);
+  border: var(--border-w) dashed var(--card-tint-line);
+}
+
+.spot[role='button'] {
+  cursor: pointer;
+}
+
+.spotLabel {
+  flex: 1;
+  min-width: 0;
+  font: var(--type-caption);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spotPrice {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  font: var(--type-amount-sm);
+  color: var(--card-accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tight);
+}
+
+.spotUnit {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  color: var(--text-muted);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.action {
+  flex: 1;
+  min-width: 0;
+  padding: 0 10px;
+}
+
+.details {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  border: var(--border-w) solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-secondary);
+  font: var(--type-micro);
+  cursor: pointer;
+  transition: var(--t-control);
+}
+
+/* Рядом с действиями кнопка подробностей ужимается до иконки. */
+.details[data-compact='true'] {
+  flex: 0 0 auto;
+  padding: 0 11px;
+}

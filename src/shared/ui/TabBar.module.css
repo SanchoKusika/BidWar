@@ -1,0 +1,120 @@
+/*
+  Нижняя навигация мини-аппа и единственный фиксированный элемент интерфейса.
+  Paid и Free — две витрины, у каждой свой акцент: активный таб и есть сигнал,
+  в какой экономике ты находишься.
+
+  В вебе его место занимает верхняя навигация, поэтому компонент используется
+  только мобильной оболочкой.
+*/
+.bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.bar[data-floating='true'] {
+  padding: 0 var(--page-gutter) calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+}
+
+.bar[data-floating='false'] {
+  background: var(--bg-elevated);
+}
+
+.inner {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  width: 100%;
+  max-width: var(--page-max);
+  height: var(--tabbar-h);
+  padding: var(--space-3);
+  gap: var(--space-1);
+  background: var(--surface-card);
+  border: var(--border-w) solid var(--border-subtle);
+  backdrop-filter: var(--blur-chrome);
+}
+
+.bar[data-floating='true'] .inner {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-tabbar);
+}
+
+.tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: var(--hit-min);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--t-control);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab[aria-current='page'] {
+  background: var(--tab-tint);
+  color: var(--tab-accent);
+}
+
+.tab[data-tab='paid'] {
+  --tab-accent: var(--paid-accent);
+  --tab-tint: var(--paid-tint);
+  --tab-badge: var(--attack-accent);
+}
+
+.tab[data-tab='free'] {
+  --tab-accent: var(--free-accent);
+  --tab-tint: var(--free-tint);
+  --tab-badge: var(--attack-accent);
+}
+
+.tab[data-tab='tasks'] {
+  --tab-accent: var(--text-primary);
+  --tab-tint: var(--surface-sunken);
+  --tab-badge: var(--free-accent);
+}
+
+.tab[data-tab='profile'] {
+  --tab-accent: var(--text-primary);
+  --tab-tint: var(--surface-sunken);
+  --tab-badge: var(--attack-accent);
+}
+
+.label {
+  font: var(--type-label);
+  font-family: var(--font-ui);
+  font-size: var(--fs-10);
+  font-weight: 600;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+}
+
+.tab[aria-current='page'] .label {
+  font-weight: 800;
+}
+
+.badge {
+  position: absolute;
+  top: 4px;
+  right: 50%;
+  margin-right: -20px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--tab-badge);
+  color: #fff;
+  font: var(--type-label);
+  font-variant-numeric: tabular-nums;
+}

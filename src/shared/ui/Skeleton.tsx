@@ -1,72 +1,49 @@
 import type { CSSProperties } from 'react';
+import { cx } from '@/shared/lib/cx';
+import styles from './Skeleton.module.css';
 
-const shimmer: CSSProperties = {
-  background:
-    'linear-gradient(90deg,var(--skeleton-base) 8%,var(--skeleton-sheen) 18%,var(--skeleton-base) 33%)',
-  backgroundSize: '260% 100%',
-  animation: 'ds-skeleton 1.3s linear infinite',
-  borderRadius: 'var(--radius-xs)',
-};
-
-function Bar({
-  w,
-  h = 10,
-  r = 'var(--radius-xs)',
-}: {
-  w: number | string;
-  h?: number;
-  r?: string;
-}) {
-  return <span style={{ ...shimmer, display: 'block', width: w, height: h, borderRadius: r }} />;
+function Bar({ w, h = 10, r }: { w: number | string; h?: number; r?: string }) {
+  return (
+    <span
+      className={styles.bar}
+      style={
+        {
+          '--bar-w': typeof w === 'number' ? `${w}px` : w,
+          '--bar-h': `${h}px`,
+          ...(r ? { '--bar-r': r } : {}),
+        } as CSSProperties
+      }
+    />
+  );
 }
 
-/**
- * Заглушка загрузки, повторяющая геометрию ProjectCard, — лента не должна
- * прыгать в момент, когда приходят данные. Спиннеров в ленте не бывает.
- */
 export function SkeletonCard({
   showActions = false,
+  className,
   style,
 }: {
   showActions?: boolean;
+  className?: string;
   style?: CSSProperties;
 }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-5)',
-        padding: 'var(--card-pad)',
-        background: 'var(--surface-card)',
-        border: 'var(--border-w) solid var(--border-subtle)',
-        borderRadius: 'var(--radius-card)',
-        ...style,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)' }}>
+    <div className={cx(styles.card, className)} style={style}>
+      <div className={styles.identity}>
         <Bar w={32} h={32} r="var(--radius-md)" />
         <Bar w={52} h={52} r="var(--radius-thumb)" />
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className={styles.lines}>
           <Bar w="58%" h={12} />
           <Bar w="88%" h={9} />
           <Bar w="40%" h={9} />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+        <div className={styles.numbers}>
           <Bar w={28} h={8} />
           <Bar w={72} h={16} r="var(--radius-sm)" />
         </div>
       </div>
 
       {showActions && (
-        <div
-          style={{
-            display: 'flex',
-            gap: 'var(--space-4)',
-            borderTop: 'var(--border-w) solid var(--border-subtle)',
-            paddingTop: 'var(--space-5)',
-          }}
-        >
+        <div className={styles.actions}>
           <Bar w="50%" h={36} r="var(--radius-control)" />
           <Bar w="50%" h={36} r="var(--radius-control)" />
         </div>
@@ -78,17 +55,16 @@ export function SkeletonCard({
 export function SkeletonFeed({
   rows = 4,
   showActions = false,
+  className,
   style,
 }: {
   rows?: number;
   showActions?: boolean;
+  className?: string;
   style?: CSSProperties;
 }) {
   return (
-    <div
-      aria-busy="true"
-      style={{ display: 'flex', flexDirection: 'column', gap: 'var(--stack-gap)', ...style }}
-    >
+    <div aria-busy="true" className={cx(styles.feed, className)} style={style}>
       {Array.from({ length: rows }).map((_, i) => (
         <SkeletonCard key={i} showActions={showActions} style={{ opacity: 1 - i * 0.14 }} />
       ))}

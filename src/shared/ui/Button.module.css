@@ -1,0 +1,152 @@
+/*
+  Вариант и размер приходят data-атрибутами и задают локальные переменные;
+  сама раскладка описана один раз. Наведение и нажатие — псевдоклассы, поэтому
+  компоненту не нужно состояние на них.
+*/
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--btn-h);
+  gap: var(--btn-gap);
+  padding: 0 var(--btn-px);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border: var(--border-w) solid var(--btn-border, transparent);
+  border-radius: var(--radius-control);
+  font: var(--type-button);
+  font-size: var(--btn-fs);
+  letter-spacing: var(--ls-tight);
+  transition: var(--t-control);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button:hover:not(:disabled) {
+  background: var(--btn-bg-hover);
+}
+
+.button:active:not(:disabled) {
+  background: var(--btn-bg-press);
+  transform: scale(var(--press-scale));
+}
+
+.button:disabled {
+  background: var(--btn-disabled-bg);
+  color: var(--btn-disabled-fg);
+  border-color: transparent;
+  cursor: not-allowed;
+}
+
+/* Размеры. md (44px) — минимальная цель для пальца, поэтому он по умолчанию. */
+.button[data-size='sm'] {
+  --btn-h: 36px;
+  --btn-px: 12px;
+  --btn-gap: 6px;
+  --btn-fs: var(--fs-13);
+}
+
+.button[data-size='md'] {
+  --btn-h: 44px;
+  --btn-px: 16px;
+  --btn-gap: 8px;
+  --btn-fs: var(--fs-15);
+}
+
+.button[data-size='lg'] {
+  --btn-h: 52px;
+  --btn-px: 20px;
+  --btn-gap: 8px;
+  --btn-fs: var(--fs-16);
+}
+
+/*
+  Вариант несёт экономику и риск, а не просто цвет: paid тратит деньги,
+  free — голоса, attack — платное действие против другого человека.
+*/
+.button[data-variant='primary'] {
+  --btn-bg: var(--btn-primary-bg);
+  --btn-fg: var(--btn-primary-fg);
+  --btn-bg-hover: var(--n-800);
+  --btn-bg-press: var(--n-700);
+}
+
+.button[data-variant='secondary'] {
+  --btn-bg: var(--btn-secondary-bg);
+  --btn-fg: var(--btn-secondary-fg);
+  --btn-bg-hover: var(--border-default);
+  --btn-bg-press: var(--border-strong);
+}
+
+.button[data-variant='ghost'] {
+  --btn-bg: transparent;
+  --btn-fg: var(--btn-ghost-fg);
+  --btn-bg-hover: var(--surface-sunken);
+  --btn-bg-press: var(--border-subtle);
+}
+
+.button[data-variant='outline'] {
+  --btn-bg: transparent;
+  --btn-fg: var(--text-primary);
+  --btn-border: var(--border-default);
+  --btn-bg-hover: var(--surface-sunken);
+  --btn-bg-press: var(--border-subtle);
+}
+
+.button[data-variant='paid'] {
+  --btn-bg: var(--paid-accent);
+  --btn-fg: var(--paid-on-accent);
+  --btn-bg-hover: var(--paid-accent-hover);
+  --btn-bg-press: var(--paid-accent-press);
+}
+
+.button[data-variant='free'] {
+  --btn-bg: var(--free-accent);
+  --btn-fg: var(--free-on-accent);
+  --btn-bg-hover: var(--free-accent-hover);
+  --btn-bg-press: var(--free-accent-press);
+}
+
+.button[data-variant='attack'] {
+  --btn-bg: var(--attack-accent);
+  --btn-fg: var(--attack-on-accent);
+  --btn-bg-hover: var(--attack-accent-hover);
+  --btn-bg-press: var(--attack-accent-press);
+}
+
+/* Приглушённая атака — точка входа внутри карточки, а не финальное действие. */
+.button[data-variant='attack-quiet'] {
+  --btn-bg: var(--attack-tint);
+  --btn-fg: var(--attack-text);
+  --btn-border: var(--attack-tint-border);
+  --btn-bg-hover: var(--attack-tint);
+  --btn-bg-press: var(--attack-tint-border);
+}
+
+.block {
+  display: flex;
+  width: 100%;
+}
+
+.pill,
+.iconOnly {
+  border-radius: var(--radius-pill);
+}
+
+.iconOnly {
+  width: var(--btn-h);
+  padding: 0;
+}
+
+/* Спиннер живёт только внутри кнопки, пока идёт платёж. В ленте спиннеров нет. */
+.spinner {
+  flex: 0 0 auto;
+  display: inline-block;
+  width: var(--spinner-size);
+  height: var(--spinner-size);
+  border: 2px solid currentcolor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ds-spin 700ms linear infinite;
+}
