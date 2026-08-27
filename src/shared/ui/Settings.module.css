@@ -1,0 +1,104 @@
+/*
+  Отдельной вкладки настроек в продукте нет — брифом закреплены четыре
+  назначения, поэтому настройки живут группами внизу профиля.
+*/
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.groupLabel {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.card {
+  background: var(--surface-card);
+  border: var(--border-w) solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+}
+
+/* Волосяные разделители между строками, но не перед первой. */
+.card > * + * {
+  border-top: var(--border-w) solid var(--border-subtle);
+}
+
+.footnote {
+  font: var(--type-caption);
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-height: var(--hit-min);
+  padding: 10px var(--card-pad);
+  background: transparent;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.row[data-pressable='true'] {
+  cursor: pointer;
+}
+
+.row[data-pressable='true']:hover {
+  background: var(--surface-inset);
+}
+
+.row[data-disabled='true'] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.icon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+}
+
+.row[data-danger='true'] .icon {
+  background: var(--attack-tint);
+  color: var(--attack-accent);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.title {
+  font: var(--type-body);
+  color: var(--text-primary);
+}
+
+.row[data-danger='true'] .title {
+  color: var(--attack-text);
+}
+
+.description {
+  font: var(--type-caption);
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.value {
+  flex: 0 0 auto;
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+}

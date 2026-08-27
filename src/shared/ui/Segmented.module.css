@@ -1,0 +1,47 @@
+/*
+  Инлайновый выбор из двух-трёх коротких значений (тема, язык). Больше трёх —
+  это уже SettingsRow, открывающий шторку.
+*/
+.group {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  border: var(--border-w) solid var(--border-subtle);
+}
+
+.group[data-segment='paid'] {
+  --segmented-accent: var(--paid-accent);
+}
+
+.group[data-segment='free'] {
+  --segmented-accent: var(--free-accent);
+}
+
+.option {
+  height: 34px;
+  padding: 0 10px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-secondary);
+  font: var(--type-micro);
+  font-size: var(--fs-11);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: var(--t-control);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.group[data-size='sm'] .option {
+  height: 28px;
+  font-size: var(--fs-10);
+}
+
+.option[aria-selected='true'] {
+  background: var(--segmented-accent);
+  color: #fff;
+}

@@ -1,0 +1,135 @@
+/*
+  Единственная инверсная панель в системе — приложение уходит в тёмное на
+  светлом ровно один раз, потому что реферальная ссылка это единственное, что
+  мы хотим дать человеку в руки. Инверсная подложка остаётся тёмной и в тёмной
+  теме, поэтому всё нарисованное на ней сохраняет контраст.
+*/
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--card-pad-lg);
+  border-radius: var(--radius-panel);
+  background: var(--surface-inverse);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-lg);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kicker {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--free-300);
+}
+
+.reward {
+  font: var(--type-title);
+  color: var(--text-inverse);
+  letter-spacing: var(--ls-tight);
+}
+
+.gift {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--free-tint);
+  color: var(--free-300);
+}
+
+.metrics {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.divider {
+  width: 1px;
+  align-self: stretch;
+  background: rgb(255 255 255 / 14%);
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metricLabel {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 50%);
+}
+
+.metricValue {
+  font: var(--type-amount-lg);
+  color: var(--text-inverse);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tighter);
+}
+
+.metric[data-accent='true'] .metricValue {
+  color: var(--free-300);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.share {
+  flex: 1;
+}
+
+.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  height: 52px;
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-control);
+  border: 1px solid rgb(255 255 255 / 16%);
+  background: rgb(255 255 255 / 8%);
+  color: var(--text-inverse);
+  font: var(--type-button);
+  cursor: pointer;
+  transition: var(--t-control);
+}
+
+.copy[data-copied='true'] {
+  background: var(--free-accent);
+  color: var(--free-on-accent);
+}
+
+/* Обе подписи делят одну ячейку сетки, поэтому ширина кнопки не скачет. */
+.copyLabels {
+  display: grid;
+}
+
+.copyLabels > span {
+  grid-area: 1 / 1;
+  visibility: hidden;
+}
+
+.copy[data-copied='false'] .copyIdle,
+.copy[data-copied='true'] .copyDone {
+  visibility: visible;
+}

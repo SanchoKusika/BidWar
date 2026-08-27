@@ -1,0 +1,54 @@
+/*
+  Единственный тумблер системы. Применяется мгновенно, поэтому за ним никогда
+  не стоит ничего, что стоит денег или необратимо — такое идёт через шторку.
+*/
+.switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 28px;
+  padding: 3px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--border-strong);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.switch[data-segment='paid'] {
+  --switch-accent: var(--paid-accent);
+}
+
+.switch[data-segment='free'] {
+  --switch-accent: var(--free-accent);
+}
+
+.switch[data-segment='attack'] {
+  --switch-accent: var(--attack-accent);
+}
+
+.switch[aria-checked='true'] {
+  background: var(--switch-accent);
+}
+
+.switch:disabled {
+  background: var(--btn-disabled-bg);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.knob {
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--n-0);
+  box-shadow: var(--shadow-sm);
+  transform: translateX(0);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.switch[aria-checked='true'] .knob {
+  transform: translateX(18px);
+}
