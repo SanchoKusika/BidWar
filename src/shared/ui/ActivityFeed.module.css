@@ -1,0 +1,134 @@
+/*
+  Пульс витрины: что только что произошло, по строке на событие. Суммы
+  приходят уже отформатированными — лента ничего не конвертирует сама.
+*/
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.feed[data-dense='true'] {
+  gap: var(--space-4);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+.title {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.list {
+  background: var(--surface-card);
+  border: var(--border-w) solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 2px var(--card-pad);
+}
+
+.feed[data-dense='true'] .list {
+  padding: 2px 10px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: 9px 0;
+  border-bottom: var(--border-w) solid var(--border-subtle);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.feed[data-dense='true'] .row {
+  gap: var(--space-4);
+  padding: 7px 0;
+}
+
+.row[role='button'] {
+  cursor: pointer;
+}
+
+.row[data-kind='raise'] {
+  --event-tone: var(--paid-accent);
+  --event-tint: var(--paid-tint);
+}
+
+.row[data-kind='attack'] {
+  --event-tone: var(--attack-text);
+  --event-tint: var(--attack-tint);
+}
+
+.row[data-kind='votes'] {
+  --event-tone: var(--free-accent);
+  --event-tint: var(--free-tint);
+}
+
+.row[data-kind='entered'] {
+  --event-tone: var(--text-secondary);
+  --event-tint: var(--n-100);
+}
+
+.badge {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--event-tint);
+  color: var(--event-tone);
+  display: grid;
+  place-items: center;
+}
+
+.feed[data-dense='true'] .badge {
+  width: 22px;
+  height: 22px;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  font: var(--type-body-sm);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  font: var(--type-caption);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.amount {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  font: var(--type-amount-sm);
+  color: var(--event-tone);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tight);
+  white-space: nowrap;
+}
+
+.unit {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  color: var(--text-muted);
+}

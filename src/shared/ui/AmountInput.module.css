@@ -1,0 +1,186 @@
+/*
+  Ввод суммы для Raise, Attack и раздачи голосов. Число — самое громкое на
+  экране; степпер и пресеты существуют, чтобы суммы не приходилось набирать
+  руками. Рекомендованной суммы атаки в системе нет намеренно.
+*/
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.field[data-segment='paid'] {
+  --amount-accent: var(--paid-accent);
+  --amount-ring: var(--ring-focus);
+  --amount-tint: var(--paid-tint);
+  --amount-line: var(--paid-tint-border);
+}
+
+.field[data-segment='free'] {
+  --amount-accent: var(--free-accent);
+  --amount-ring: var(--ring-focus-free);
+  --amount-tint: var(--free-tint);
+  --amount-line: var(--free-tint-border);
+}
+
+.field[data-segment='attack'] {
+  --amount-accent: var(--attack-accent);
+  --amount-ring: var(--ring-focus-attack);
+  --amount-tint: var(--attack-tint);
+  --amount-line: var(--attack-tint-border);
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.label {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.balance {
+  font: var(--type-caption);
+  color: var(--text-secondary);
+}
+
+.balanceValue {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface-inset);
+  border: var(--border-w-thick) solid var(--border-default);
+  border-radius: var(--radius-lg);
+  transition: var(--t-control);
+}
+
+.control:focus-within {
+  border-color: var(--amount-accent);
+  box-shadow: var(--amount-ring);
+}
+
+.field[data-error='true'] .control,
+.field[data-error='true'] .control:focus-within {
+  border-color: var(--attack-accent);
+}
+
+.field[data-disabled='true'] .control {
+  opacity: 0.5;
+}
+
+.value {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font: var(--type-amount-lg);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tighter);
+  outline: none;
+}
+
+.suffix {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.step {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  border: var(--border-w) solid var(--border-default);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--t-control);
+}
+
+/* Прибавление окрашено сегментом, убавление нейтрально: наращивать ставку — то,
+   ради чего экран открыт. */
+.step[data-accent='true'] {
+  background: var(--amount-tint);
+  border-color: var(--amount-line);
+  color: var(--amount-accent);
+}
+
+.step:active:not(:disabled) {
+  transform: scale(var(--press-scale));
+}
+
+.step:disabled {
+  background: var(--btn-disabled-bg);
+  border-color: transparent;
+  color: var(--btn-disabled-fg);
+  cursor: not-allowed;
+}
+
+.presets {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.preset {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  border: var(--border-w) solid transparent;
+  color: var(--text-secondary);
+  font: var(--type-micro);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: var(--t-control);
+}
+
+.preset:hover:not(:disabled) {
+  background: var(--border-subtle);
+}
+
+.preset[data-accent='true'] {
+  background: var(--amount-tint);
+  border-color: var(--amount-line);
+  color: var(--amount-accent);
+}
+
+.preset:disabled {
+  cursor: not-allowed;
+}
+
+.error {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: var(--type-caption);
+  color: var(--attack-text);
+}
