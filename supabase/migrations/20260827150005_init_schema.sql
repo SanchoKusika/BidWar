@@ -91,7 +91,7 @@ create table projects (
 
 comment on column projects.id is 'Монотонный, используется как тай-брейк при равных значениях';
 comment on column projects.initial_stake is 'Первая ставка проекта, база для floor. Денормализовано: floor проверяется в каждой атаке под FOR UPDATE, агрегат по леджеру там недопустим';
-comment on column projects.clicks is 'Публичный счётчик переходов, растёт вместе с вставкой в project_clicks';
+comment on column projects.clicks is 'Публичный счётчик переходов. Инвариант на будущее: инкремент в той же транзакции, что вставка в project_clicks — сам клик-эндпоинт появится позже, в этом срезе кода ещё нет';
 comment on column projects.rank1_since is 'С какого момента проект держит #1 в своём топе, null — если не лидер';
 comment on column projects.tg_chat_id is 'Заполнен, если проект — TG-канал и бот в нём администратор (нужно для subscribe-заданий)';
 
@@ -133,11 +133,13 @@ create trigger projects_set_updated_at
   before update on projects
   for each row execute function set_updated_at();
 
--- type неизменяем после создания: смена free → paid это обходной путь к
--- конвертации накопленной бесплатной репутации в платную позицию. Держится
--- на триггере, а не на дисциплине кода — все операции идут под service_role,
--- которому RLS не указ, а триггер указ.
-create or replace function forbid_project_type_change() returns trigger
+-- type и category_id неизменяемы после создания: смена типа — обходной путь
+-- к конвертации накопленной бесплатной репутации в платную позицию, смена
+-- категории — обход перевода проекта в чужую витрину задним числом. Оба
+-- правила стоят в 01 Механики рядом и по одной причине держатся на триггере,
+-- а не на дисциплине кода — все операции идут под service_role, которому
+-- RLS не указ, а триггер указ.
+create or replace function forbid_project_identity_change() returns trigger
   language plpgsql
   set search_path = ''
 as $$
@@ -146,13 +148,17 @@ begin
     raise exception 'projects.type неизменяем после создания (% -> %)', old.type, new.type
       using errcode = 'check_violation';
   end if;
+  if new.category_id is distinct from old.category_id then
+    raise exception 'projects.category_id неизменяем после создания (% -> %)', old.category_id, new.category_id
+      using errcode = 'check_violation';
+  end if;
   return new;
 end;
 $$;
 
-create trigger projects_type_is_immutable
-  before update of type on projects
-  for each row execute function forbid_project_type_change();
+create trigger projects_identity_is_immutable
+  before update of type, category_id on projects
+  for each row execute function forbid_project_identity_change();
 
 -- Дедупликация кликов, не аналитика: конфликт по первичному ключу означает
 -- «этот человек уже кликал сюда сегодня» — счётчик не растёт.
@@ -173,7 +179,7 @@ create table tasks (
   type              text        not null check (type in ('visit', 'subscribe', 'referral')),
   title             text        not null,
   description       text,
-  reward_votes      int         not null check (reward_votes > 0),
+  reward_votes      bigint      not null check (reward_votes > 0),
   target_project_id bigint      references projects (id),
   is_active         boolean     not null default true,
   created_at        timestamptz not null default now()
@@ -186,7 +192,7 @@ create table task_completions (
   task_id      bigint      not null references tasks (id),
   user_id      uuid        not null references users (id),
   project_id   bigint      references projects (id),
-  reward_votes int         not null check (reward_votes > 0),
+  reward_votes bigint      not null check (reward_votes > 0),
   status       text        not null check (status in ('pending', 'completed', 'rejected')),
   completed_at timestamptz,
   created_at   timestamptz not null default now(),
