@@ -121,12 +121,15 @@ function withHeaders(response: Response, requestId: string): Response {
   return new Response(response.body, { status: response.status, headers });
 }
 
-function write(
-  fn: string,
-  requestId: string,
-  level: string,
-  fields: Record<string, unknown>,
-): void {
+type Level = 'info' | 'warn' | 'error';
+
+function write(fn: string, requestId: string, level: Level, fields: Record<string, unknown>): void {
   // Одна строка JSON: так логи Supabase фильтруются по fn и requestId.
-  console.log(JSON.stringify({ level, fn, requestId, ...fields }));
+  // Метод консоли выбирается по уровню намеренно: severity в логах Supabase
+  // берётся из него, а не из поля внутри сообщения, — иначе пятисотки
+  // осядут в логе как info и алерты на них не сработают.
+  const line = JSON.stringify({ level, fn, requestId, ...fields });
+  if (level === 'error') console.error(line);
+  else if (level === 'warn') console.warn(line);
+  else console.log(line);
 }
