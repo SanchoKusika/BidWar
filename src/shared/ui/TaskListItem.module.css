@@ -1,0 +1,141 @@
+/*
+  Одно задание. Награда всегда в голосах — задания никогда не платят деньгами,
+  и именно это удерживает Free-экономику отдельно от Paid.
+*/
+.task {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-height: 64px;
+  padding: var(--card-pad);
+  background: var(--surface-card);
+  border: var(--border-w) solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-xs);
+  transition: var(--t-control);
+}
+
+.task[data-state='done'],
+.task[data-state='locked'] {
+  opacity: 0.62;
+}
+
+.task[data-interactive='true'] {
+  cursor: pointer;
+}
+
+.task[data-interactive='true']:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.badge {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+
+.task[data-state='available'] .badge {
+  background: var(--free-tint);
+  color: var(--free-accent);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font: var(--type-body);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtitle {
+  font: var(--type-caption);
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.track {
+  flex: 1;
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.fill {
+  width: var(--progress);
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--free-accent);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+.progressLabel {
+  font: var(--type-label);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.trailing {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex: 0 0 auto;
+}
+
+.reward {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  border: var(--border-w) solid transparent;
+  color: var(--text-muted);
+}
+
+.task[data-state='available'] .reward {
+  background: var(--free-tint);
+  border-color: var(--free-tint-border);
+  color: var(--free-text);
+}
+
+.task[data-state='pending'] .reward {
+  background: var(--warn-100);
+  color: var(--warn-700);
+}
+
+.rewardValue {
+  font: var(--type-amount-sm);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tight);
+}
+
+.status {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  color: var(--text-muted);
+}

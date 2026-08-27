@@ -1,0 +1,117 @@
+/*
+  Категория — это меньшее и более дешёвое первое место. Плитка продаёт ровно
+  это: сколько стоит вся категория и кто держит её вершину сейчас.
+*/
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+  text-align: left;
+  padding: var(--card-pad);
+  border-radius: var(--radius-card);
+  background: var(--surface-card);
+  border: var(--border-w) solid var(--border-subtle);
+  box-shadow: var(--shadow-xs);
+  cursor: default;
+  transition: box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.tile[data-segment='paid'] {
+  --tile-accent: var(--paid-accent);
+  --tile-tint: var(--paid-tint);
+  --tile-line: var(--paid-tint-border);
+}
+
+.tile[data-segment='free'] {
+  --tile-accent: var(--free-accent);
+  --tile-tint: var(--free-tint);
+  --tile-line: var(--free-tint-border);
+}
+
+.tile[data-active='true'] {
+  background: var(--tile-tint);
+  border-color: var(--tile-line);
+}
+
+.tile[data-pressable='true'] {
+  cursor: pointer;
+}
+
+.tile[data-pressable='true']:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.badge {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--tile-tint);
+  color: var(--tile-accent);
+  display: grid;
+  place-items: center;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font: var(--type-section);
+  letter-spacing: var(--ls-tight);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  flex: 0 0 auto;
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  color: var(--text-muted);
+}
+
+.pool {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.poolValue {
+  font: var(--type-amount-md);
+  color: var(--tile-accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tighter);
+}
+
+.poolUnit {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  color: var(--text-muted);
+}
+
+.leader {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding-top: var(--space-4);
+  border-top: var(--border-w) solid var(--border-subtle);
+}
+
+.leaderName {
+  flex: 1;
+  min-width: 0;
+  font: var(--type-caption);
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

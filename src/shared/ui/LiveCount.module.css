@@ -1,0 +1,63 @@
+/*
+  «Здесь сейчас есть кто-то ещё». Точка, число, слово — и ничего больше:
+  как только это начинает выглядеть метрикой, оно перестаёт быть пульсом.
+*/
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  height: 32px;
+  padding: 0 11px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-card);
+  border: var(--border-w) solid var(--border-subtle);
+}
+
+.live[data-size='sm'] {
+  gap: 5px;
+  height: 26px;
+}
+
+.live[data-bare='true'] {
+  height: auto;
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.dot {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--live-tone, var(--free-accent));
+  animation: ds-live-dot 2.4s var(--ease-out) infinite;
+}
+
+.value {
+  font: var(--type-amount-sm);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tight);
+}
+
+.live[data-size='sm'] .value {
+  font: var(--type-micro);
+}
+
+.label {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* На инверсной подложке текст берёт светлые оттенки. */
+.live[data-inverse='true'] .value {
+  color: var(--text-inverse);
+}
+
+.live[data-inverse='true'] .label {
+  color: rgb(255 255 255 / 60%);
+}

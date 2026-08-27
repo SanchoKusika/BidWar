@@ -1,0 +1,41 @@
+/*
+  Делит длинный рейтинг на полосы, до которых имеет смысл целиться. Это только
+  подсказка при чтении: механики за ярусами нет, поэтому цвет экономики они
+  не берут никогда.
+*/
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: 2px 0;
+}
+
+.label {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: var(--radius-pill);
+  border: var(--border-w) solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--tier-tone, var(--text-muted));
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rule {
+  flex: 1;
+  height: var(--border-w);
+  background: var(--border-subtle);
+}
+
+.note {
+  flex: 0 0 auto;
+  font: var(--type-caption);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
