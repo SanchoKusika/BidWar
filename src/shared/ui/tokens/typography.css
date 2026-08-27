@@ -1,0 +1,87 @@
+/* Type scale. Two jobs: dense mobile UI text (--font-ui) and
+   money/vote/rank numbers (--font-numeric, always tabular). */
+:root {
+  --fs-9: 9px;
+  --fs-10: 10px;
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-20: 20px;
+  --fs-24: 24px;
+  --fs-28: 28px;
+  --fs-34: 34px;
+  --fs-40: 40px;
+  --fs-48: 48px;
+
+  --lh-tight: 1.05; /* @kind other */
+  --lh-snug: 1.2; /* @kind other */
+  --lh-normal: 1.4; /* @kind other */
+  --lh-relaxed: 1.55; /* @kind other */
+
+  --fw-regular: 400; /* @kind other */
+  --fw-medium: 500; /* @kind other */
+  --fw-semibold: 600; /* @kind other */
+  --fw-bold: 700; /* @kind other */
+  --fw-black: 800; /* @kind other */
+
+  --ls-tighter: -0.03em; /* @kind other */
+  --ls-tight: -0.015em; /* @kind other */
+  --ls-normal: 0; /* @kind other */
+  --ls-wide: 0.02em; /* @kind other */
+  --ls-caps: 0.08em; /* @kind other */
+
+  /* Composite text styles */
+  --type-display: var(--fw-bold) var(--fs-28)/var(--lh-snug) var(--font-display);
+  --type-title: var(--fw-bold) var(--fs-20)/var(--lh-snug) var(--font-ui);
+  --type-section: var(--fw-bold) var(--fs-15)/var(--lh-snug) var(--font-ui);
+  --type-body: var(--fw-medium) var(--fs-14)/var(--lh-normal) var(--font-ui);
+  --type-body-sm: var(--fw-medium) var(--fs-13)/var(--lh-normal) var(--font-ui);
+  --type-caption: var(--fw-medium) var(--fs-12)/var(--lh-normal) var(--font-ui);
+  --type-micro: var(--fw-semibold) var(--fs-11)/var(--lh-normal) var(--font-ui);
+  --type-label: var(--fw-bold) var(--fs-10)/1.2 var(--font-mono);
+  --type-button: var(--fw-bold) var(--fs-15)/1 var(--font-ui);
+
+  /* Numbers — the load-bearing typography of this product */
+  --type-amount-hero: var(--fw-bold) var(--fs-40)/var(--lh-tight) var(--font-numeric);
+  --type-amount-lg: var(--fw-bold) var(--fs-24)/var(--lh-tight) var(--font-numeric);
+  --type-amount-md: var(--fw-bold) var(--fs-18)/var(--lh-tight) var(--font-numeric);
+  --type-amount-sm: var(--fw-semibold) var(--fs-14)/var(--lh-snug) var(--font-numeric);
+  --type-rank: var(--fw-bold) var(--fs-15)/1 var(--font-numeric);
+}
+
+/* Utility classes — optional, tokens are the contract */
+.ds-num {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: var(--ls-tighter);
+}
+.ds-amount-hero {
+  font: var(--type-amount-hero);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tighter);
+}
+.ds-amount-lg {
+  font: var(--type-amount-lg);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tighter);
+}
+.ds-amount-md {
+  font: var(--type-amount-md);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tight);
+}
+.ds-amount-sm {
+  font: var(--type-amount-sm);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tight);
+}
+.ds-label {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+}

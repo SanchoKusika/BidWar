@@ -1,0 +1,29 @@
+/* Light theme leans on soft ambient shadow; dark theme leans on borders
+   plus a coloured glow for accent surfaces. */
+:root {
+  --shadow-none: none;
+  --shadow-xs: 0 1px 2px rgba(13, 16, 21, 0.05);
+  --shadow-sm: 0 1px 3px rgba(13, 16, 21, 0.06), 0 1px 2px rgba(13, 16, 21, 0.04);
+  --shadow-md: 0 4px 12px rgba(13, 16, 21, 0.07), 0 1px 3px rgba(13, 16, 21, 0.04);
+  --shadow-lg: 0 12px 28px rgba(13, 16, 21, 0.1), 0 2px 6px rgba(13, 16, 21, 0.05);
+  --shadow-sheet: 0 -8px 32px rgba(13, 16, 21, 0.14);
+  --shadow-tabbar: 0 6px 24px rgba(13, 16, 21, 0.16);
+  /* Coloured glows are intentionally OFF — on a phone they read as noise and
+     smear the accent. Tokens kept so existing call sites stay valid. */
+  --glow-paid: none; /* @kind shadow */
+  --glow-free: none; /* @kind shadow */
+  --glow-attack: none; /* @kind shadow */
+  --ring-focus: 0 0 0 3px rgba(255, 91, 26, 0.28);
+  --ring-focus-free: 0 0 0 3px rgba(18, 176, 106, 0.26);
+  --ring-focus-attack: 0 0 0 3px rgba(225, 29, 72, 0.26);
+  --blur-scrim: blur(8px); /* @kind other */
+  --blur-chrome: blur(20px); /* @kind other */
+}
+[data-theme='dark'] {
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 14px 34px rgba(0, 0, 0, 0.6);
+  --shadow-sheet: 0 -8px 36px rgba(0, 0, 0, 0.7);
+  --shadow-tabbar: 0 8px 28px rgba(0, 0, 0, 0.7);
+}

@@ -1,0 +1,268 @@
+/* ── Base palette ─────────────────────────────────────────────────────────
+   Two independent economies drive the palette: money (Paid) is orange,
+   votes (Free) is green. Attack is a separate rose-red so a destructive
+   paid action can never read as "just another money button". */
+:root {
+  /* Neutrals — cool-tinted graphite, not pure grey */
+  --n-0: #ffffff;
+  --n-25: #fbfbfc;
+  --n-50: #f5f6f8;
+  --n-100: #eceef2;
+  --n-200: #dfe2e8;
+  --n-300: #c6ccd6;
+  --n-400: #9aa3b2;
+  --n-500: #6f7889;
+  --n-600: #515a6b;
+  --n-700: #39404e;
+  --n-800: #232934;
+  --n-850: #1a1f27;
+  --n-900: #14181f;
+  --n-950: #0d1015;
+  --n-1000: #07090c;
+
+  /* Paid / money — orange */
+  --paid-50: #fff3ed;
+  --paid-100: #ffe1d2;
+  --paid-200: #ffc0a3;
+  --paid-300: #ff9668;
+  --paid-400: #ff7038;
+  --paid-500: #ff5b1a;
+  --paid-600: #ed4407;
+  --paid-700: #c23305;
+  --paid-800: #8c2504;
+  --paid-900: #5c1802;
+
+  /* Free / votes — green */
+  --free-50: #e8faf0;
+  --free-100: #c9f3dd;
+  --free-200: #95e7bd;
+  --free-300: #57d597;
+  --free-400: #25c37b;
+  --free-500: #12b06a;
+  --free-600: #0a9058;
+  --free-700: #087247;
+  --free-800: #065334;
+  --free-900: #043823;
+
+  /* Attack / danger — rose */
+  --attack-50: #fff0f3;
+  --attack-100: #ffdde3;
+  --attack-200: #ffc0cc;
+  --attack-300: #fb8ba4;
+  --attack-400: #f2547a;
+  --attack-500: #e11d48;
+  --attack-600: #c2113a;
+  --attack-700: #9c0c2f;
+  --attack-800: #6f0721;
+  --attack-900: #4a0416;
+
+  /* Support */
+  --warn-100: #fff2d6;
+  --warn-500: #f5a623;
+  --warn-700: #a86a00;
+  --info-100: #e3edff;
+  --info-500: #3b82f6;
+  --info-700: #1d4ed8;
+  --gold-500: #e8b425;
+
+  /* ── Semantic aliases — LIGHT (default) ──────────────────────────────── */
+  --bg-app: var(--tg-theme-bg-color, var(--n-50));
+  --bg-elevated: var(--tg-theme-secondary-bg-color, var(--n-0));
+  --surface-card: var(--n-0);
+  --surface-sunken: var(--n-100);
+  --surface-inset: var(--n-50);
+  --surface-inverse: var(--n-950);
+  --surface-scrim: rgba(7, 9, 12, 0.48);
+
+  --text-primary: var(--tg-theme-text-color, var(--n-950));
+  --text-secondary: var(--n-600);
+  --text-muted: var(--tg-theme-hint-color, var(--n-400));
+  --text-inverse: var(--n-0);
+  --text-link: var(--tg-theme-link-color, var(--paid-600));
+  --text-link-hover: var(--paid-700);
+
+  --border-subtle: var(--n-100);
+  --border-default: var(--n-200);
+  --border-strong: var(--n-300);
+  --border-focus: var(--paid-500);
+
+  /* Paid segment semantics */
+  --paid-accent: var(--paid-500);
+  --paid-accent-hover: var(--paid-600);
+  --paid-accent-press: var(--paid-700);
+  --paid-on-accent: var(--n-0);
+  --paid-tint: var(--paid-50);
+  --paid-tint-border: var(--paid-100);
+  --paid-text: var(--paid-700);
+  --paid-amount: var(--n-950);
+
+  /* Free segment semantics */
+  --free-accent: var(--free-500);
+  --free-accent-hover: var(--free-600);
+  --free-accent-press: var(--free-700);
+  --free-on-accent: var(--n-0);
+  --free-tint: var(--free-50);
+  --free-tint-border: var(--free-100);
+  --free-text: var(--free-700);
+  --free-amount: var(--n-950);
+
+  /* Attack semantics */
+  --attack-accent: var(--attack-500);
+  --attack-accent-hover: var(--attack-600);
+  --attack-accent-press: var(--attack-700);
+  --attack-on-accent: var(--n-0);
+  --attack-tint: var(--attack-50);
+  --attack-tint-border: var(--attack-100);
+  --attack-text: var(--attack-700);
+
+  /* Movement / rank deltas */
+  --delta-up: var(--free-600);
+  --delta-down: var(--attack-500);
+  --delta-flat: var(--n-400);
+
+  /* Rank badge tiers — the podium is metal, everything below it is neutral.
+     Each medal is a three-stop ramp (hi → mid → lo) so the flame reads as a
+     struck surface, not a flat swatch. -ink is the digit sitting on it,
+     -glow the halo behind it, -line/-wash the podium treatment on the card. */
+  --medal-1-hi: #ffeeb0;
+  --medal-1-mid: #f5bd23;
+  --medal-1-lo: #c1820a;
+  --medal-1-ink: #4a3200;
+  --medal-1-glow: rgba(245, 189, 35, 0.42);
+  --medal-1-line: rgba(193, 130, 10, 0.42);
+  --medal-1-wash: rgba(245, 189, 35, 0.13);
+
+  --medal-2-hi: #ffffff;
+  --medal-2-mid: #c2ccd9;
+  --medal-2-lo: #8b96a6;
+  --medal-2-ink: #2b3340;
+  --medal-2-glow: rgba(150, 166, 187, 0.34);
+  --medal-2-line: rgba(139, 150, 166, 0.42);
+  --medal-2-wash: rgba(150, 166, 187, 0.12);
+
+  --medal-3-hi: #f9cda2;
+  --medal-3-mid: #cf8138;
+  --medal-3-lo: #95511a;
+  --medal-3-ink: #3d2007;
+  --medal-3-glow: rgba(207, 129, 56, 0.34);
+  --medal-3-line: rgba(149, 81, 26, 0.36);
+  --medal-3-wash: rgba(207, 129, 56, 0.11);
+
+  --rank-hot: var(--paid-accent);
+  --rank-hot-tint: var(--paid-tint);
+  --rank-hot-border: var(--paid-tint-border);
+  --rank-default-tint: var(--n-100);
+  --rank-default-text: var(--n-600);
+
+  /* Buttons */
+  --btn-primary-bg: var(--n-950);
+  --btn-primary-fg: var(--n-0);
+  --btn-secondary-bg: var(--n-100);
+  --btn-secondary-fg: var(--n-900);
+  --btn-ghost-fg: var(--n-600);
+  --btn-disabled-bg: var(--n-100);
+  --btn-disabled-fg: var(--n-400);
+
+  /* Skeleton */
+  --skeleton-base: var(--n-100);
+  --skeleton-sheen: var(--n-50);
+
+  color-scheme: light;
+}
+
+/* ── Semantic aliases — DARK ───────────────────────────────────────────────
+   Applied via [data-theme="dark"] on <html>. In a Telegram Mini App set it
+   from Telegram.WebApp.colorScheme; the tg-theme-* fallbacks then win. */
+[data-theme='dark'] {
+  --bg-app: var(--tg-theme-bg-color, var(--n-1000));
+  --bg-elevated: var(--tg-theme-secondary-bg-color, var(--n-950));
+  --surface-card: #101419;
+  --surface-sunken: #0a0d11;
+  --surface-inset: #171c23;
+  /* The inverse panel stays dark in dark theme — it is a raised surface, not a
+     flip. Everything painted on it (rgba(255,255,255,…)) keeps working. */
+  --surface-inverse: #1c222b;
+  --surface-scrim: rgba(0, 0, 0, 0.66);
+
+  --text-primary: var(--tg-theme-text-color, #f4f6f8);
+  --text-secondary: #a6afbd;
+  --text-muted: var(--tg-theme-hint-color, #6d7684);
+  --text-inverse: #f4f6f8;
+  --text-link: var(--tg-theme-link-color, var(--paid-400));
+  --text-link-hover: var(--paid-300);
+
+  --border-subtle: #1d232c;
+  --border-default: #262d38;
+  --border-strong: #333c4a;
+  --border-focus: var(--paid-400);
+
+  --paid-accent: var(--paid-500);
+  --paid-accent-hover: var(--paid-400);
+  --paid-accent-press: var(--paid-600);
+  --paid-tint: rgba(255, 91, 26, 0.14);
+  --paid-tint-border: rgba(255, 91, 26, 0.28);
+  --paid-text: var(--paid-300);
+  --paid-amount: #ffffff;
+
+  --free-accent: var(--free-400);
+  --free-accent-hover: var(--free-300);
+  --free-accent-press: var(--free-500);
+  --free-on-accent: #04120b;
+  --free-tint: rgba(37, 195, 123, 0.14);
+  --free-tint-border: rgba(37, 195, 123, 0.28);
+  --free-text: var(--free-300);
+  --free-amount: #ffffff;
+
+  --attack-accent: var(--attack-500);
+  --attack-accent-hover: var(--attack-400);
+  --attack-accent-press: var(--attack-600);
+  --attack-tint: rgba(225, 29, 72, 0.16);
+  --attack-tint-border: rgba(225, 29, 72, 0.3);
+  --attack-text: var(--attack-300);
+
+  --delta-up: var(--free-400);
+  --delta-down: var(--attack-400);
+  --delta-flat: #6d7684;
+
+  /* On a dark surface the metals need a brighter floor or they read as mud,
+     and the halo has to carry more of the podium than the ramp does. */
+  --medal-1-hi: #fff3c4;
+  --medal-1-mid: #f7c93f;
+  --medal-1-lo: #cf8f12;
+  --medal-1-ink: #3a2600;
+  --medal-1-glow: rgba(247, 201, 63, 0.34);
+  --medal-1-line: rgba(247, 201, 63, 0.44);
+  --medal-1-wash: rgba(247, 201, 63, 0.1);
+
+  --medal-2-hi: #ffffff;
+  --medal-2-mid: #d3dbe6;
+  --medal-2-lo: #95a1b1;
+  --medal-2-ink: #222933;
+  --medal-2-glow: rgba(190, 202, 218, 0.26);
+  --medal-2-line: rgba(190, 202, 218, 0.36);
+  --medal-2-wash: rgba(190, 202, 218, 0.08);
+
+  --medal-3-hi: #fbd6b0;
+  --medal-3-mid: #dc8f45;
+  --medal-3-lo: #a35c20;
+  --medal-3-ink: #331a05;
+  --medal-3-glow: rgba(220, 143, 69, 0.28);
+  --medal-3-line: rgba(220, 143, 69, 0.36);
+  --medal-3-wash: rgba(220, 143, 69, 0.09);
+
+  --rank-default-tint: #1d232c;
+  --rank-default-text: #a6afbd;
+
+  --btn-primary-bg: var(--n-0);
+  --btn-primary-fg: var(--n-950);
+  --btn-secondary-bg: #1d232c;
+  --btn-secondary-fg: #f4f6f8;
+  --btn-ghost-fg: #a6afbd;
+  --btn-disabled-bg: #1a1f27;
+  --btn-disabled-fg: #4c5563;
+
+  --skeleton-base: #171c23;
+  --skeleton-sheen: #22293380;
+
+  color-scheme: dark;
+}

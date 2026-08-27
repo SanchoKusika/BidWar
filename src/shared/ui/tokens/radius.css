@@ -1,0 +1,18 @@
+:root {
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-3xl: 28px;
+  --radius-pill: 999px;
+
+  --radius-card: var(--radius-lg); /* project cards, list rows */
+  --radius-panel: var(--radius-2xl); /* sheets, hero panels */
+  --radius-control: var(--radius-md); /* buttons, inputs */
+  --radius-thumb: var(--radius-md); /* OG preview */
+  --radius-badge: var(--radius-pill);
+  --border-w: 1px;
+  --border-w-thick: 1.5px;
+}

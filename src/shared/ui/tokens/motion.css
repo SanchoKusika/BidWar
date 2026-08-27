@@ -1,0 +1,116 @@
+/* Fast, mechanical, no bounce. Money moving should feel like a ticker,
+   not a toy. Press = 0.97 scale + darker fill. */
+:root {
+  --dur-instant: 80ms; /* @kind other */
+  --dur-fast: 120ms; /* @kind other */
+  --dur-base: 180ms; /* @kind other */
+  --dur-slow: 260ms; /* @kind other */
+  --dur-sheet: 320ms; /* @kind other */
+  --dur-ticker: 600ms; /* @kind other */
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1); /* @kind other */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1); /* @kind other */
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1); /* @kind other */
+
+  --press-scale: 0.97; /* @kind other */
+  --hover-opacity: 0.88; /* @kind other */
+
+  --t-control:
+    transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+@keyframes ds-skeleton {
+  0% {
+    background-position: -160% 0;
+  }
+  100% {
+    background-position: 260% 0;
+  }
+}
+@keyframes ds-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ds-pulse-attack {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(225, 29, 72, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(225, 29, 72, 0.18);
+  }
+}
+@keyframes ds-flame {
+  0%,
+  100% {
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    transform: scale(1.16) translateY(-1px);
+  }
+}
+@keyframes ds-flame-breathe {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.07);
+  }
+}
+/* Inner core of a podium flame: faster than the body and slightly off-centre,
+   so the two layers never peak together and the badge looks lit, not scaled. */
+@keyframes ds-flame-core {
+  0%,
+  100% {
+    transform: translate(-50%, -46%) scale(0.92);
+    opacity: 0.5;
+  }
+  44% {
+    transform: translate(-50%, -50%) scale(1.08);
+    opacity: 0.92;
+  }
+}
+/* Heartbeat for LiveCount: the dot breathes, it does not blink — a hard on/off
+   reads as an error state. */
+@keyframes ds-live-dot {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.86);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes ds-flame-halo {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.12);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  :root {
+    --dur-fast: 0ms; /* @kind other */
+    --dur-base: 0ms; /* @kind other */
+    --dur-slow: 0ms; /* @kind other */
+    --dur-sheet: 0ms; /* @kind other */
+    --press-scale: 1; /* @kind other */
+  }
+}

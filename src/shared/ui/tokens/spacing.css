@@ -1,0 +1,32 @@
+/* 4px base. Mobile-first: design width 360-480, single column. */
+:root {
+  --space-0: 0px;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 10px;
+  --space-6: 12px;
+  --space-7: 14px;
+  --space-8: 16px;
+  --space-10: 20px;
+  --space-12: 24px;
+  --space-14: 28px;
+  --space-16: 32px;
+  --space-20: 40px;
+  --space-24: 48px;
+  --space-32: 64px;
+
+  /* Layout */
+  --grid-base: 4px;
+  --page-gutter: var(--space-8); /* 16px left/right on every screen */
+  --page-max: 480px; /* @kind spacing */ /* centered on desktop web */
+  --stack-gap: var(--space-4); /* gap between feed rows */
+  --section-gap: var(--space-12); /* gap between page sections */
+  --card-pad: var(--space-6); /* 12px inside a project card */
+  --card-pad-lg: var(--space-8); /* 16px inside a hero/panel card */
+  --tabbar-h: 64px;
+  --tabbar-safe: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
+  --content-bottom-pad: calc(var(--tabbar-safe) + var(--space-12));
+  --hit-min: 44px; /* never smaller */
+}
