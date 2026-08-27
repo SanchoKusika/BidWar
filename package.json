@@ -12,6 +12,10 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc -b --noEmit",
     "check:platform": "bash scripts/check-platform-isolation.sh",
+    "db:reset": "supabase db reset",
+    "db:push": "supabase db push",
+    "db:diff": "supabase db diff --linked",
+    "db:types": "supabase gen types typescript --linked > src/shared/api/database.types.ts",
     "check": "npm run typecheck && npm run lint && npm run check:platform"
   },
   "dependencies": {
@@ -31,6 +35,7 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "prettier": "^3.6.2",
+    "supabase": "^2.116.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.0",
     "vite": "^7.1.12"
