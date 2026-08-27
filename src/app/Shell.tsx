@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { fetchHealth } from '@/shared/api';
 import { getPlatform } from '@/shared/platform';
 import { bindTheme } from './theme';
 import styles from './Shell.module.css';
@@ -10,6 +11,7 @@ import styles from './Shell.module.css';
 export function Shell() {
   const platform = getPlatform();
   const [scheme, setScheme] = useState(platform.getColorScheme());
+  const [backend, setBackend] = useState('проверяем…');
 
   useEffect(() => {
     platform.ready();
@@ -21,6 +23,16 @@ export function Shell() {
     };
   }, [platform]);
 
+  useEffect(() => {
+    let cancelled = false;
+    fetchHealth()
+      .then((health) => !cancelled && setBackend(`ok · ${health.version}`))
+      .catch(() => !cancelled && setBackend('нет связи'));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <main className={styles.screen}>
       <section className={styles.card}>
@@ -29,6 +41,7 @@ export function Shell() {
         </h1>
         <Row label="ПЛОЩАДКА" value={platform.name} />
         <Row label="ТЕМА" value={scheme} />
+        <Row label="БЭКЕНД" value={backend} />
       </section>
     </main>
   );
