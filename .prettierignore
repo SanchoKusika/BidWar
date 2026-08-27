@@ -1,3 +1,5 @@
 dist
 node_modules
 package-lock.json
+# генерируется `npm run db:types`, форматируется генератором
+src/shared/api/database.types.ts
