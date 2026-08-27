@@ -5,7 +5,7 @@ export type Segment = 'paid' | 'free';
 
 export interface OgPreviewProps {
   /** Ссылка на og:image, подтянутую с сайта проекта. */
-  src?: string | undefined;
+  src?: string;
   name?: string;
   size?: number;
   radius?: string;
