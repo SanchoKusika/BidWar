@@ -167,8 +167,10 @@ export interface ShowcaseScreenProps {
  * а stake_transactions/vote_transactions пока не пишутся вообще (Raise/
  * Attack/Vote — Срезы 1.5–1.7). Подделывать эти данные не стал.
  *
- * Raise/Attack/Vote/Add project ещё не подключены — кнопки видны (пиксель
- * в пиксель как в ките), но неактивны до своих срезов.
+ * Raise/Attack/Vote ещё не подключены — кнопки видны (пиксель в пиксель как
+ * в ките), но неактивны до своих срезов. Add project — рабочая, но только на
+ * Free Top (onAddProject приходит от вызывающей страницы); на Paid Top вход
+ * требует оплаты (Срез 1.5), там кнопка тоже неактивна.
  */
 export function ShowcaseScreen({
   segment,

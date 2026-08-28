@@ -1,4 +1,4 @@
-import { getSupabase } from '@/shared/api';
+import { getSupabase, functionErrorMessage } from '@/shared/api';
 import type { Tables } from '@/shared/api';
 import type { ProjectCursor, ProjectListItem, ProjectPage, ShowcaseType } from './types';
 
@@ -253,7 +253,7 @@ export async function createProject(params: CreateProjectParams): Promise<Projec
     method: 'POST',
     body: params,
   });
-  if (error) throw error;
+  if (error) throw new Error(await functionErrorMessage(error, 'Не удалось добавить проект'));
   if (!data) throw new Error('add-project ответил пусто');
   return mapRow(data);
 }
@@ -269,6 +269,6 @@ export async function registerClick(params: RegisterClickParams): Promise<boolea
     method: 'POST',
     body: params,
   });
-  if (error) throw error;
+  if (error) throw new Error(await functionErrorMessage(error, 'Не удалось засчитать клик'));
   return data?.counted ?? false;
 }

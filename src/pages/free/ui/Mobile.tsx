@@ -54,7 +54,9 @@ export function FreeMobile() {
           if (initData) registerClick({ initData, projectId: item.id }).catch(() => {});
           getPlatform().openLink(item.url);
         }}
-        onAddProject={userId ? () => setAddOpen(true) : undefined}
+        // Своя запись уже есть — предлагать вторую бессмысленно, она всё
+        // равно упадёт в 23505 (код-ревью PR #12).
+        onAddProject={userId && !own.project ? () => setAddOpen(true) : undefined}
       />
 
       <AddProjectForm

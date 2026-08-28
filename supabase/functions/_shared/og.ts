@@ -8,9 +8,10 @@
  * A/AAAA-записью на приватный адрес (включая заход доменом на
  * 169.254.169.254). DNS-rebinding (запись меняется между проверкой и самим
  * fetch) этим не закрывается — нужен свой HTTP-клиент с ручным резолвом
- * соединения, для MVP это лишнее. Если резолв в рантайме недоступен —
- * не глушим фичу молча, а падаем в failed с логом, чтобы разрыв был виден
- * в логах, а не спрятан.
+ * соединения, для MVP это лишнее. Резолв в этом рантайме проверен вживую
+ * (28.08.2026) и работает; если он всё же откажет — отказ закрывает доступ,
+ * а не открывает: молча пропустить непроверенный хост значило бы свести
+ * весь смысл файла на нет.
  */
 
 const MAX_REDIRECTS = 3;
@@ -63,29 +64,23 @@ async function assertHostAllowed(hostname: string): Promise<void> {
   if (isBlockedIp(lower)) throw new BlockedUrlError(`IP вне разрешённого диапазона: ${hostname}`);
   if (/^\d{1,3}(\.\d{1,3}){3}$/.test(lower)) return; // публичный v4-литерал, уже проверен выше
 
+  let v4: string[];
+  let v6: string[];
   try {
-    const [v4, v6] = await Promise.all([
+    [v4, v6] = await Promise.all([
       Deno.resolveDns(hostname, 'A').catch(() => [] as string[]),
       Deno.resolveDns(hostname, 'AAAA').catch(() => [] as string[]),
     ]);
-    const resolved = [...v4, ...v6];
-    if (resolved.length === 0) throw new BlockedUrlError(`Не удалось разрешить хост: ${hostname}`);
-    if (resolved.some((ip) => isBlockedIp(ip))) {
-      throw new BlockedUrlError(`Хост резолвится в приватный адрес: ${hostname}`);
-    }
   } catch (error) {
-    if (error instanceof BlockedUrlError) throw error;
-    // Deno.resolveDns недоступен в этом рантайме — не можем подтвердить
-    // адрес, но и не станем стопорить фичу об это: подробность в лог.
-    console.warn(
-      JSON.stringify({
-        level: 'warn',
-        fn: 'og',
-        message: 'dns resolve unavailable, proceeding without pre-check',
-        hostname,
-        error: String(error),
-      }),
-    );
+    // Отказ резолва закрывает доступ, а не открывает: непроверенный хост —
+    // не то же самое, что проверенный и чистый (код-ревью PR #12).
+    throw new BlockedUrlError(`Не удалось проверить хост: ${hostname} (${String(error)})`);
+  }
+
+  const resolved = [...v4, ...v6];
+  if (resolved.length === 0) throw new BlockedUrlError(`Не удалось разрешить хост: ${hostname}`);
+  if (resolved.some((ip) => isBlockedIp(ip))) {
+    throw new BlockedUrlError(`Хост резолвится в приватный адрес: ${hostname}`);
   }
 }
 
