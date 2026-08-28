@@ -4,6 +4,8 @@ export {
   fetchMyProject,
   fetchNeighborAbove,
   fetchTopProject,
+  createProject,
+  registerClick,
 } from './api';
 export { useShowcase, useOwnPosition, useTopProject } from './model';
 export type { ShowcaseType, ProjectListItem, ProjectCursor, ProjectPage } from './types';
@@ -12,5 +14,7 @@ export type {
   FetchProjectRankParams,
   FetchNeighborAboveParams,
   NeighborProject,
+  CreateProjectParams,
+  RegisterClickParams,
 } from './api';
-export type { ShowcaseState, OwnPositionState } from './model';
+export type { ShowcaseState, OwnPositionState, TopProjectState } from './model';

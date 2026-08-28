@@ -115,6 +115,8 @@ export interface OwnPositionState {
   /** Строка прямо над своей — «сколько нужно, чтобы обойти». */
   neighborAbove: NeighborProject | null;
   loading: boolean;
+  /** Пересчитать после события, которое меняет свою запись (например, Add Project). */
+  retry: () => void;
 }
 
 interface OwnResult {
@@ -141,14 +143,15 @@ export function useOwnPosition(
   userId: string | null,
 ): OwnPositionState {
   const [result, setResult] = useState<OwnResult>(EMPTY_OWN);
+  const [reloadToken, setReloadToken] = useState(0);
 
-  const currentKey = userId ? ownKey(type, categoryId, userId) : null;
+  const currentKey = userId ? `${ownKey(type, categoryId, userId)}:${reloadToken}` : null;
   const loading = currentKey !== null && result.key !== currentKey;
 
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
-    const key = ownKey(type, categoryId, userId);
+    const key = `${ownKey(type, categoryId, userId)}:${reloadToken}`;
 
     fetchMyProject(userId, type)
       .then((mine) => {
@@ -180,7 +183,7 @@ export function useOwnPosition(
     return () => {
       cancelled = true;
     };
-  }, [type, categoryId, userId]);
+  }, [type, categoryId, userId, reloadToken]);
 
   // Гость/сессия ещё не готова — не показываем данные предыдущего userId,
   // даже если result их ещё хранит (эффект тут ничего не чистит синхронно).
@@ -189,12 +192,20 @@ export function useOwnPosition(
     rank: userId ? result.rank : null,
     neighborAbove: userId ? result.neighborAbove : null,
     loading,
+    retry: () => setReloadToken((n) => n + 1),
   };
 }
 
 /** Имя глобального лидера — для плитки «All» (не зависит от текущего фильтра). */
-export function useTopProject(type: ShowcaseType): string | null {
+export interface TopProjectState {
+  name: string | null;
+  /** Пересчитать после события, которое может сменить глобального лидера. */
+  retry: () => void;
+}
+
+export function useTopProject(type: ShowcaseType): TopProjectState {
   const [name, setName] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -208,7 +219,7 @@ export function useTopProject(type: ShowcaseType): string | null {
     return () => {
       cancelled = true;
     };
-  }, [type]);
+  }, [type, reloadToken]);
 
-  return name;
+  return { name, retry: () => setReloadToken((n) => n + 1) };
 }

@@ -6,32 +6,43 @@ import type { ShowcaseType } from '@/entities/project';
 export interface CategoryStatsState {
   categories: CategoryStat[];
   loading: boolean;
+  /** Пересчитать после события, которое меняет пул/лидера (например, Add Project). */
+  retry: () => void;
 }
+
+interface Result {
+  key: string;
+  categories: CategoryStat[];
+}
+
+const EMPTY: Result = { key: '', categories: [] };
 
 /** Плитки категорий для текущей витрины — грузятся один раз на тип. */
 export function useCategoryStats(type: ShowcaseType): CategoryStatsState {
-  const [categories, setCategories] = useState<CategoryStat[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [reloadToken, setReloadToken] = useState(0);
+  const [result, setResult] = useState<Result>(EMPTY);
+
+  const currentKey = `${type}:${reloadToken}`;
+  const loading = result.key !== currentKey;
 
   useEffect(() => {
     let cancelled = false;
+    const key = `${type}:${reloadToken}`;
 
     fetchCategoryStats(type)
       .then((stats) => {
-        if (!cancelled) setCategories(stats);
+        if (!cancelled) setResult({ key, categories: stats });
       })
       .catch(() => {
         // Плитки категорий — вспомогательная навигация, не критичный путь:
         // тихо остаёмся с пустым списком, витрина всё равно работает без него.
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setResult({ key, categories: [] });
       });
 
     return () => {
       cancelled = true;
     };
-  }, [type]);
+  }, [type, reloadToken]);
 
-  return { categories, loading };
+  return { categories: result.categories, loading, retry: () => setReloadToken((n) => n + 1) };
 }

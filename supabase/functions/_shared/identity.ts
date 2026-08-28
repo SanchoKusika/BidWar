@@ -1,21 +1,5 @@
-import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import type { TelegramUser } from './telegram.ts';
-
-let adminClient: SupabaseClient | undefined;
-
-/** service_role-клиент: обходит RLS, только для использования внутри Edge Functions. */
-function getAdminClient(): SupabaseClient {
-  if (adminClient) return adminClient;
-
-  const url = Deno.env.get('SUPABASE_URL');
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  if (!url || !serviceRoleKey) {
-    throw new Error('SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY не заданы в окружении функции');
-  }
-
-  adminClient = createClient(url, serviceRoleKey, { auth: { persistSession: false } });
-  return adminClient;
-}
+import { getAdminClient } from './db.ts';
 
 function displayNameOf(user: TelegramUser): string {
   const full = [user.first_name, user.last_name].filter(Boolean).join(' ').trim();

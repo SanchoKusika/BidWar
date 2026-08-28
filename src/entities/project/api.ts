@@ -1,4 +1,4 @@
-import { getSupabase } from '@/shared/api';
+import { getSupabase, functionErrorMessage } from '@/shared/api';
 import type { Tables } from '@/shared/api';
 import type { ProjectCursor, ProjectListItem, ProjectPage, ShowcaseType } from './types';
 
@@ -236,4 +236,39 @@ export async function fetchNeighborAbove({
   if (!row) return null;
 
   return { name: row.name, metric: metricFromRow(row) };
+}
+
+export interface CreateProjectParams {
+  initData: string;
+  categoryId: number;
+  url: string;
+}
+
+/**
+ * Только Free Top: платный вход — это открывающий Raise-платёж (Срез 1.5),
+ * а не голая вставка строки. См. комментарий в supabase/functions/add-project.
+ */
+export async function createProject(params: CreateProjectParams): Promise<ProjectListItem> {
+  const { data, error } = await getSupabase().functions.invoke<Row>('add-project', {
+    method: 'POST',
+    body: params,
+  });
+  if (error) throw new Error(await functionErrorMessage(error, 'Не удалось добавить проект'));
+  if (!data) throw new Error('add-project ответил пусто');
+  return mapRow(data);
+}
+
+export interface RegisterClickParams {
+  initData: string;
+  projectId: number;
+}
+
+/** true — клик засчитан впервые сегодня; false — уже кликал, счётчик не менялся. */
+export async function registerClick(params: RegisterClickParams): Promise<boolean> {
+  const { data, error } = await getSupabase().functions.invoke<{ counted: boolean }>('click', {
+    method: 'POST',
+    body: params,
+  });
+  if (error) throw new Error(await functionErrorMessage(error, 'Не удалось засчитать клик'));
+  return data?.counted ?? false;
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useShowcase, useOwnPosition, useTopProject } from '@/entities/project';
 import { useCategoryStats } from '@/entities/category';
 import { fetchPaidLimits } from '@/shared/api';
-import type { ShowcaseState, OwnPositionState } from '@/entities/project';
+import type { ShowcaseState, OwnPositionState, TopProjectState } from '@/entities/project';
 import type { CategoryStatsState } from '@/entities/category';
 
 export function usePaidShowcase(): ShowcaseState {
@@ -20,7 +20,7 @@ export function usePaidCategories(): CategoryStatsState {
   return useCategoryStats('paid');
 }
 
-export function usePaidTopProject(): string | null {
+export function usePaidTopProject(): TopProjectState {
   return useTopProject('paid');
 }
 
