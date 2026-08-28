@@ -13,6 +13,10 @@ interface TelegramUpdate {
   // в Срезах 1.7 и 1.10, когда до них доходит очередь.
 }
 
+// `startsWith('/start')` ловил бы и "/startup ...". В группах Telegram шлёт
+// `/start@BotName <payload>` — суффикс с юзернеймом бота тоже нужно отрезать.
+const START_COMMAND_RE = /^\/start(?:@\w+)?(?:\s+(.+))?$/;
+
 /**
  * Вебхук бота. Сейчас обрабатывает только `/start [referrer]` — регистрация
  * и приём реферального параметра. Остальные типы апдейтов Telegram всё равно
@@ -32,9 +36,10 @@ serve('bot', async (req, ctx) => {
 
   const update = await ctx.body<TelegramUpdate>();
   const message = update.message;
+  const match = message?.text ? START_COMMAND_RE.exec(message.text) : null;
 
-  if (message?.from && message.text?.startsWith('/start')) {
-    const startParam = message.text.slice('/start'.length).trim() || null;
+  if (message?.from && match) {
+    const startParam = match[1]?.trim() || null;
     const result = await resolveTelegramUser(message.from, startParam);
     ctx.log('/start resolved', { userId: result.userId, isNew: result.isNew });
   }

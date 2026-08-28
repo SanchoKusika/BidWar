@@ -40,6 +40,19 @@ async function hmacSha256(key: Uint8Array, message: string): Promise<Uint8Array>
   return new Uint8Array(signature);
 }
 
+// bot_token один и тот же в пределах жизни изолята — пересчитывать HMAC от
+// него на каждый запрос незачем, кэшируем как getAdminClient() в identity.ts.
+const secretKeyCache = new Map<string, Uint8Array>();
+
+async function getSecretKey(botToken: string): Promise<Uint8Array> {
+  let key = secretKeyCache.get(botToken);
+  if (!key) {
+    key = await hmacSha256(new TextEncoder().encode('WebAppData'), botToken);
+    secretKeyCache.set(botToken, key);
+  }
+  return key;
+}
+
 function toHex(bytes: Uint8Array): string {
   return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, '0'))
@@ -73,7 +86,7 @@ export async function verifyInitData(
     .map((key) => `${key}=${params.get(key)}`)
     .join('\n');
 
-  const secretKey = await hmacSha256(new TextEncoder().encode('WebAppData'), botToken);
+  const secretKey = await getSecretKey(botToken);
   const computedHash = toHex(await hmacSha256(secretKey, dataCheckString));
 
   if (!timingSafeEqual(computedHash, hash)) return null;

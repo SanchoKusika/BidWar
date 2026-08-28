@@ -51,8 +51,12 @@ begin
     set meta = p_meta
     where provider = 'telegram' and provider_uid = p_telegram_id;
 
+    -- p_avatar_url — null у любого апдейта из вебхука бота (Bot API его не
+    -- отдаёт вообще, только initData Mini App иногда) и у initData без
+    -- фото. Затирать сохранённый avatar_url отсутствием значения нельзя —
+    -- coalesce меняет его только когда пришло реальное новое фото.
     update public.users
-    set display_name = p_display_name, avatar_url = p_avatar_url
+    set display_name = p_display_name, avatar_url = coalesce(p_avatar_url, avatar_url)
     where id = v_user_id;
 
     return query select v_user_id, false;
