@@ -14,6 +14,7 @@ import {
 } from '@/shared/lib/format';
 import { CATEGORY_ICON, type CategoryStat } from '@/entities/category';
 import type { NeighborProject, ProjectListItem, ShowcaseType } from '@/entities/project';
+import type { SessionStatus } from '@/entities/user';
 import { PageHeader } from './PageHeader';
 import { OwnPositionPanel } from './OwnPositionPanel';
 import styles from './ShowcaseScreen.module.css';
@@ -145,6 +146,9 @@ export interface ShowcaseScreenProps {
   /** Баланс голосов — только для Free Top, справа в шапке. */
   voteBalance: number | null;
   userId: string | null;
+  /** 'error' — initData не прошёл проверку/сеть моргнула, показываем это явно. */
+  sessionStatus: SessionStatus;
+  sessionErrorMessage: string | null;
   items: ProjectListItem[];
   loading: boolean;
   loadingMore: boolean;
@@ -186,6 +190,8 @@ export function ShowcaseScreen({
   ownLoading,
   voteBalance,
   userId,
+  sessionStatus,
+  sessionErrorMessage,
   items,
   loading,
   loadingMore,
@@ -240,6 +246,16 @@ export function ShowcaseScreen({
       />
 
       <div className={styles.body}>
+        {sessionStatus === 'error' && (
+          <div className={styles.ownSkeleton}>
+            <EmptyState
+              icon="triangle-alert"
+              title="Не удалось войти"
+              description={sessionErrorMessage ?? 'Попробуй закрыть мини-апп и открыть его заново.'}
+            />
+          </div>
+        )}
+
         {userId && (
           <>
             {ownLoading ? (

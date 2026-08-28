@@ -29,9 +29,18 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             displayName: result.displayName,
             avatarUrl: result.avatarUrl,
             voteBalance: result.voteBalance,
+            errorMessage: null,
           }),
       )
-      .catch(() => !cancelled && setSession({ ...EMPTY_SESSION, status: 'error' }));
+      .catch(
+        (error) =>
+          !cancelled &&
+          setSession({
+            ...EMPTY_SESSION,
+            status: 'error',
+            errorMessage: error instanceof Error ? error.message : String(error),
+          }),
+      );
 
     return () => {
       cancelled = true;

@@ -1,4 +1,5 @@
 import { getSupabase } from './client';
+import { functionErrorMessage } from './errors';
 
 export interface AuthResult {
   userId: string;
@@ -18,7 +19,7 @@ export async function authenticate(initData: string): Promise<AuthResult> {
     method: 'POST',
     body: { initData },
   });
-  if (error) throw error;
+  if (error) throw new Error(await functionErrorMessage(error, 'Не удалось войти'));
   if (!data) throw new Error('auth ответил пусто');
   return data;
 }
