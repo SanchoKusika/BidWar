@@ -11,7 +11,7 @@ import {
 } from '../model';
 
 export function PaidMobile() {
-  const { userId } = useSession();
+  const { userId, status: sessionStatus, errorMessage: sessionErrorMessage } = useSession();
   const showcase = usePaidShowcase();
   const categories = usePaidCategories();
   const own = usePaidOwnPosition(showcase.categoryId, userId);
@@ -32,6 +32,8 @@ export function PaidMobile() {
       ownLoading={own.loading}
       voteBalance={null}
       userId={userId}
+      sessionStatus={sessionStatus}
+      sessionErrorMessage={sessionErrorMessage}
       items={showcase.items}
       loading={showcase.loading}
       loadingMore={showcase.loadingMore}

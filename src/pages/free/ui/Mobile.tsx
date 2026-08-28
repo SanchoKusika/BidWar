@@ -12,7 +12,12 @@ import {
 } from '../model';
 
 export function FreeMobile() {
-  const { userId, voteBalance } = useSession();
+  const {
+    userId,
+    voteBalance,
+    status: sessionStatus,
+    errorMessage: sessionErrorMessage,
+  } = useSession();
   const showcase = useFreeShowcase();
   const categories = useFreeCategories();
   const own = useFreeOwnPosition(showcase.categoryId, userId);
@@ -41,6 +46,8 @@ export function FreeMobile() {
         ownLoading={own.loading}
         voteBalance={voteBalance}
         userId={userId}
+        sessionStatus={sessionStatus}
+        sessionErrorMessage={sessionErrorMessage}
         items={showcase.items}
         loading={showcase.loading}
         loadingMore={showcase.loadingMore}

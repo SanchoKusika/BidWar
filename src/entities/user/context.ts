@@ -10,6 +10,8 @@ export interface Session {
   avatarUrl: string | null;
   /** Баланс голосов — единственный баланс в продукте, деньги нигде не хранятся. */
   voteBalance: number | null;
+  /** Текст ошибки auth — только при status === 'error', для видимой диагностики. */
+  errorMessage: string | null;
 }
 
 export const EMPTY_SESSION: Session = {
@@ -18,6 +20,7 @@ export const EMPTY_SESSION: Session = {
   displayName: null,
   avatarUrl: null,
   voteBalance: null,
+  errorMessage: null,
 };
 
 export const SessionContext = createContext<Session>(EMPTY_SESSION);
