@@ -6,9 +6,9 @@ import type { CategoryStat } from './types';
 export async function fetchCategoryStats(type: ShowcaseType): Promise<CategoryStat[]> {
   const { data, error } = await getSupabase()
     .from('category_stats')
-    .select('category_id, slug, title, project_count, pool, leader_name')
+    .select('category_id, slug, title, sort_order, project_count, pool, leader_name')
     .eq('type', type)
-    .order('category_id', { ascending: true });
+    .order('sort_order', { ascending: true });
 
   if (error) throw error;
 

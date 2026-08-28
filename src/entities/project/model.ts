@@ -67,18 +67,25 @@ export function useShowcase(type: ShowcaseType): ShowcaseState {
   const loadMore = useCallback(() => {
     if (!result.cursor || loadingMore) return;
 
+    // Ключ фиксируется на момент вызова: если за время запроса сменился тип
+    // фильтра (или прошёл reload), результат другой страницы не подмешается
+    // в уже показанный список — просто тихо отбрасывается ниже.
+    const key = showcaseKey(type, categoryId, reloadToken);
+
     setLoadingMore(true);
     fetchProjects({ type, categoryId, cursor: result.cursor })
       .then((page) => {
-        setResult((prev) => ({
-          ...prev,
-          items: [...prev.items, ...page.items],
-          cursor: page.nextCursor,
-        }));
+        setResult((prev) => {
+          if (prev.key !== key) return prev;
+          return { ...prev, items: [...prev.items, ...page.items], cursor: page.nextCursor };
+        });
       })
-      .catch(() => setResult((prev) => ({ ...prev, error: true })))
+      .catch(() => {
+        // Оставляем список и курсор как есть — кнопка «Показать ещё» никуда
+        // не девается, повторный тап и есть retry, терять уже загруженное незачем.
+      })
       .finally(() => setLoadingMore(false));
-  }, [type, categoryId, result.cursor, loadingMore]);
+  }, [type, categoryId, reloadToken, result.cursor, loadingMore]);
 
   return {
     items: result.items,
@@ -141,7 +148,16 @@ export function useOwnPosition(
           return undefined;
         }
         const metric = type === 'paid' ? mine.paidAmount : mine.votes;
-        return fetchProjectRank({ projectId: mine.id, type, metric, categoryId }).then((rank) => {
+        // Разрез фильтра применяем, только если он и есть категория своего
+        // проекта — иначе «твоя позиция» считалась бы среди чужой категории,
+        // в которой проект вообще не участвует (см. код-ревью PR #9).
+        const scopeCategoryId = categoryId === mine.categoryId ? categoryId : null;
+        return fetchProjectRank({
+          projectId: mine.id,
+          type,
+          metric,
+          categoryId: scopeCategoryId,
+        }).then((rank) => {
           if (!cancelled) setResult({ key, project: mine, rank });
         });
       })

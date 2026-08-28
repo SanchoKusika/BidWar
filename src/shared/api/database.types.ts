@@ -588,6 +588,7 @@ export type Database = {
           pool: number | null
           project_count: number | null
           slug: string | null
+          sort_order: number | null
           title: string | null
           type: string | null
         }

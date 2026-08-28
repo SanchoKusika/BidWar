@@ -8,6 +8,7 @@ select
   c.id as category_id,
   c.slug,
   c.title,
+  c.sort_order,
   'paid'::text as type,
   count(pr.id) filter (where pr.status = 'active') as project_count,
   coalesce(sum(pr.paid_amount) filter (where pr.status = 'active'), 0) as pool,
@@ -15,7 +16,8 @@ select
     filter (where pr.status = 'active'))[1] as leader_name
 from categories c
 left join projects pr on pr.category_id = c.id and pr.type = 'paid'
-group by c.id, c.slug, c.title
+where c.is_active
+group by c.id, c.slug, c.title, c.sort_order
 
 union all
 
@@ -23,6 +25,7 @@ select
   c.id,
   c.slug,
   c.title,
+  c.sort_order,
   'free'::text,
   count(pr.id) filter (where pr.status = 'active'),
   coalesce(sum(pr.votes) filter (where pr.status = 'active'), 0),
@@ -30,9 +33,12 @@ select
     filter (where pr.status = 'active'))[1]
 from categories c
 left join projects pr on pr.category_id = c.id and pr.type = 'free'
-group by c.id, c.slug, c.title;
+where c.is_active
+group by c.id, c.slug, c.title, c.sort_order;
 
 -- Вид выполняется с правами вызывающей роли (обычный view, не security
 -- definer) — RLS на projects всё равно фильтрует до status='active' для
 -- anon, filter(...) выше защищает от service_role, который RLS обходит.
-grant select on category_stats to anon;
+-- anon, authenticated — тот же набор ролей, что и у остальных публичных
+-- таблиц (categories, projects, tasks) в исходной миграции.
+grant select on category_stats to anon, authenticated;
