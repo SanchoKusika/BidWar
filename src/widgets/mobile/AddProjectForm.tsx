@@ -13,10 +13,12 @@ export interface AddProjectFormProps {
 }
 
 /**
- * Своего экрана в дизайн-ките нет (readme.md — среди шторок Add Project не
- * перечислен), поэтому собрана из тех же токенов и той же шторки (Sheet),
- * что и остальной кит, а не с нуля. Пока только Free Top — см. комментарий
- * в entities/project/api.ts createProject.
+ * Своего экрана в дизайн-ките нет, но есть AddProjectSheet (Sheets.jsx) —
+ * тот же заголовок «иконка + тайтл + подпись», что у остальных шторок кита.
+ * Выбор категории в ките не показан (там вместо него — выбор Free/Paid), но
+ * категория обязательна в схеме, так что подбирается тем же чипом, что и
+ * фильтр категорий на витрине. Пока только Free Top — см. комментарий в
+ * entities/project/api.ts createProject.
  */
 export function AddProjectForm({ open, onClose, categories, onSubmit }: AddProjectFormProps) {
   const [url, setUrl] = useState('');
@@ -50,25 +52,26 @@ export function AddProjectForm({ open, onClose, categories, onSubmit }: AddProje
   return (
     <Sheet open={open} onClose={handleClose}>
       <div className={styles.header}>
-        <span className={styles.title}>Add project</span>
-        <p className={styles.hint}>
-          Одной ссылки достаточно — название, описание и превью подтянем сами.
-        </p>
+        <span className={styles.headerIcon}>
+          <Icon name="link" size={22} />
+        </span>
+        <div className={styles.headerText}>
+          <span className={styles.title}>Add project</span>
+          <span className={styles.hint}>Одной ссылки достаточно — остальное подтянем сами</span>
+        </div>
       </div>
 
       <label className={styles.field}>
-        <span className={styles.label}>ССЫЛКА</span>
-        <div className={styles.inputWrap}>
-          <input
-            type="url"
-            inputMode="url"
-            placeholder="https://t.me/yourproject"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            className={styles.input}
-            disabled={submitting}
-          />
-        </div>
+        <span className={styles.label}>ССЫЛКА НА ПРОЕКТ</span>
+        <input
+          type="url"
+          inputMode="url"
+          placeholder="t.me/yourchannel или yoursite.uz"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          className={styles.input}
+          disabled={submitting}
+        />
       </label>
 
       <div className={styles.field}>
