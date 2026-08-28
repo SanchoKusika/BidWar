@@ -41,6 +41,25 @@ function metricColumn(type: ShowcaseType): 'paid_amount' | 'votes' {
   return type === 'paid' ? 'paid_amount' : 'votes';
 }
 
+function metricFromRow(row: Pick<Row, 'type' | 'paid_amount' | 'votes'>): number {
+  return row.type === 'paid' ? row.paid_amount : row.votes;
+}
+
+/**
+ * Фильтр «строки, обгоняющие эту» — общий тай-брейк для ранга и соседа сверху
+ * (01 Механики.md: ORDER BY metric DESC, id ASC). Один источник правды на обе
+ * функции, а не два независимых `.or(...)`, которые легко рассинхронить.
+ */
+function aboveFilter(column: 'paid_amount' | 'votes', metric: number, projectId: number): string {
+  return `${column}.gt.${metric},and(${column}.eq.${metric},id.lt.${projectId})`;
+}
+
+function assertRankArgs(fn: string, projectId: number, metric: number): void {
+  if (!Number.isInteger(projectId) || !Number.isFinite(metric)) {
+    throw new Error(`${fn}: projectId/metric должны быть числами`);
+  }
+}
+
 export interface FetchProjectsParams {
   type: ShowcaseType;
   /** null/undefined — общий топ без фильтра по категории. */
@@ -151,9 +170,7 @@ export async function fetchProjectRank({
   metric,
   categoryId,
 }: FetchProjectRankParams): Promise<number> {
-  if (!Number.isInteger(projectId) || !Number.isFinite(metric)) {
-    throw new Error('fetchProjectRank: projectId/metric должны быть числами');
-  }
+  assertRankArgs('fetchProjectRank', projectId, metric);
 
   const column = metricColumn(type);
 
@@ -162,7 +179,7 @@ export async function fetchProjectRank({
     .select('*', { count: 'exact', head: true })
     .eq('type', type)
     .eq('status', 'active')
-    .or(`${column}.gt.${metric},and(${column}.eq.${metric},id.lt.${projectId})`);
+    .or(aboveFilter(column, metric, projectId));
 
   if (categoryId != null) query = query.eq('category_id', categoryId);
 
@@ -196,18 +213,16 @@ export async function fetchNeighborAbove({
   metric,
   categoryId,
 }: FetchNeighborAboveParams): Promise<NeighborProject | null> {
-  if (!Number.isInteger(projectId) || !Number.isFinite(metric)) {
-    throw new Error('fetchNeighborAbove: projectId/metric должны быть числами');
-  }
+  assertRankArgs('fetchNeighborAbove', projectId, metric);
 
   const column = metricColumn(type);
 
   let query = getSupabase()
     .from('projects')
-    .select('name, paid_amount, votes')
+    .select('name, type, paid_amount, votes')
     .eq('type', type)
     .eq('status', 'active')
-    .or(`${column}.gt.${metric},and(${column}.eq.${metric},id.lt.${projectId})`)
+    .or(aboveFilter(column, metric, projectId))
     .order(column, { ascending: true })
     .order('id', { ascending: false })
     .limit(1);
@@ -220,5 +235,5 @@ export async function fetchNeighborAbove({
   const row = data?.[0];
   if (!row) return null;
 
-  return { name: row.name, metric: type === 'paid' ? row.paid_amount : row.votes };
+  return { name: row.name, metric: metricFromRow(row) };
 }

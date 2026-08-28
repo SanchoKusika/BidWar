@@ -45,14 +45,20 @@ function unitOf(segment: ShowcaseType, currency: DisplayCurrency): string {
   return segment === 'paid' ? CURRENCY_SUFFIX[currency] : 'votes';
 }
 
+type CategoryById = Map<number, CategoryStat>;
+
 interface ScopedTotals {
   count: number;
   pool: number;
 }
 
-function totalsFor(categories: CategoryStat[], categoryId: number | null): ScopedTotals {
+function totalsFor(
+  categories: CategoryStat[],
+  byId: CategoryById,
+  categoryId: number | null,
+): ScopedTotals {
   if (categoryId != null) {
-    const cat = categories.find((c) => c.categoryId === categoryId);
+    const cat = byId.get(categoryId);
     return { count: cat?.projectCount ?? 0, pool: cat?.pool ?? 0 };
   }
   return categories.reduce(
@@ -61,8 +67,8 @@ function totalsFor(categories: CategoryStat[], categoryId: number | null): Scope
   );
 }
 
-function catLeaderOf(item: ProjectListItem, categories: CategoryStat[]): string | undefined {
-  const cat = categories.find((c) => c.categoryId === item.categoryId);
+function catLeaderOf(item: ProjectListItem, byId: CategoryById): string | undefined {
+  const cat = byId.get(item.categoryId);
   return cat && cat.leaderName === item.name ? cat.title : undefined;
 }
 
@@ -71,14 +77,13 @@ function tierFor(
   items: ProjectListItem[],
   segment: ShowcaseType,
   currency: DisplayCurrency,
+  unit: string,
 ): { label: string; note?: string } | null {
   const label = TIER_BANDS[rank];
   if (!label) return null;
 
   const last = items[Math.min(items.length, rank + 9) - 1];
-  const note = last
-    ? `from ${formatMetric(metricOf(last), segment, currency)} ${unitOf(segment, currency)}`
-    : undefined;
+  const note = last ? `from ${formatMetric(metricOf(last), segment, currency)} ${unit}` : undefined;
 
   return { label, note };
 }
@@ -88,9 +93,10 @@ function spotFor(
   segment: ShowcaseType,
   currency: DisplayCurrency,
   minStep: number,
+  unit: string,
 ): { price: string; unit: string } {
   const price = metricOf(item) + minStep;
-  return { price: formatMetric(price, segment, currency), unit: unitOf(segment, currency) };
+  return { price: formatMetric(price, segment, currency), unit };
 }
 
 function gapHint(
@@ -99,6 +105,7 @@ function gapHint(
   segment: ShowcaseType,
   currency: DisplayCurrency,
   minStep: number,
+  unit: string,
 ): string {
   if (!neighborAbove) {
     return segment === 'paid'
@@ -107,7 +114,7 @@ function gapHint(
   }
   const diff = neighborAbove.metric - metricOf(mine) + minStep;
   return segment === 'paid'
-    ? `Подними ставку на ${formatMetric(diff, segment, currency)} ${unitOf(segment, currency)}, чтобы обойти «${neighborAbove.name}».`
+    ? `Подними ставку на ${formatMetric(diff, segment, currency)} ${unit}, чтобы обойти «${neighborAbove.name}».`
     : `Нужно ещё ${formatMetric(diff, segment, currency)} голосов, чтобы обойти «${neighborAbove.name}».`;
 }
 
@@ -173,11 +180,12 @@ export function ShowcaseScreen({
   onRetry,
   onOpenProject,
 }: ShowcaseScreenProps) {
-  const globalTotals = totalsFor(categories, null);
-  const scopedTotals = totalsFor(categories, categoryId);
+  const categoryById: CategoryById = new Map(categories.map((c) => [c.categoryId, c]));
+  const globalTotals = totalsFor(categories, categoryById, null);
+  const scopedTotals = totalsFor(categories, categoryById, categoryId);
   const unit = unitOf(segment, currency);
 
-  const activeCategory = categories.find((c) => c.categoryId === categoryId);
+  const activeCategory = categoryId != null ? categoryById.get(categoryId) : undefined;
   const scopeLabel =
     categoryId === null
       ? segment === 'paid'
@@ -193,7 +201,8 @@ export function ShowcaseScreen({
   // Точная цена последней позиции честна, только когда список догружен целиком —
   // иначе последняя ЗАГРУЖЕННАЯ строка не обязательно последняя РЕАЛЬНАЯ.
   const lastItem = items.at(-1);
-  const cheapest = !hasMore && lastItem ? spotFor(lastItem, segment, currency, minStep) : null;
+  const cheapest =
+    !hasMore && lastItem ? spotFor(lastItem, segment, currency, minStep, unit) : null;
   const entryHint =
     segment === 'paid'
       ? cheapest
@@ -231,7 +240,7 @@ export function ShowcaseScreen({
                 unit={unit}
                 hint={
                   ownProject
-                    ? gapHint(ownNeighborAbove, ownProject, segment, currency, minStep)
+                    ? gapHint(ownNeighborAbove, ownProject, segment, currency, minStep, unit)
                     : undefined
                 }
                 entryHint={entryHint}
@@ -314,9 +323,10 @@ export function ShowcaseScreen({
                 const rank = index + 1;
                 // Ярусы имеют смысл только в общем разрезе — внутри категории
                 // позиции уже пересчитаны как 1..N её собственного списка.
-                const tier = categoryId === null ? tierFor(rank, items, segment, currency) : null;
+                const tier =
+                  categoryId === null ? tierFor(rank, items, segment, currency, unit) : null;
                 const isOwn = userId !== null && item.userId === userId;
-                const spot = !isOwn ? spotFor(item, segment, currency, minStep) : null;
+                const spot = !isOwn ? spotFor(item, segment, currency, minStep, unit) : null;
 
                 return (
                   <div key={item.id} className={styles.row}>
@@ -341,7 +351,7 @@ export function ShowcaseScreen({
                           ? formatHeldDuration(item.rank1Since)
                           : undefined
                       }
-                      catLeader={catLeaderOf(item, categories)}
+                      catLeader={catLeaderOf(item, categoryById)}
                       spotPrice={spot?.price}
                       spotUnit={spot?.unit}
                       isOwn={isOwn}

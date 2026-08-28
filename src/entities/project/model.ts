@@ -163,11 +163,15 @@ export function useOwnPosition(
         // в которой проект вообще не участвует (см. код-ревью PR #9).
         const scopeCategoryId = categoryId === mine.categoryId ? categoryId : null;
         const rankArgs = { projectId: mine.id, type, metric, categoryId: scopeCategoryId };
-        return Promise.all([fetchProjectRank(rankArgs), fetchNeighborAbove(rankArgs)]).then(
-          ([rank, neighborAbove]) => {
-            if (!cancelled) setResult({ key, project: mine, rank, neighborAbove });
-          },
-        );
+        // Отдельный catch на каждый запрос: сеть моргнула на одном из двух —
+        // не теряем то, что успешно пришло по другому (rank и neighborAbove
+        // независимы, обнулять оба из-за отказа одного не за что).
+        return Promise.all([
+          fetchProjectRank(rankArgs).catch(() => null),
+          fetchNeighborAbove(rankArgs).catch(() => null),
+        ]).then(([rank, neighborAbove]) => {
+          if (!cancelled) setResult({ key, project: mine, rank, neighborAbove });
+        });
       })
       .catch(() => {
         if (!cancelled) setResult({ key, project: null, rank: null, neighborAbove: null });
