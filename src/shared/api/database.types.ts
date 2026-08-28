@@ -584,6 +584,7 @@ export type Database = {
       category_stats: {
         Row: {
           category_id: number | null
+          leader_id: number | null
           leader_name: string | null
           pool: number | null
           project_count: number | null

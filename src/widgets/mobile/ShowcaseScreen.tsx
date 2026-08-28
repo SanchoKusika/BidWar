@@ -29,7 +29,14 @@ const CATEGORY_ICON: Record<string, IconName> = {
 
 // Ярусы делят длинный список на цели, к которым тянуться — чисто читательская
 // подсказка, механики за ней нет (design/components/board/TierDivider.jsx).
-const TIER_BANDS: Record<number, string> = { 1: 'Top 10', 11: 'Top 20', 21: 'Top 50' };
+// end — последний ранг яруса: у первых двух по 10 строк, у третьего — 30
+// (21..50), поэтому цену "от" нужно брать со строки end, не rank+9 — на
+// фиксированном шаге третий ярус называл "Top 50" цену 30-й строки.
+const TIER_BANDS: Record<number, { label: string; end: number }> = {
+  1: { label: 'Top 10', end: 10 },
+  11: { label: 'Top 20', end: 20 },
+  21: { label: 'Top 50', end: 50 },
+};
 
 function metricOf(item: Pick<ProjectListItem, 'type' | 'paidAmount' | 'votes'>): number {
   return item.type === 'paid' ? item.paidAmount : item.votes;
@@ -68,8 +75,11 @@ function totalsFor(
 }
 
 function catLeaderOf(item: ProjectListItem, byId: CategoryById): string | undefined {
+  // Сверка по id, не по имени — у projects.name нет уникальности, два
+  // проекта с одинаковым названием в категории иначе получали бы корону
+  // оба или не тот (код-ревью PR #10).
   const cat = byId.get(item.categoryId);
-  return cat && cat.leaderName === item.name ? cat.title : undefined;
+  return cat && cat.leaderId === item.id ? cat.title : undefined;
 }
 
 function tierFor(
@@ -79,13 +89,13 @@ function tierFor(
   currency: DisplayCurrency,
   unit: string,
 ): { label: string; note?: string } | null {
-  const label = TIER_BANDS[rank];
-  if (!label) return null;
+  const band = TIER_BANDS[rank];
+  if (!band) return null;
 
-  const last = items[Math.min(items.length, rank + 9) - 1];
+  const last = items[Math.min(items.length, band.end) - 1];
   const note = last ? `from ${formatMetric(metricOf(last), segment, currency)} ${unit}` : undefined;
 
-  return { label, note };
+  return { label: band.label, note };
 }
 
 function spotFor(
@@ -99,19 +109,29 @@ function spotFor(
   return { price: formatMetric(price, segment, currency), unit };
 }
 
+/**
+ * rank и neighborAbove — два независимых запроса (useOwnPosition ловит сбой
+ * каждого отдельно, см. код-ревью PR #10), поэтому "первое место" здесь
+ * решается по факту rank === 1, а не по отсутствию neighborAbove — иначе
+ * сбой второго запроса при rank === 5 показал бы «ты держишь первое место».
+ * Когда соседа сверху посчитать не удалось, а рангов 1 тоже нет — подсказки
+ * не показываем вообще: врать числом не выйти, а без числа хинт бессмыслен.
+ */
 function gapHint(
+  rank: number | null,
   neighborAbove: NeighborProject | null,
   mine: ProjectListItem,
   segment: ShowcaseType,
   currency: DisplayCurrency,
   minStep: number,
   unit: string,
-): string {
-  if (!neighborAbove) {
+): string | undefined {
+  if (rank === 1) {
     return segment === 'paid'
       ? 'Ты держишь первое место. Любой рейз только увеличит отрыв.'
       : 'Ты держишь первое место. Продолжай собирать голоса.';
   }
+  if (!neighborAbove) return undefined;
   const diff = neighborAbove.metric - metricOf(mine) + minStep;
   return segment === 'paid'
     ? `Подними ставку на ${formatMetric(diff, segment, currency)} ${unit}, чтобы обойти «${neighborAbove.name}».`
@@ -240,7 +260,15 @@ export function ShowcaseScreen({
                 unit={unit}
                 hint={
                   ownProject
-                    ? gapHint(ownNeighborAbove, ownProject, segment, currency, minStep, unit)
+                    ? gapHint(
+                        ownRank,
+                        ownNeighborAbove,
+                        ownProject,
+                        segment,
+                        currency,
+                        minStep,
+                        unit,
+                      )
                     : undefined
                 }
                 entryHint={entryHint}

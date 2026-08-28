@@ -5,9 +5,9 @@ import styles from './OwnPositionPanel.module.css';
 
 export interface OwnPositionPanelProps {
   segment: ShowcaseType;
-  /** null/undefined — своей записи ещё нет, панель становится точкой входа. */
+  /** null — позиция ещё не посчиталась (сбой запроса), рендерится прочерком. */
   rank?: number | null;
-  /** Уже отформатированное значение (сумма/голоса вызывающим кодом). */
+  /** null/undefined — своей записи ещё нет, панель становится точкой входа. */
   value?: string | null;
   unit?: string;
   hint?: string | null;
@@ -36,7 +36,13 @@ export function OwnPositionPanel({
   onAdd,
   addDisabled,
 }: OwnPositionPanelProps) {
-  if (rank === undefined || rank === null) {
+  // "Есть запись" решается по value, не по rank: rank считается отдельным
+  // запросом и может не прийти при временном сбое сети, пока сам проект
+  // уже найден — в этом случае показывать "нет записи" неверно (код-ревью
+  // PR #10), верное состояние — показать панель с прочерком вместо номера.
+  const hasEntry = value !== undefined && value !== null;
+
+  if (!hasEntry) {
     return (
       <section data-segment={segment} className={styles.panel}>
         <span className={styles.headBlock}>
@@ -66,7 +72,7 @@ export function OwnPositionPanel({
       <div className={styles.row}>
         <div className={styles.headBlock}>
           <span className={styles.label}>YOUR POSITION</span>
-          <span className={styles.rank}>#{rank}</span>
+          <span className={styles.rank}>{rank != null ? `#${rank}` : '—'}</span>
         </div>
         <div className={styles.valueBlock}>
           <span className={styles.label}>{segment === 'free' ? 'YOUR VOTES' : 'YOUR BID'}</span>
