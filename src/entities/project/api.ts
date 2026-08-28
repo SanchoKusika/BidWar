@@ -41,6 +41,25 @@ function metricColumn(type: ShowcaseType): 'paid_amount' | 'votes' {
   return type === 'paid' ? 'paid_amount' : 'votes';
 }
 
+function metricFromRow(row: Pick<Row, 'type' | 'paid_amount' | 'votes'>): number {
+  return row.type === 'paid' ? row.paid_amount : row.votes;
+}
+
+/**
+ * Фильтр «строки, обгоняющие эту» — общий тай-брейк для ранга и соседа сверху
+ * (01 Механики.md: ORDER BY metric DESC, id ASC). Один источник правды на обе
+ * функции, а не два независимых `.or(...)`, которые легко рассинхронить.
+ */
+function aboveFilter(column: 'paid_amount' | 'votes', metric: number, projectId: number): string {
+  return `${column}.gt.${metric},and(${column}.eq.${metric},id.lt.${projectId})`;
+}
+
+function assertRankArgs(fn: string, projectId: number, metric: number): void {
+  if (!Number.isInteger(projectId) || !Number.isFinite(metric)) {
+    throw new Error(`${fn}: projectId/metric должны быть числами`);
+  }
+}
+
 export interface FetchProjectsParams {
   type: ShowcaseType;
   /** null/undefined — общий топ без фильтра по категории. */
@@ -112,6 +131,27 @@ export async function fetchMyProject(
   return data ? mapRow(data) : null;
 }
 
+/**
+ * Глобальный #1 витрины (без фильтра по категории) — нужен только как имя
+ * лидера на плитке «All». Отдельный лёгкий запрос: список может быть открыт
+ * с фильтром по категории, и тогда items[0] — не тот же самый проект.
+ */
+export async function fetchTopProject(type: ShowcaseType): Promise<{ name: string } | null> {
+  const column = metricColumn(type);
+
+  const { data, error } = await getSupabase()
+    .from('projects')
+    .select('name')
+    .eq('type', type)
+    .eq('status', 'active')
+    .order(column, { ascending: false })
+    .order('id', { ascending: true })
+    .limit(1);
+
+  if (error) throw error;
+  return data?.[0] ?? null;
+}
+
 export interface FetchProjectRankParams {
   projectId: number;
   type: ShowcaseType;
@@ -130,9 +170,7 @@ export async function fetchProjectRank({
   metric,
   categoryId,
 }: FetchProjectRankParams): Promise<number> {
-  if (!Number.isInteger(projectId) || !Number.isFinite(metric)) {
-    throw new Error('fetchProjectRank: projectId/metric должны быть числами');
-  }
+  assertRankArgs('fetchProjectRank', projectId, metric);
 
   const column = metricColumn(type);
 
@@ -141,7 +179,7 @@ export async function fetchProjectRank({
     .select('*', { count: 'exact', head: true })
     .eq('type', type)
     .eq('status', 'active')
-    .or(`${column}.gt.${metric},and(${column}.eq.${metric},id.lt.${projectId})`);
+    .or(aboveFilter(column, metric, projectId));
 
   if (categoryId != null) query = query.eq('category_id', categoryId);
 
@@ -149,4 +187,53 @@ export async function fetchProjectRank({
   if (error) throw error;
 
   return (count ?? 0) + 1;
+}
+
+export interface FetchNeighborAboveParams {
+  projectId: number;
+  type: ShowcaseType;
+  metric: number;
+  categoryId?: number | null;
+}
+
+export interface NeighborProject {
+  name: string;
+  metric: number;
+}
+
+/**
+ * Строка прямо над проектом в его витрине — «сколько нужно, чтобы обойти
+ * {имя} на #{ранг-1}» (07 Экраны.md, панель «твоя позиция»). Тот же
+ * тай-брейк, что и у витрины: ближайшая обгоняющая строка — наименьшая
+ * метрика среди тех, кто выше, а среди равных — с наибольшим id.
+ */
+export async function fetchNeighborAbove({
+  projectId,
+  type,
+  metric,
+  categoryId,
+}: FetchNeighborAboveParams): Promise<NeighborProject | null> {
+  assertRankArgs('fetchNeighborAbove', projectId, metric);
+
+  const column = metricColumn(type);
+
+  let query = getSupabase()
+    .from('projects')
+    .select('name, type, paid_amount, votes')
+    .eq('type', type)
+    .eq('status', 'active')
+    .or(aboveFilter(column, metric, projectId))
+    .order(column, { ascending: true })
+    .order('id', { ascending: false })
+    .limit(1);
+
+  if (categoryId != null) query = query.eq('category_id', categoryId);
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const row = data?.[0];
+  if (!row) return null;
+
+  return { name: row.name, metric: metricFromRow(row) };
 }

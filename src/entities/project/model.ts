@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { fetchMyProject, fetchProjectRank, fetchProjects } from './api';
+import {
+  fetchMyProject,
+  fetchNeighborAbove,
+  fetchProjectRank,
+  fetchProjects,
+  fetchTopProject,
+} from './api';
+import type { NeighborProject } from './api';
 import type { ProjectCursor, ProjectListItem, ShowcaseType } from './types';
 
 export interface ShowcaseState {
@@ -105,6 +112,8 @@ export interface OwnPositionState {
   project: ProjectListItem | null;
   /** Позиция в текущем разрезе (общем или по категории) — считается на лету. */
   rank: number | null;
+  /** Строка прямо над своей — «сколько нужно, чтобы обойти». */
+  neighborAbove: NeighborProject | null;
   loading: boolean;
 }
 
@@ -112,9 +121,10 @@ interface OwnResult {
   key: string;
   project: ProjectListItem | null;
   rank: number | null;
+  neighborAbove: NeighborProject | null;
 }
 
-const EMPTY_OWN: OwnResult = { key: '', project: null, rank: null };
+const EMPTY_OWN: OwnResult = { key: '', project: null, rank: null, neighborAbove: null };
 
 function ownKey(type: ShowcaseType, categoryId: number | null, userId: string): string {
   return `${type}:${categoryId ?? 'all'}:${userId}`;
@@ -144,7 +154,7 @@ export function useOwnPosition(
       .then((mine) => {
         if (cancelled) return undefined;
         if (!mine) {
-          setResult({ key, project: null, rank: null });
+          setResult({ key, project: null, rank: null, neighborAbove: null });
           return undefined;
         }
         const metric = type === 'paid' ? mine.paidAmount : mine.votes;
@@ -152,17 +162,19 @@ export function useOwnPosition(
         // проекта — иначе «твоя позиция» считалась бы среди чужой категории,
         // в которой проект вообще не участвует (см. код-ревью PR #9).
         const scopeCategoryId = categoryId === mine.categoryId ? categoryId : null;
-        return fetchProjectRank({
-          projectId: mine.id,
-          type,
-          metric,
-          categoryId: scopeCategoryId,
-        }).then((rank) => {
-          if (!cancelled) setResult({ key, project: mine, rank });
+        const rankArgs = { projectId: mine.id, type, metric, categoryId: scopeCategoryId };
+        // Отдельный catch на каждый запрос: сеть моргнула на одном из двух —
+        // не теряем то, что успешно пришло по другому (rank и neighborAbove
+        // независимы, обнулять оба из-за отказа одного не за что).
+        return Promise.all([
+          fetchProjectRank(rankArgs).catch(() => null),
+          fetchNeighborAbove(rankArgs).catch(() => null),
+        ]).then(([rank, neighborAbove]) => {
+          if (!cancelled) setResult({ key, project: mine, rank, neighborAbove });
         });
       })
       .catch(() => {
-        if (!cancelled) setResult({ key, project: null, rank: null });
+        if (!cancelled) setResult({ key, project: null, rank: null, neighborAbove: null });
       });
 
     return () => {
@@ -175,6 +187,28 @@ export function useOwnPosition(
   return {
     project: userId ? result.project : null,
     rank: userId ? result.rank : null,
+    neighborAbove: userId ? result.neighborAbove : null,
     loading,
   };
+}
+
+/** Имя глобального лидера — для плитки «All» (не зависит от текущего фильтра). */
+export function useTopProject(type: ShowcaseType): string | null {
+  const [name, setName] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchTopProject(type)
+      .then((top) => {
+        if (!cancelled) setName(top?.name ?? null);
+      })
+      .catch(() => {
+        // Имя лидера на плитке «All» — украшение, не критичный путь.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [type]);
+
+  return name;
 }

@@ -3,6 +3,9 @@ import { getSupabase } from './client';
 export interface AuthResult {
   userId: string;
   isNew: boolean;
+  displayName: string;
+  avatarUrl: string | null;
+  voteBalance: number;
 }
 
 /**
