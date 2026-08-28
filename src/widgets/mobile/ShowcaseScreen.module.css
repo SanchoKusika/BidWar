@@ -1,22 +1,18 @@
 .screen {
-  display: flex;
-  flex-direction: column;
-  gap: var(--section-gap);
   width: 100%;
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: var(--space-8) var(--page-gutter) var(--content-bottom-pad);
 }
 
-.own {
+.body {
   display: flex;
   flex-direction: column;
+  gap: var(--section-gap);
+  padding: var(--space-10) 0 var(--content-bottom-pad);
 }
 
-.categories {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+.ownSkeleton {
+  padding: 0 var(--page-gutter);
 }
 
 .categoriesScroll {
@@ -24,7 +20,7 @@
   gap: var(--space-4);
   overflow-x: auto;
   scrollbar-width: none;
-  padding-bottom: var(--space-1);
+  padding: 0 var(--page-gutter) 2px;
 }
 
 .categoriesScroll::-webkit-scrollbar {
@@ -33,29 +29,45 @@
 
 .categoryTile {
   flex: 0 0 auto;
-  min-width: 132px;
+  width: 158px;
 }
 
-.allChip {
-  flex: 0 0 auto;
-  height: var(--hit-min);
-  padding: 0 var(--space-8);
-  border: var(--border-w) solid var(--border-subtle);
-  border-radius: var(--radius-pill);
-  background: var(--surface-card);
+.rankingHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: 0 var(--page-gutter);
+}
+
+.rankingLines {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rankingTitle {
+  font: var(--type-body-sm);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rankingSub {
+  font: var(--type-caption);
   color: var(--text-muted);
-  font: var(--type-label);
-  cursor: pointer;
-  transition: var(--t-control);
-}
-
-.allChip[data-active='true'] {
-  background: var(--text-primary);
-  color: var(--bg-app);
-  border-color: transparent;
+  white-space: nowrap;
 }
 
 .feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap);
+  padding: 0 var(--page-gutter);
+}
+
+.row {
   display: flex;
   flex-direction: column;
   gap: var(--stack-gap);

@@ -112,6 +112,27 @@ export async function fetchMyProject(
   return data ? mapRow(data) : null;
 }
 
+/**
+ * Глобальный #1 витрины (без фильтра по категории) — нужен только как имя
+ * лидера на плитке «All». Отдельный лёгкий запрос: список может быть открыт
+ * с фильтром по категории, и тогда items[0] — не тот же самый проект.
+ */
+export async function fetchTopProject(type: ShowcaseType): Promise<{ name: string } | null> {
+  const column = metricColumn(type);
+
+  const { data, error } = await getSupabase()
+    .from('projects')
+    .select('name')
+    .eq('type', type)
+    .eq('status', 'active')
+    .order(column, { ascending: false })
+    .order('id', { ascending: true })
+    .limit(1);
+
+  if (error) throw error;
+  return data?.[0] ?? null;
+}
+
 export interface FetchProjectRankParams {
   projectId: number;
   type: ShowcaseType;
@@ -149,4 +170,55 @@ export async function fetchProjectRank({
   if (error) throw error;
 
   return (count ?? 0) + 1;
+}
+
+export interface FetchNeighborAboveParams {
+  projectId: number;
+  type: ShowcaseType;
+  metric: number;
+  categoryId?: number | null;
+}
+
+export interface NeighborProject {
+  name: string;
+  metric: number;
+}
+
+/**
+ * Строка прямо над проектом в его витрине — «сколько нужно, чтобы обойти
+ * {имя} на #{ранг-1}» (07 Экраны.md, панель «твоя позиция»). Тот же
+ * тай-брейк, что и у витрины: ближайшая обгоняющая строка — наименьшая
+ * метрика среди тех, кто выше, а среди равных — с наибольшим id.
+ */
+export async function fetchNeighborAbove({
+  projectId,
+  type,
+  metric,
+  categoryId,
+}: FetchNeighborAboveParams): Promise<NeighborProject | null> {
+  if (!Number.isInteger(projectId) || !Number.isFinite(metric)) {
+    throw new Error('fetchNeighborAbove: projectId/metric должны быть числами');
+  }
+
+  const column = metricColumn(type);
+
+  let query = getSupabase()
+    .from('projects')
+    .select('name, paid_amount, votes')
+    .eq('type', type)
+    .eq('status', 'active')
+    .or(`${column}.gt.${metric},and(${column}.eq.${metric},id.lt.${projectId})`)
+    .order(column, { ascending: true })
+    .order('id', { ascending: false })
+    .limit(1);
+
+  if (categoryId != null) query = query.eq('category_id', categoryId);
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const row = data?.[0];
+  if (!row) return null;
+
+  return { name: row.name, metric: type === 'paid' ? row.paid_amount : row.votes };
 }

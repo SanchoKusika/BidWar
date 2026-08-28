@@ -30,6 +30,9 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export interface ResolveResult {
   userId: string;
   isNew: boolean;
+  displayName: string;
+  avatarUrl: string | null;
+  voteBalance: number;
 }
 
 /**
@@ -59,8 +62,21 @@ export async function resolveTelegramUser(
   });
 
   if (error) throw error;
-  const row = (data as Array<{ user_id: string; is_new: boolean }> | null)?.[0];
+  type Row = {
+    user_id: string;
+    is_new: boolean;
+    display_name: string;
+    avatar_url: string | null;
+    vote_balance: number;
+  };
+  const row = (data as Row[] | null)?.[0];
   if (!row) throw new Error('resolve_telegram_identity ничего не вернул');
 
-  return { userId: row.user_id, isNew: row.is_new };
+  return {
+    userId: row.user_id,
+    isNew: row.is_new,
+    displayName: row.display_name,
+    avatarUrl: row.avatar_url,
+    voteBalance: row.vote_balance,
+  };
 }
