@@ -1,6 +1,6 @@
 import { useShowcase, useOwnPosition, useTopProject } from '@/entities/project';
 import { useCategoryStats } from '@/entities/category';
-import type { ShowcaseState, OwnPositionState } from '@/entities/project';
+import type { ShowcaseState, OwnPositionState, TopProjectState } from '@/entities/project';
 import type { CategoryStatsState } from '@/entities/category';
 
 export function useFreeShowcase(): ShowcaseState {
@@ -18,6 +18,6 @@ export function useFreeCategories(): CategoryStatsState {
   return useCategoryStats('free');
 }
 
-export function useFreeTopProject(): string | null {
+export function useFreeTopProject(): TopProjectState {
   return useTopProject('free');
 }

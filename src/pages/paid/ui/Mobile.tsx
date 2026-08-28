@@ -1,5 +1,6 @@
 import { useSession } from '@/entities/user';
 import { getPlatform } from '@/shared/platform';
+import { registerClick } from '@/entities/project';
 import { ShowcaseScreen } from '@/widgets/mobile/ShowcaseScreen';
 import {
   usePaidCategories,
@@ -12,17 +13,17 @@ import {
 export function PaidMobile() {
   const { userId } = useSession();
   const showcase = usePaidShowcase();
-  const { categories } = usePaidCategories();
+  const categories = usePaidCategories();
   const own = usePaidOwnPosition(showcase.categoryId, userId);
-  const topProjectName = usePaidTopProject();
+  const topProject = usePaidTopProject();
   const minStep = useMinPaidAmount();
 
   return (
     <ShowcaseScreen
       segment="paid"
       minStep={minStep}
-      categories={categories}
-      topProjectName={topProjectName}
+      categories={categories.categories}
+      topProjectName={topProject.name}
       categoryId={showcase.categoryId}
       onCategoryChange={showcase.setCategoryId}
       ownProject={own.project}
@@ -38,7 +39,12 @@ export function PaidMobile() {
       error={showcase.error}
       onLoadMore={showcase.loadMore}
       onRetry={showcase.retry}
-      onOpenProject={(item) => getPlatform().openLink(item.url)}
+      onOpenProject={(item) => {
+        const initData = getPlatform().getInitData();
+        if (initData) registerClick({ initData, projectId: item.id }).catch(() => {});
+        getPlatform().openLink(item.url);
+      }}
+      // Paid-вход требует оплаты (Срез 1.5) — Add project тут не подключён.
     />
   );
 }

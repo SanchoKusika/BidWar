@@ -5,7 +5,6 @@ import { SkeletonFeed } from '@/shared/ui/Skeleton';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Button } from '@/shared/ui/Button';
 import { StatBlock } from '@/shared/ui/StatBlock';
-import type { IconName } from '@/shared/ui/Icon';
 import {
   CURRENCY_SUFFIX,
   formatHeldDuration,
@@ -13,19 +12,11 @@ import {
   formatVotes,
   type DisplayCurrency,
 } from '@/shared/lib/format';
-import type { CategoryStat } from '@/entities/category';
+import { CATEGORY_ICON, type CategoryStat } from '@/entities/category';
 import type { NeighborProject, ProjectListItem, ShowcaseType } from '@/entities/project';
 import { PageHeader } from './PageHeader';
 import { OwnPositionPanel } from './OwnPositionPanel';
 import styles from './ShowcaseScreen.module.css';
-
-const CATEGORY_ICON: Record<string, IconName> = {
-  channels: 'send',
-  bots: 'bot',
-  sites: 'globe',
-  business: 'briefcase',
-  services: 'wrench',
-};
 
 // Ярусы делят длинный список на цели, к которым тянуться — чисто читательская
 // подсказка, механики за ней нет (design/components/board/TierDivider.jsx).
@@ -162,6 +153,8 @@ export interface ShowcaseScreenProps {
   onLoadMore: () => void;
   onRetry: () => void;
   onOpenProject: (item: ProjectListItem) => void;
+  /** Есть только на Free Top — на Paid Top вход требует оплаты (Срез 1.5), кнопка неактивна. */
+  onAddProject?: () => void;
 }
 
 /**
@@ -199,6 +192,7 @@ export function ShowcaseScreen({
   onLoadMore,
   onRetry,
   onOpenProject,
+  onAddProject,
 }: ShowcaseScreenProps) {
   const categoryById: CategoryById = new Map(categories.map((c) => [c.categoryId, c]));
   const globalTotals = totalsFor(categories, categoryById, null);
@@ -275,8 +269,8 @@ export function ShowcaseScreen({
                 actionLabel={segment === 'paid' ? 'Raise my bid' : 'Give votes to my project'}
                 // Raise/Vote ещё не подключены (1.5/1.7) — кнопка на месте, но неактивна.
                 actionDisabled
-                addDisabled
-                onAdd={undefined}
+                addDisabled={!onAddProject}
+                onAdd={onAddProject}
               />
             )}
           </>
