@@ -1,50 +1,21 @@
-.screen {
-  min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  padding: var(--space-6);
+.app {
+  position: relative;
+  height: 100dvh;
+  overflow: hidden;
   background: var(--bg-app);
   color: var(--text-primary);
   font: var(--type-body);
 }
 
-.card {
-  width: 100%;
-  max-width: 420px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--card-pad-lg);
-  background: var(--surface-card);
-  border: var(--border-w) solid var(--border-subtle);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-xs);
+.content {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.wordmark {
-  margin: 0;
-  font: var(--fw-bold) var(--fs-24) / var(--lh-tight) var(--font-display);
-  letter-spacing: var(--ls-tighter);
-}
-
-.wordmarkAccent {
-  color: var(--paid-accent);
-}
-
-.row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.rowLabel {
-  font: var(--type-label);
-  letter-spacing: var(--ls-caps);
-  color: var(--text-muted);
-}
-
-.rowValue {
-  font: var(--type-amount-sm);
-  font-family: var(--font-numeric);
-  color: var(--text-primary);
+.comingSoon {
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  padding: var(--space-8);
 }

@@ -1,79 +1,51 @@
 import { useEffect, useState } from 'react';
-import { authenticate, fetchHealth } from '@/shared/api';
 import { getPlatform } from '@/shared/platform';
+import { SessionProvider } from '@/entities/user';
+import { TabBar, type TabId } from '@/shared/ui/TabBar';
+import { EmptyState } from '@/shared/ui/EmptyState';
+import { PaidMobile } from '@/pages/paid/ui/Mobile';
+import { FreeMobile } from '@/pages/free/ui/Mobile';
 import { bindTheme } from './theme';
 import styles from './Shell.module.css';
 
+const COMING_SOON: Partial<Record<TabId, string>> = {
+  tasks: 'Задания',
+  profile: 'Профиль',
+};
+
 /**
- * Каркас. Экраны появятся в следующих срезах — пока проверяется, что
- * дизайн-система, слой platform, бэкенд и авторизация работают вместе на
- * обеих площадках.
+ * Каркас мини-аппа: TabBar снизу переключает витрины (07 Экраны.md — мобильная
+ * навигация). Tasks и Profile — заглушки, экраны появятся в Срезах 1.7/1.8.
  */
 export function Shell() {
   const platform = getPlatform();
-  const [scheme, setScheme] = useState(platform.getColorScheme());
-  const [backend, setBackend] = useState('проверяем…');
-  const [account, setAccount] = useState(() =>
-    platform.getInitData() ? 'проверяем…' : 'веб · без Telegram',
-  );
+  const [tab, setTab] = useState<TabId>('paid');
 
   useEffect(() => {
     platform.ready();
-    const unbindTheme = bindTheme(platform);
-    const unsubscribe = platform.onColorSchemeChange(setScheme);
-    return () => {
-      unbindTheme();
-      unsubscribe();
-    };
+    return bindTheme(platform);
   }, [platform]);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetchHealth()
-      .then((health) => !cancelled && setBackend(`ok · ${health.version}`))
-      .catch(() => !cancelled && setBackend('нет связи'));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    const initData = platform.getInitData();
-    if (!initData) return;
-
-    let cancelled = false;
-    authenticate(initData)
-      .then(
-        (result) =>
-          !cancelled &&
-          setAccount(`${result.isNew ? 'новый' : 'уже был'} · ${result.userId.slice(0, 8)}`),
-      )
-      .catch(() => !cancelled && setAccount('отклонено'));
-    return () => {
-      cancelled = true;
-    };
-  }, [platform]);
+  const comingSoon = COMING_SOON[tab];
 
   return (
-    <main className={styles.screen}>
-      <section className={styles.card}>
-        <h1 className={styles.wordmark}>
-          Bid<span className={styles.wordmarkAccent}>War</span>
-        </h1>
-        <Row label="ПЛОЩАДКА" value={platform.name} />
-        <Row label="ТЕМА" value={scheme} />
-        <Row label="БЭКЕНД" value={backend} />
-        <Row label="АККАУНТ" value={account} />
-      </section>
-    </main>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className={styles.row}>
-      <span className={styles.rowLabel}>{label}</span>
-      <span className={styles.rowValue}>{value}</span>
-    </div>
+    <SessionProvider>
+      <div className={styles.app}>
+        <main className={styles.content}>
+          {tab === 'paid' && <PaidMobile />}
+          {tab === 'free' && <FreeMobile />}
+          {comingSoon && (
+            <div className={styles.comingSoon}>
+              <EmptyState
+                icon="clock"
+                title={comingSoon}
+                description="Появится в одном из следующих срезов."
+              />
+            </div>
+          )}
+        </main>
+        <TabBar active={tab} onChange={setTab} />
+      </div>
+    </SessionProvider>
   );
 }

@@ -73,6 +73,18 @@ export function formatCount(value: number): string {
   return group(n);
 }
 
+/** «Держит первое место N дн M ч» — 07 Экраны.md, карточка лидера топа. */
+export function formatHeldDuration(sinceIso: string): string {
+  const ms = Date.now() - new Date(sinceIso).getTime();
+  if (!Number.isFinite(ms) || ms <= 0) return '0 ч';
+
+  const hours = Math.floor(ms / 3_600_000);
+  const days = Math.floor(hours / 24);
+  const restHours = hours % 24;
+
+  return days > 0 ? `${days} дн ${restHours} ч` : `${hours} ч`;
+}
+
 export type DeltaDirection = 'up' | 'down' | 'flat';
 
 export function formatDelta(n: number): { text: string; dir: DeltaDirection } {

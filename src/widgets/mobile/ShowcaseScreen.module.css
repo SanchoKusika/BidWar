@@ -1,0 +1,66 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap);
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--space-8) var(--page-gutter) var(--content-bottom-pad);
+}
+
+.own {
+  display: flex;
+  flex-direction: column;
+}
+
+.categories {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.categoriesScroll {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: var(--space-1);
+}
+
+.categoriesScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.categoryTile {
+  flex: 0 0 auto;
+  min-width: 132px;
+}
+
+.allChip {
+  flex: 0 0 auto;
+  height: var(--hit-min);
+  padding: 0 var(--space-8);
+  border: var(--border-w) solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font: var(--type-label);
+  cursor: pointer;
+  transition: var(--t-control);
+}
+
+.allChip[data-active='true'] {
+  background: var(--text-primary);
+  color: var(--bg-app);
+  border-color: transparent;
+}
+
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap);
+}
+
+.loadMore {
+  margin-top: var(--space-4);
+}

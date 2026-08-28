@@ -581,7 +581,18 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      category_stats: {
+        Row: {
+          category_id: number | null
+          leader_name: string | null
+          pool: number | null
+          project_count: number | null
+          slug: string | null
+          title: string | null
+          type: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       resolve_telegram_identity: {
