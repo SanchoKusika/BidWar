@@ -584,7 +584,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      resolve_telegram_identity: {
+        Args: {
+          p_avatar_url: string
+          p_display_name: string
+          p_meta: Json
+          p_referrer_id: string
+          p_telegram_id: string
+        }
+        Returns: {
+          is_new: boolean
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

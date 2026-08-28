@@ -95,7 +95,7 @@ export function serve(name: string, handler: Handler): void {
         // в логе — meta может нести что угодно, вплоть до чувствительных
         // значений, которые вызывающий передал для отладки.
         meta: failure.meta,
-        detail: error instanceof Error ? error.stack : String(error),
+        detail: serializeError(error),
         ms: Math.round(performance.now() - startedAt),
       });
 
@@ -122,6 +122,19 @@ function withHeaders(response: Response, requestId: string): Response {
   for (const [key, value] of Object.entries(CORS_HEADERS)) headers.set(key, value);
   headers.set('x-request-id', requestId);
   return new Response(response.body, { status: response.status, headers });
+}
+
+// PostgrestError и подобные несут code/details/hint поверх Error — обычный
+// error.stack их теряет, а именно они обычно и объясняют, что случилось.
+function serializeError(error: unknown): unknown {
+  if (error instanceof Error) {
+    const extra: Record<string, unknown> = {};
+    for (const key of ['code', 'details', 'hint'] as const) {
+      if (key in error) extra[key] = (error as Record<string, unknown>)[key];
+    }
+    return { message: error.message, stack: error.stack, ...extra };
+  }
+  return String(error);
 }
 
 type Level = 'info' | 'warn' | 'error';
