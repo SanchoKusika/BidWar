@@ -131,6 +131,21 @@ export async function fetchMyProject(
   return data ? mapRow(data) : null;
 }
 
+/** Одна карточка по id — для страницы проекта. */
+export async function fetchProject(id: number): Promise<ProjectListItem | null> {
+  const { data, error } = await getSupabase()
+    .from('projects')
+    .select(
+      'id, user_id, category_id, type, name, url, og_image_url, og_description, paid_amount, votes, clicks, rank1_since',
+    )
+    .eq('id', id)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  if (error) throw error;
+  return data ? mapRow(data) : null;
+}
+
 /**
  * Глобальный #1 витрины (без фильтра по категории) — нужен только как имя
  * лидера на плитке «All». Отдельный лёгкий запрос: список может быть открыт

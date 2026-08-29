@@ -1,0 +1,28 @@
+/* Сверено с DocScreen в design/ui_kits/mini_app/Screens.jsx. */
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.heading {
+  margin: 0;
+  font: var(--type-section);
+  letter-spacing: var(--ls-tight);
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+.text {
+  margin: 0;
+  font: var(--type-caption);
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}

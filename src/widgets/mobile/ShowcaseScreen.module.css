@@ -76,3 +76,11 @@
 .loadMore {
   margin-top: var(--space-4);
 }
+
+/* Примечание под шапкой ленты, когда выбраны последние сутки. */
+.todayNote {
+  padding: 0 var(--page-gutter);
+  font: var(--type-caption);
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}

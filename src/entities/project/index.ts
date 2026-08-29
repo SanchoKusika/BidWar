@@ -2,6 +2,7 @@ export {
   fetchProjects,
   fetchProjectRank,
   fetchMyProject,
+  fetchProject,
   fetchNeighborAbove,
   fetchTopProject,
   createProject,

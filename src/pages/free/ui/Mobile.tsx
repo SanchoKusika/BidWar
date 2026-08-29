@@ -4,6 +4,7 @@ import { getPlatform } from '@/shared/platform';
 import { createProject, registerClick } from '@/entities/project';
 import { ShowcaseScreen } from '@/widgets/mobile/ShowcaseScreen';
 import { AddProjectSheet } from '@/widgets/mobile/AddProjectSheet';
+import type { Navigation } from '@/app/navigation';
 import {
   useFreeCategories,
   useFreeOwnPosition,
@@ -11,7 +12,11 @@ import {
   useFreeTopProject,
 } from '../model';
 
-export function FreeMobile() {
+export interface FreeMobileProps {
+  nav: Navigation;
+}
+
+export function FreeMobile({ nav }: FreeMobileProps) {
   const {
     userId,
     voteBalance,
@@ -55,6 +60,7 @@ export function FreeMobile() {
         error={showcase.error}
         onLoadMore={showcase.loadMore}
         onRetry={showcase.retry}
+        onOpenRules={() => nav.push({ name: 'rules', anchor: 'votes' })}
         onOpenProject={(item) => {
           const initData = getPlatform().getInitData();
           // Fire-and-forget: счётчик не должен задерживать переход по ссылке.

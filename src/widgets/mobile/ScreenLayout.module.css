@@ -1,0 +1,36 @@
+/* Сверено с экранами в design/ui_kits/mini_app/Screens.jsx и TopFeed.jsx. */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap);
+  padding: var(--space-10) 0 0;
+}
+
+.gutter {
+  padding: 0 var(--page-gutter);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--card-pad);
+  border: var(--border-w) solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-xs);
+}
+
+.rowsCard {
+  padding: 4px var(--card-pad);
+  border: var(--border-w) solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--surface-card);
+}

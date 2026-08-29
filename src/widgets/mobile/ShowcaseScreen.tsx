@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { CategoryTile } from '@/shared/ui/CategoryTile';
 import { ProjectCard } from '@/shared/ui/ProjectCard';
 import { TierDivider } from '@/shared/ui/TierDivider';
@@ -15,9 +16,17 @@ import {
 import { CATEGORY_ICON, type CategoryStat } from '@/entities/category';
 import type { NeighborProject, ProjectListItem, ShowcaseType } from '@/entities/project';
 import type { SessionStatus } from '@/entities/user';
+import { ActivityFeed, type ActivityItem } from '@/shared/ui/ActivityFeed';
+import { PREVIEW } from '@/shared/config/preview';
+import { strings } from '@/shared/i18n/strings';
 import { PageHeader } from './PageHeader';
+import { HeaderAction } from './HeaderAction';
 import { OwnPositionPanel } from './OwnPositionPanel';
+import { ScopeToggle, type Scope } from './ScopeToggle';
+import { Gutter, Section } from './ScreenLayout';
 import styles from './ShowcaseScreen.module.css';
+
+const s = strings.showcase;
 
 // Ярусы делят длинный список на цели, к которым тянуться — чисто читательская
 // подсказка, механики за ней нет (design/components/board/TierDivider.jsx).
@@ -119,15 +128,15 @@ function gapHint(
   unit: string,
 ): string | undefined {
   if (rank === 1) {
-    return segment === 'paid'
-      ? 'Ты держишь первое место. Любой рейз только увеличит отрыв.'
-      : 'Ты держишь первое место. Продолжай собирать голоса.';
+    return segment === 'paid' ? s.holdFirstPaid : s.holdFirstFree;
   }
-  if (!neighborAbove) return undefined;
+  // Без своего ранга нельзя назвать и позицию соседа — врать числом не станем.
+  if (!neighborAbove || rank === null) return undefined;
   const diff = neighborAbove.metric - metricOf(mine) + minStep;
+  const amount = formatMetric(diff, segment, currency);
   return segment === 'paid'
-    ? `Подними ставку на ${formatMetric(diff, segment, currency)} ${unit}, чтобы обойти «${neighborAbove.name}».`
-    : `Нужно ещё ${formatMetric(diff, segment, currency)} голосов, чтобы обойти «${neighborAbove.name}».`;
+    ? s.gapPaid(`${amount} ${unit}`, neighborAbove.name, rank - 1)
+    : s.gapFree(amount, neighborAbove.name, rank - 1);
 }
 
 export interface ShowcaseScreenProps {
@@ -159,6 +168,9 @@ export interface ShowcaseScreenProps {
   onOpenProject: (item: ProjectListItem) => void;
   /** Есть только на Free Top — на Paid Top вход требует оплаты (Срез 1.5), кнопка неактивна. */
   onAddProject?: () => void;
+  onOpenRules: () => void;
+  /** Лента «только что» — нет источника, см. PREVIEW.activityFeed. */
+  activity?: readonly ActivityItem[];
 }
 
 /**
@@ -201,7 +213,10 @@ export function ShowcaseScreen({
   onRetry,
   onOpenProject,
   onAddProject,
+  onOpenRules,
+  activity,
 }: ShowcaseScreenProps) {
+  const [scope, setScope] = useState<Scope>('all');
   const categoryById: CategoryById = new Map(categories.map((c) => [c.categoryId, c]));
   const globalTotals = totalsFor(categories, categoryById, null);
   const scopedTotals = totalsFor(categories, categoryById, categoryId);
@@ -211,14 +226,12 @@ export function ShowcaseScreen({
   const scopeLabel =
     categoryId === null
       ? segment === 'paid'
-        ? 'Paid ranking'
-        : 'Free ranking'
+        ? s.paidRanking
+        : s.freeRanking
       : (activeCategory?.title ?? '');
 
   const meta =
-    segment === 'paid'
-      ? `${globalTotals.count} projects · money never converts to votes`
-      : `${globalTotals.count} projects · votes never convert to money`;
+    segment === 'paid' ? s.paidMeta(globalTotals.count) : s.freeMeta(globalTotals.count);
 
   // Точная цена последней позиции честна, только когда список догружен целиком —
   // иначе последняя ЗАГРУЖЕННАЯ строка не обязательно последняя РЕАЛЬНАЯ.
@@ -228,9 +241,9 @@ export function ShowcaseScreen({
   const entryHint =
     segment === 'paid'
       ? cheapest
-        ? `Последняя позиция в топе стоит ${cheapest.price} ${cheapest.unit}. Добавь проект и поднимайся выше.`
-        : 'Добавь проект и сделай первую ставку.'
-      : 'Бесплатный старт — с нуля голосов. Задания дают голоса, чтобы подниматься.';
+        ? s.entryHintPaid(`${cheapest.price} ${cheapest.unit}`)
+        : s.entryHintPaidUnknown
+      : s.entryHintFree;
 
   return (
     <div className={styles.screen}>
@@ -240,9 +253,10 @@ export function ShowcaseScreen({
         meta={meta}
         right={
           segment === 'free' && voteBalance !== null ? (
-            <StatBlock segment="free" value={voteBalance} label="YOUR VOTES" size="md" />
+            <StatBlock segment="free" value={voteBalance} label={s.yourVotes} size="md" />
           ) : undefined
         }
+        action={<HeaderAction icon="gavel" label={strings.rules.chip} onClick={onOpenRules} />}
       />
 
       <div className={styles.body}>
@@ -250,8 +264,8 @@ export function ShowcaseScreen({
           <div className={styles.ownSkeleton}>
             <EmptyState
               icon="triangle-alert"
-              title="Не удалось войти"
-              description={sessionErrorMessage ?? 'Попробуй закрыть мини-апп и открыть его заново.'}
+              title={s.signInFailed}
+              description={sessionErrorMessage ?? s.signInNote}
             />
           </div>
         )}
@@ -284,7 +298,7 @@ export function ShowcaseScreen({
                     : undefined
                 }
                 entryHint={entryHint}
-                actionLabel={segment === 'paid' ? 'Raise my bid' : 'Give votes to my project'}
+                actionLabel={segment === 'paid' ? s.raiseMine : s.voteMine}
                 // Raise/Vote ещё не подключены (1.5/1.7) — кнопка на месте, но неактивна.
                 actionDisabled
                 addDisabled={!onAddProject}
@@ -334,10 +348,17 @@ export function ShowcaseScreen({
               {scopeLabel} · {scopedTotals.count}
             </span>
             <span className={styles.rankingSub}>
-              {formatMetric(scopedTotals.pool, segment, currency)} {unit} in play
+              {s.inPlay(formatMetric(scopedTotals.pool, segment, currency), unit)}
             </span>
           </span>
+          {PREVIEW.todayScope && (
+            <ScopeToggle value={scope} onChange={setScope} segment={segment} />
+          )}
         </div>
+
+        {PREVIEW.todayScope && scope === 'today' && (
+          <span className={styles.todayNote}>{s.todayNote(segment)}</span>
+        )}
 
         <section className={styles.feed}>
           {loading ? (
@@ -345,17 +366,20 @@ export function ShowcaseScreen({
           ) : error ? (
             <EmptyState
               icon="triangle-alert"
-              title="Не удалось загрузить витрину"
-              description="Проверь связь и попробуй ещё раз."
-              actionLabel="Повторить"
+              title={s.errorTitle}
+              description={s.errorNote}
+              actionLabel={s.retry}
               onAction={onRetry}
             />
           ) : items.length === 0 ? (
             <EmptyState
               segment={segment}
               icon={segment === 'paid' ? 'coins' : 'vote'}
-              title={categoryId !== null ? 'В этой категории пока пусто' : 'Витрина пока пуста'}
-              description={categoryId !== null ? 'Попробуй другую категорию.' : undefined}
+              title={segment === 'paid' ? s.emptyPaidTitle : s.emptyFreeTitle}
+              description={segment === 'paid' ? s.emptyPaidNote : s.emptyFreeNote}
+              actionLabel={onAddProject ? strings.profile.addProject : undefined}
+              onAction={onAddProject}
+              compact
             />
           ) : (
             <>
@@ -409,12 +433,20 @@ export function ShowcaseScreen({
                   block
                   className={styles.loadMore}
                 >
-                  Показать ещё
+                  {s.loadMore}
                 </Button>
               )}
             </>
           )}
         </section>
+
+        {PREVIEW.activityFeed && activity && activity.length > 0 && (
+          <Section>
+            <Gutter>
+              <ActivityFeed dense max={5} title={s.justHappened} items={[...activity]} />
+            </Gutter>
+          </Section>
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,82 @@
+/* Сверено с ProfileScreen в design/ui_kits/mini_app/Screens.jsx. */
+
+.balances {
+  display: flex;
+  gap: var(--stack-gap);
+}
+
+.balance {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+  padding: var(--card-pad);
+  border: var(--border-w) solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-xs);
+}
+
+.balanceLabel {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  color: var(--text-muted);
+}
+
+.balanceValue {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+
+.balanceAmount {
+  overflow: hidden;
+  font: var(--type-amount-lg);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tighter);
+  text-overflow: ellipsis;
+}
+
+.balanceAmount[data-tone='free'] {
+  color: var(--free-accent);
+}
+
+.balanceAmount[data-tone='paid'] {
+  color: var(--paid-accent);
+}
+
+.balanceUnit {
+  flex: 0 0 auto;
+  font: var(--type-label);
+  color: var(--text-muted);
+}
+
+.balanceNote {
+  font: var(--type-caption);
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  color: var(--paid-accent);
+  font: var(--type-micro);
+  cursor: pointer;
+}
+
+.slotsNote {
+  font: var(--type-micro);
+  color: var(--text-muted);
+}
+
+.projects {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap);
+}

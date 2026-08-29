@@ -1,0 +1,3 @@
+.pad {
+  padding: var(--space-10) var(--page-gutter);
+}

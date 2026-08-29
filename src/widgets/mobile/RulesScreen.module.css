@@ -1,0 +1,96 @@
+/* Сверено с RulesScreen в design/ui_kits/mini_app/Screens.jsx. */
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: var(--paid-tint);
+  color: var(--paid-accent);
+}
+
+.title {
+  margin: 0;
+  font: var(--type-title);
+  letter-spacing: var(--ls-tight);
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+.lead {
+  margin: 0;
+  font: var(--type-body-sm);
+  color: var(--text-primary);
+  text-wrap: pretty;
+}
+
+/* --- Разбор на числах --- */
+
+.example {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+}
+
+.exampleTitle {
+  font: var(--type-section);
+  letter-spacing: var(--ls-tight);
+  color: var(--text-primary);
+}
+
+.exampleRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.exampleRow {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.exampleLabel {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.exampleValue {
+  font: var(--type-body-sm);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.exampleNote {
+  font: var(--type-caption);
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+.points {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+  padding-left: 18px;
+}
+
+.points li {
+  font: var(--type-caption);
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}

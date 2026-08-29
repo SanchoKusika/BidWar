@@ -1,0 +1,15 @@
+.action {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px 0 8px;
+  border: var(--border-w) solid var(--border-default);
+  border-radius: var(--radius-pill);
+  background: var(--surface-card);
+  color: var(--text-secondary);
+  font: var(--type-micro);
+  cursor: pointer;
+  transition: var(--t-control);
+}

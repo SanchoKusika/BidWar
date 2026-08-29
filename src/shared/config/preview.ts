@@ -43,6 +43,27 @@ export const PREVIEW = {
    * display_name, который не обязан быть телеграм-ником.
    */
   ownerHandle: true,
+
+  /**
+   * Экран заданий целиком.
+   * Нужно: строки в tasks (в схеме таблица пустая) и API выдачи с учётом
+   * task_completions. Пока рисуется на entities/task/fixtures.ts — Срез 1.7.
+   */
+  tasks: true,
+
+  /**
+   * Траты и чеки в профиле.
+   * Нужно: выборка из payment_transactions. Таблица есть, записей нет —
+   * появятся вместе с платежами (Срез 1.5).
+   */
+  receipts: true,
+
+  /**
+   * Реферальная карточка в профиле.
+   * Нужно: users.referrer_id уже есть, но нет ни ссылки-приглашения, ни
+   * счётчика приглашённых и начисленных голосов.
+   */
+  referral: true,
 } as const;
 
 export type PreviewFlag = keyof typeof PREVIEW;
