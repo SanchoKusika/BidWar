@@ -1,0 +1,14 @@
+.wrap {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: 0 var(--page-gutter);
+}
+
+.label {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
