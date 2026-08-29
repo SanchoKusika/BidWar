@@ -1,7 +1,26 @@
 .header {
   display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.headerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--free-tint);
+  color: var(--free-accent);
+}
+
+.headerText {
+  display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: 2px;
+  min-width: 0;
 }
 
 .title {
@@ -11,8 +30,7 @@
 }
 
 .hint {
-  margin: 0;
-  font: var(--type-body-sm);
+  font: var(--type-caption);
   color: var(--text-secondary);
   text-wrap: pretty;
 }
@@ -20,7 +38,7 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: 6px;
 }
 
 .label {
@@ -30,28 +48,23 @@
   color: var(--text-muted);
 }
 
-.inputWrap {
-  display: flex;
-  align-items: center;
-  height: 44px;
-  padding: 0 var(--space-6);
-  border: var(--border-w-thick) solid var(--border-default);
-  border-radius: var(--radius-lg);
-  background: var(--surface-card);
-}
-
-.inputWrap:focus-within {
-  border-color: var(--free-accent);
-}
-
 .input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  background: transparent;
-  outline: none;
-  font: var(--type-body-sm);
+  height: 48px;
+  padding: 0 var(--space-6);
+  border: var(--border-w) solid var(--border-default);
+  border-radius: var(--radius-control);
+  background: var(--surface-card);
+  /* 16px — не токен типографики: iOS зумит страницу при фокусе на инпуте с
+     font-size меньше 16px, а type-body в ките — 14px. Ниже нельзя. */
+  font-family: var(--font-ui);
+  font-size: 16px;
+  font-weight: var(--fw-medium);
   color: var(--text-primary);
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--free-accent);
 }
 
 .input::placeholder {
@@ -72,8 +85,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
-  padding: 0 12px;
+  min-height: var(--hit-min);
+  padding: 0 var(--space-6);
   border-radius: var(--radius-pill);
   border: var(--border-w) solid var(--border-default);
   background: var(--surface-card);
