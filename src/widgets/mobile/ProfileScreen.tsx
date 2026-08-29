@@ -43,6 +43,9 @@ export interface ProfileScreenProps {
   onEarn: () => void;
   onAdd?: () => void;
   onOpenProject: (project: ProjectListItem) => void;
+  /** Raise у платной записи, Give votes у бесплатной — по одной на карточку. */
+  onRaise: (project: ProjectListItem) => void;
+  onVote: (project: ProjectListItem) => void;
 }
 
 /**
@@ -68,6 +71,8 @@ export function ProfileScreen({
   onEarn,
   onAdd,
   onOpenProject,
+  onRaise,
+  onVote,
 }: ProfileScreenProps) {
   const money = (v: number) => formatMoney(v, { currency, compact: false });
 
@@ -129,6 +134,11 @@ export function ProfileScreen({
                   clicks={project.clicks}
                   isOwn
                   onDetails={() => onOpenProject(project)}
+                  onRaise={project.type === 'paid' ? () => onRaise(project) : undefined}
+                  onVote={project.type === 'free' ? () => onVote(project) : undefined}
+                  // Действия ждут своих срезов, но в ките они здесь есть — и
+                  // без них карточка профиля выглядит недоделанной.
+                  actionsDisabled
                 />
               ))
             ) : (

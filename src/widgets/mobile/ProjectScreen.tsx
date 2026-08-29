@@ -46,6 +46,12 @@ export interface ProjectScreenProps {
   /** Запись того же аккаунта в другом топе: больше одной быть не может. */
   otherEntry?: ProjectListItem | null;
   otherRank?: number | null;
+  /**
+   * Принадлежит ли запись в другом топе смотрящему. Считается по ней самой, а
+   * не по открытой странице: тонированная подложка помечает «это твоя строка»,
+   * и на чужом проекте она обязана быть обычной.
+   */
+  otherIsOwn?: boolean;
   onBack: () => void;
   onOpenLink: () => void;
   onRaise: () => void;
@@ -74,6 +80,7 @@ export function ProjectScreen({
   activity,
   otherEntry,
   otherRank,
+  otherIsOwn = false,
   onBack,
   onOpenLink,
   onRaise,
@@ -209,7 +216,7 @@ export function ProjectScreen({
                 value={otherEntry.type === 'paid' ? otherEntry.paidAmount : otherEntry.votes}
                 currency={currency}
                 clicks={otherEntry.clicks}
-                isOwn={isOwn}
+                isOwn={otherIsOwn}
                 onDetails={onOpenOther}
               />
             ) : (

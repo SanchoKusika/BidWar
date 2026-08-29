@@ -62,6 +62,10 @@ export function ProfilePage({ nav }: ProfilePageProps) {
       onOpenProject={(project) =>
         nav.push({ name: 'project', id: project.id, segment: project.type })
       }
+      // Экономика подключается в Срезах 1.5 и 1.7 — кнопки на карточках уже
+      // на месте, но выключены (ProjectCard.actionsDisabled).
+      onRaise={() => {}}
+      onVote={() => {}}
     />
   );
 }

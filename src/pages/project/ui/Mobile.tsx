@@ -66,6 +66,7 @@ export function ProjectPage({ id, segment, onBack, onRules }: ProjectPageProps) 
       owner={PREVIEW.ownerHandle ? OWNER_FIXTURE : undefined}
       activity={PREVIEW.activityFeed ? ACTIVITY_FIXTURES : undefined}
       otherEntry={null}
+      otherIsOwn={false}
       onBack={onBack}
       onOpenLink={() => {
         const initData = getPlatform().getInitData();
