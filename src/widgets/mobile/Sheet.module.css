@@ -6,7 +6,17 @@
   align-items: flex-end;
   background: var(--surface-scrim);
   backdrop-filter: var(--blur-scrim);
-  animation: ds-fade-up var(--dur-base) var(--ease-out);
+}
+
+/* Открытие/закрытие (motion-timing.html: --dur-sheet — «bottom sheet
+   in/out»). Свайп пальцем — отдельная, ручная физика ниже, эти кадры её не
+   трогают: жест уже сам является анимацией закрытия. */
+.scrim[data-phase='entering'] {
+  animation: ds-sheet-scrim-in var(--dur-sheet) var(--ease-out) both;
+}
+
+.scrim[data-phase='exiting'] {
+  animation: ds-sheet-scrim-out var(--dur-sheet) var(--ease-exit) both;
 }
 
 .panel {
@@ -25,6 +35,14 @@
   touch-action: pan-y;
   transition: transform var(--dur-base) var(--ease-out);
   will-change: transform;
+}
+
+.panel[data-phase='entering'] {
+  animation: ds-sheet-panel-in var(--dur-sheet) var(--ease-out) both;
+}
+
+.panel[data-phase='exiting'] {
+  animation: ds-sheet-panel-out var(--dur-sheet) var(--ease-exit) both;
 }
 
 .grabber {

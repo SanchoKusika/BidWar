@@ -40,6 +40,8 @@ export function createWebPlatform(): Platform {
       return Promise.resolve<InvoiceStatus>('pending');
     },
 
+    setVerticalSwipesEnabled: () => {},
+
     haptic: () => {},
 
     backButton: noopBackButton,

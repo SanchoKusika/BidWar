@@ -37,6 +37,43 @@
     transform: none;
   }
 }
+/* Bottom sheet in/out (motion-timing.html): скрим и панель анимируются
+   отдельно и одновременно — панель выезжает снизу, скрим темнеет вместе с
+   ней, на --dur-sheet. Закрытие — та же пара в обратную сторону на
+   --ease-exit, кроме случая, когда шторку уже закрыли свайпом (см. Sheet.tsx:
+   жест — уже анимация, вторую поверх него не проигрываем). */
+@keyframes ds-sheet-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes ds-sheet-scrim-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes ds-sheet-panel-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes ds-sheet-panel-out {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
 @keyframes ds-pulse-attack {
   0%,
   100% {

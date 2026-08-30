@@ -1,5 +1,13 @@
-import { useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type AnimationEvent as ReactAnimationEvent,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from 'react';
 import { createPortal } from 'react-dom';
+import { getPlatform } from '@/shared/platform';
 import styles from './Sheet.module.css';
 
 export interface SheetProps {
@@ -12,6 +20,9 @@ export interface SheetProps {
 const DISMISS_DISTANCE = 96;
 /** Резкий свайп закрывает и на меньшей дистанции. */
 const DISMISS_VELOCITY = 0.5;
+
+/** null — не смонтирована; entering/exiting — играют кадры, open — стоит неподвижно. */
+type Phase = 'entering' | 'open' | 'exiting' | null;
 
 /**
  * Оболочка нижней шторки: скрим + закруглённая панель + грабер, со свайпом
@@ -26,19 +37,52 @@ const DISMISS_VELOCITY = 0.5;
 export function Sheet({ open, onClose, children }: SheetProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ startY: number; startedAt: number; dragging: boolean } | null>(null);
+  // Свайп сам по себе уже анимация закрытия — сценарную ds-sheet-panel-out
+  // поверх нёе не играем, иначе панель дёрнется обратно в 0 и тут же снова
+  // уедет вниз. Состояние, а не ref — читается прямо в рендере ниже
+  // (react-hooks/refs запрещает трогать .current во время рендера).
+  const [dragDismissed, setDragDismissed] = useState(false);
   const [dragY, setDragY] = useState(0);
   const [animated, setAnimated] = useState(false);
+  const [phase, setPhase] = useState<Phase>(open ? 'open' : null);
 
-  // Сброс "зависшего" сдвига панели, если шторку закрыли не свайпом (кнопкой,
-  // сабмитом), а посреди жеста — сравнение с прошлым open прямо в рендере,
-  // без эффекта (react-hooks/set-state-in-effect).
+  // Открытие/закрытие шторки — сравнение с прошлым open прямо в рендере, без
+  // эффекта (react-hooks/set-state-in-effect).
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
     setPrevOpen(open);
-    if (!open) setDragY(0);
+    setDragY(0);
+    if (open) {
+      setPhase('entering');
+    } else if (dragDismissed) {
+      setDragDismissed(false);
+      setPhase(null);
+    } else {
+      setPhase('exiting');
+    }
   }
 
-  if (!open) return null;
+  // Пока шторка на экране (entering/open/exiting) — гасим системный свайп-вниз
+  // Telegram: без этого он забирает жест раньше, чем наш drag ниже (одиночный
+  // свайп сворачивает мини-апп целиком, а панель не двигается вовсе).
+  const visible = phase !== null;
+  useEffect(() => {
+    if (!visible) return;
+    const platform = getPlatform();
+    platform.setVerticalSwipesEnabled(false);
+    return () => platform.setVerticalSwipesEnabled(true);
+  }, [visible]);
+
+  if (phase === null) return null;
+
+  // Кадр CSS-анимации отыграл: entering → open (панель осела), exiting →
+  // размонтирование. Проверка target === currentTarget — событие всплывает от
+  // панели к скриму, а у них разные кадры и может не совпасть длительность.
+  const handleAnimationEnd = (e: ReactAnimationEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return;
+    if (phase === 'entering') setPhase('open');
+    else if (phase === 'exiting') setPhase(null);
+  };
 
   const canStartDrag = (target: EventTarget | null) => {
     const panel = panelRef.current;
@@ -81,6 +125,7 @@ export function Sheet({ open, onClose, children }: SheetProps) {
     const velocity = dragY / elapsed;
     setAnimated(true);
     if (dragY > DISMISS_DISTANCE || velocity > DISMISS_VELOCITY) {
+      setDragDismissed(true);
       onClose();
     }
     setDragY(0);
@@ -90,10 +135,16 @@ export function Sheet({ open, onClose, children }: SheetProps) {
   };
 
   return createPortal(
-    <div className={styles.scrim} onClick={onClose}>
+    <div
+      className={styles.scrim}
+      data-phase={phase}
+      onClick={onClose}
+      onAnimationEnd={handleAnimationEnd}
+    >
       <div
         ref={panelRef}
         className={styles.panel}
+        data-phase={phase}
         onClick={(e) => e.stopPropagation()}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}

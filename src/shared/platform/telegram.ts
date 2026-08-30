@@ -32,6 +32,9 @@ interface TgWebApp {
   openInvoice(url: string, callback: (status: InvoiceStatus) => void): void;
   onEvent(event: string, handler: () => void): void;
   offEvent(event: string, handler: () => void): void;
+  // Bot API 7.7+ — в старых клиентах методов нет, вызываем через optional chaining.
+  disableVerticalSwipes?(): void;
+  enableVerticalSwipes?(): void;
 }
 
 export function getTelegramWebApp(): TgWebApp | null {
@@ -112,6 +115,11 @@ export function createTelegramPlatform(tg: TgWebApp): Platform {
       new Promise<InvoiceStatus>((resolve) => {
         tg.openInvoice(url, resolve);
       }),
+
+    setVerticalSwipesEnabled(enabled) {
+      if (enabled) tg.enableVerticalSwipes?.();
+      else tg.disableVerticalSwipes?.();
+    },
 
     haptic(kind) {
       const h = tg.HapticFeedback;
