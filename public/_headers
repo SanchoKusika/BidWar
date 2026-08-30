@@ -6,3 +6,26 @@
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Индексируется только bidwar.world — под будущий сайт (Этап 2). Мини-апп и
+# служебные адреса Pages отдают тот же бандл, и без этого он попал бы в выдачу
+# тремя дублями сразу.
+#
+# Именно X-Robots-Tag, а не Disallow в robots.txt: robots.txt запрещает
+# обходить, но не индексировать — адрес всё равно может всплыть в выдаче без
+# описания. Заголовок краулер увидит только зайдя на страницу, поэтому она
+# обязана остаться доступной для обхода.
+#
+# robots.txt свой не заводим: на bidwar.world он был бы разрешающим, то есть
+# ничего не менял бы, а на остальных хостах помешал бы прочитать заголовок.
+
+https://app.bidwar.world/*
+  X-Robots-Tag: noindex, nofollow
+
+# Продакшн-адрес Pages: несносимый служебный алиас того же развёртывания.
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex, nofollow
+
+# Превью веток: <branch>.bidwar.pages.dev, выкладываются на каждый пуш.
+https://:branch.:project.pages.dev/*
+  X-Robots-Tag: noindex, nofollow
