@@ -221,8 +221,7 @@ export const strings = {
     compactNote: '12.5 mln instead of 12 500 000',
 
     notifications: 'Notifications',
-    notificationsNote:
-      'Sent through the bot. Attack alerts are the only way to know you were hit.',
+    notificationsNote: 'Sent through the bot. Attack alerts are the only way to know you were hit.',
     attacked: 'I was attacked',
     lostPosition: 'I lost a position',
     newTasks: 'New tasks',

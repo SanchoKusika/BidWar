@@ -162,12 +162,7 @@ export function AttackSheet({
           </SheetFootnote>
 
           <SheetActions onSecondary={onClose}>
-            <Button
-              variant="attack-quiet"
-              size="lg"
-              disabled={blocked}
-              onClick={() => setStep(2)}
-            >
+            <Button variant="attack-quiet" size="lg" disabled={blocked} onClick={() => setStep(2)}>
               {t.review}
             </Button>
           </SheetActions>

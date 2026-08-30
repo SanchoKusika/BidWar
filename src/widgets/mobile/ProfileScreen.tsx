@@ -6,7 +6,12 @@ import { KeyRow } from '@/shared/ui/KeyRow';
 import { ProjectCard } from '@/shared/ui/ProjectCard';
 import { ReferralShareCard } from '@/shared/ui/ReferralShareCard';
 import { SectionLabel } from '@/shared/ui/SectionLabel';
-import { CURRENCY_SUFFIX, formatMoney, formatVotes, type DisplayCurrency } from '@/shared/lib/format';
+import {
+  CURRENCY_SUFFIX,
+  formatMoney,
+  formatVotes,
+  type DisplayCurrency,
+} from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
 import type { ProjectListItem } from '@/entities/project';
 import { PageHeader } from './PageHeader';

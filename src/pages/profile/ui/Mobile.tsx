@@ -27,9 +27,30 @@ const DEFAULT_SETTINGS: SettingsState = {
  * не делает до платёжного слоя (PREVIEW.receipts). Суммы — из дизайн-кита.
  */
 const RECEIPT_FIXTURES: readonly Receipt[] = [
-  { id: 'h1', kind: 'raise', label: 'Raise · Mebel Savdo', amount: 150000, when: 'Today 14:20', provider: 'GlobalPay' },
-  { id: 'h2', kind: 'attack', label: 'Attack · Toshkent Auto', amount: 250000, when: 'Yesterday 19:05', provider: 'Platega' },
-  { id: 'h3', kind: 'entry', label: 'Opening bid · Mebel Savdo', amount: 480000, when: '22 Aug', provider: 'GlobalPay' },
+  {
+    id: 'h1',
+    kind: 'raise',
+    label: 'Raise · Mebel Savdo',
+    amount: 150000,
+    when: 'Today 14:20',
+    provider: 'GlobalPay',
+  },
+  {
+    id: 'h2',
+    kind: 'attack',
+    label: 'Attack · Toshkent Auto',
+    amount: 250000,
+    when: 'Yesterday 19:05',
+    provider: 'Platega',
+  },
+  {
+    id: 'h3',
+    kind: 'entry',
+    label: 'Opening bid · Mebel Savdo',
+    amount: 480000,
+    when: '22 Aug',
+    provider: 'GlobalPay',
+  },
 ];
 
 /**

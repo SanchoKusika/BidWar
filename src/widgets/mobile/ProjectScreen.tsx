@@ -154,24 +154,32 @@ export function ProjectScreen({
               {PREVIEW.verifiedBadge && <KeyRow label={t.verified} value={t.yes} />}
             </div>
 
-            <Button
-              variant="secondary"
-              size="md"
-              block
-              icon="external-link"
-              onClick={onOpenLink}
-            >
+            <Button variant="secondary" size="md" block icon="external-link" onClick={onOpenLink}>
               {t.open(project.url)}
             </Button>
 
             <div className={styles.actions}>
               {paid && (
-                <Button variant="paid" size="lg" block icon="chevrons-up" disabled onClick={onRaise}>
+                <Button
+                  variant="paid"
+                  size="lg"
+                  block
+                  icon="chevrons-up"
+                  disabled
+                  onClick={onRaise}
+                >
                   {isOwn ? t.raiseMine : t.outbid}
                 </Button>
               )}
               {paid && !isOwn && (
-                <Button variant="attack-quiet" size="lg" block icon="swords" disabled onClick={onAttack}>
+                <Button
+                  variant="attack-quiet"
+                  size="lg"
+                  block
+                  icon="swords"
+                  disabled
+                  onClick={onAttack}
+                >
                   {t.attack}
                 </Button>
               )}
