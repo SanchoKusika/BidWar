@@ -1,3 +1,10 @@
+/* Открытие и закрытие сделаны переходами, а не @keyframes, сознательно:
+   CSS-модуль скоупит имя анимации (`ds-x` → `_ds-x_hash_1`), а сами кадры
+   лежат глобально в tokens/motion.css — ссылка не находит определение, и
+   анимация молча не проигрывается. У transition имени нет, ломаться нечему.
+   Плюс переход по transform уживается с inline-трансформом от пальца, а
+   анимация с fill:both перебила бы его и жест перестал бы двигать панель. */
+
 .scrim {
   position: fixed;
   inset: 0;
@@ -6,51 +13,76 @@
   align-items: flex-end;
   background: var(--surface-scrim);
   backdrop-filter: var(--blur-scrim);
+  opacity: 0;
+  transition: opacity var(--dur-sheet) var(--ease-exit);
 }
 
-/* Открытие/закрытие (motion-timing.html: --dur-sheet — «bottom sheet
-   in/out»). Свайп пальцем — отдельная, ручная физика ниже, эти кадры её не
-   трогают: жест уже сам является анимацией закрытия. */
-.scrim[data-phase='entering'] {
-  animation: ds-sheet-scrim-in var(--dur-sheet) var(--ease-out) both;
-}
-
-.scrim[data-phase='exiting'] {
-  animation: ds-sheet-scrim-out var(--dur-sheet) var(--ease-exit) both;
+.scrim[data-shown='true'] {
+  opacity: 1;
+  transition-timing-function: var(--ease-out);
 }
 
 .panel {
-  width: 100%;
-  max-height: 88%;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: var(--space-5) var(--page-gutter)
-    calc(var(--space-12) + env(safe-area-inset-bottom, 0px));
-  background: var(--bg-elevated);
-  border-radius: var(--radius-panel) var(--radius-panel) 0 0;
-  box-shadow: var(--shadow-sheet);
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
+  width: 100%;
+  max-height: 88%;
+  padding: 0 var(--page-gutter) calc(var(--space-12) + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-sheet);
+  transform: translateY(100%);
+  transition: transform var(--dur-sheet) var(--ease-exit);
   touch-action: pan-y;
-  transition: transform var(--dur-base) var(--ease-out);
   will-change: transform;
 }
 
-.panel[data-phase='entering'] {
-  animation: ds-sheet-panel-in var(--dur-sheet) var(--ease-out) both;
+.panel[data-shown='true'] {
+  transform: translateY(0);
+  transition-timing-function: var(--ease-out);
 }
 
-.panel[data-phase='exiting'] {
-  animation: ds-sheet-panel-out var(--dur-sheet) var(--ease-exit) both;
+/* Панель, которая никуда не прокручивается, тянется за любое место: отдавать
+   вертикальный жест браузеру незачем, скроллить всё равно нечего. Прокручиваемая
+   оставляет тело скроллу, и тянуть её можно за полосу-хват. */
+.panel[data-scrollable='false'] {
+  touch-action: none;
+}
+
+/* Пока палец ведёт панель, перехода быть не должно — иначе она тянется с
+   задержкой в 320 мс вместо того, чтобы липнуть к пальцу. */
+.panel[data-dragging='true'] {
+  transition: none;
+}
+
+/* Хват — полоса во всю ширину панели, а не сама плашка 36×4: тянуть надо за
+   что-то, во что можно попасть пальцем. touch-action: none обязателен, иначе
+   вертикальный жест забирает скролл (а в Telegram — ещё и свайп «свернуть
+   мини-апп»), и до pointermove дело не доходит. */
+.grabZone {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  /* Отрицательные поля возвращают плашку ровно туда, где она была до появления
+     полосы: по бокам — под padding панели, снизу — гасят собственный padding,
+     чтобы отступ до первого блока остался прежним (--space-8 из gap). */
+  margin: 0 calc(var(--page-gutter) * -1) calc(var(--space-5) * -1);
+  padding: var(--space-5) 0;
+  touch-action: none;
+  cursor: grab;
+}
+
+.grabZone:active {
+  cursor: grabbing;
 }
 
 .grabber {
-  align-self: center;
-  flex: 0 0 auto;
   width: 36px;
   height: 4px;
   border-radius: var(--radius-pill);
   background: var(--border-strong);
-  touch-action: none;
 }
