@@ -12,6 +12,19 @@ export type ColorScheme = 'light' | 'dark';
 
 export type InvoiceStatus = 'paid' | 'cancelled' | 'failed' | 'pending';
 
+/**
+ * У Telegram BackButton нет текста — это всегда просто стрелка назад, метод
+ * setText у неё в реальном клиенте не существует (в отличие от MainButton).
+ * Раньше оба типа кнопок были одним интерфейсом с общим show(text, onClick) —
+ * вызов setText на BackButton падал необработанным исключением и ронял всё
+ * приложение при первом переходе на вложенный экран (Rules, Doc, Project).
+ */
+export interface BackButton {
+  /** В вебе — no-op: кнопку рисует сама разметка. */
+  show(onClick: () => void): void;
+  hide(): void;
+}
+
 export interface SystemButton {
   /** В вебе — no-op: кнопку рисует сама разметка. */
   show(text: string, onClick: () => void): void;
@@ -38,7 +51,7 @@ export interface Platform {
 
   haptic(kind: 'light' | 'medium' | 'heavy' | 'success' | 'error'): void;
 
-  backButton: SystemButton;
+  backButton: BackButton;
   mainButton: SystemButton;
 
   /** Сообщить оболочке, что приложение готово, и развернуть на весь экран. */

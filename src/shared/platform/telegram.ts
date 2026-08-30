@@ -1,20 +1,27 @@
-import type { ColorScheme, InvoiceStatus, Platform, SystemButton } from './types';
+import type { BackButton, ColorScheme, InvoiceStatus, Platform, SystemButton } from './types';
 
-/** Минимальное описание того, чем мы реально пользуемся из Telegram WebApp. */
-interface TgButton {
-  setText(text: string): void;
+/**
+ * Минимальное описание того, чем мы реально пользуемся из Telegram WebApp.
+ * BackButton и MainButton в реальном клиенте — разные объекты: у BackButton
+ * нет setText (это просто стрелка назад), у MainButton есть.
+ */
+interface TgBackButton {
   show(): void;
   hide(): void;
   onClick(cb: () => void): void;
   offClick(cb: () => void): void;
 }
 
+interface TgMainButton extends TgBackButton {
+  setText(text: string): void;
+}
+
 interface TgWebApp {
   initData: string;
   colorScheme: ColorScheme;
   themeParams: Record<string, string>;
-  BackButton: TgButton;
-  MainButton: TgButton;
+  BackButton: TgBackButton;
+  MainButton: TgMainButton;
   HapticFeedback?: {
     impactOccurred(style: 'light' | 'medium' | 'heavy'): void;
     notificationOccurred(type: 'success' | 'error' | 'warning'): void;
@@ -44,7 +51,27 @@ export function isTelegramMiniApp(): boolean {
   return Boolean(tg?.initData);
 }
 
-function wrapButton(button: TgButton): SystemButton {
+function wrapBackButton(button: TgBackButton): BackButton {
+  let current: (() => void) | null = null;
+
+  return {
+    show(onClick) {
+      if (current) button.offClick(current);
+      current = onClick;
+      button.onClick(onClick);
+      button.show();
+    },
+    hide() {
+      if (current) {
+        button.offClick(current);
+        current = null;
+      }
+      button.hide();
+    },
+  };
+}
+
+function wrapMainButton(button: TgMainButton): SystemButton {
   let current: (() => void) | null = null;
 
   return {
@@ -93,8 +120,8 @@ export function createTelegramPlatform(tg: TgWebApp): Platform {
       else h.impactOccurred(kind);
     },
 
-    backButton: wrapButton(tg.BackButton),
-    mainButton: wrapButton(tg.MainButton),
+    backButton: wrapBackButton(tg.BackButton),
+    mainButton: wrapMainButton(tg.MainButton),
 
     ready() {
       tg.ready();
