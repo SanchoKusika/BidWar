@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -597,6 +597,22 @@ export type Database = {
       }
     }
     Functions: {
+      apply_payment: {
+        Args: {
+          p_confirmed: boolean
+          p_payment_id: string
+          p_provider_event_id: string
+        }
+        Returns: {
+          applied: boolean
+          points_granted: number
+          project_id: number
+        }[]
+      }
+      register_project_click: {
+        Args: { p_project_id: number; p_user_id: string }
+        Returns: boolean
+      }
       resolve_telegram_identity: {
         Args: {
           p_avatar_url: string
@@ -606,8 +622,11 @@ export type Database = {
           p_telegram_id: string
         }
         Returns: {
+          avatar_url: string
+          display_name: string
           is_new: boolean
           user_id: string
+          vote_balance: number
         }[]
       }
     }

@@ -17,6 +17,7 @@
     "db:diff": "supabase db diff --linked",
     "db:types": "supabase gen types typescript --linked > src/shared/api/database.types.ts",
     "test": "deno test --allow-env supabase/functions",
+    "test:db": "deno test --allow-env --allow-net --allow-read --allow-sys supabase/tests",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run check:platform && npm run test"
   },
   "dependencies": {
@@ -35,6 +36,7 @@
     "eslint-plugin-react-hooks": "^7.0.0",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "postgres": "^3.4.9",
     "prettier": "^3.6.2",
     "supabase": "^2.116.0",
     "typescript": "^5.9.3",
