@@ -16,7 +16,10 @@
   --ring-focus: 0 0 0 3px rgba(255, 91, 26, 0.28);
   --ring-focus-free: 0 0 0 3px rgba(18, 176, 106, 0.26);
   --ring-focus-attack: 0 0 0 3px rgba(225, 29, 72, 0.26);
-  --blur-scrim: blur(8px); /* @kind other */
+  /* Радиус отдельно от самой функции: затемнение под шторкой отходит вместе с
+     пальцем, и для этого размытие надо уметь домножать на долю жеста. */
+  --blur-scrim-radius: 8px; /* @kind other */
+  --blur-scrim: blur(var(--blur-scrim-radius)); /* @kind other */
   --blur-chrome: blur(20px); /* @kind other */
 }
 [data-theme='dark'] {
