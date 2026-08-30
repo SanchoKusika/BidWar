@@ -28,7 +28,13 @@ export interface VerifiedInitData {
   startParam: string | null;
 }
 
-async function hmacSha256(key: Uint8Array, message: string): Promise<Uint8Array> {
+// Явный ArrayBuffer вместо ArrayBufferLike: в свежих версиях TS параметр без
+// generic-аргумента выводится как ArrayBufferLike, а Web Crypto (BufferSource)
+// принимает только конкретный ArrayBuffer — без уточнения падает тайпчек.
+async function hmacSha256(
+  key: Uint8Array<ArrayBuffer>,
+  message: string,
+): Promise<Uint8Array<ArrayBuffer>> {
   const cryptoKey = await crypto.subtle.importKey(
     'raw',
     key,
@@ -42,9 +48,9 @@ async function hmacSha256(key: Uint8Array, message: string): Promise<Uint8Array>
 
 // bot_token один и тот же в пределах жизни изолята — пересчитывать HMAC от
 // него на каждый запрос незачем, кэшируем как getAdminClient() в identity.ts.
-const secretKeyCache = new Map<string, Uint8Array>();
+const secretKeyCache = new Map<string, Uint8Array<ArrayBuffer>>();
 
-async function getSecretKey(botToken: string): Promise<Uint8Array> {
+async function getSecretKey(botToken: string): Promise<Uint8Array<ArrayBuffer>> {
   let key = secretKeyCache.get(botToken);
   if (!key) {
     key = await hmacSha256(new TextEncoder().encode('WebAppData'), botToken);

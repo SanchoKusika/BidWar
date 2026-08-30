@@ -16,7 +16,8 @@
     "db:push": "supabase db push",
     "db:diff": "supabase db diff --linked",
     "db:types": "supabase gen types typescript --linked > src/shared/api/database.types.ts",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm run check:platform"
+    "test": "deno test --allow-env supabase/functions",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run check:platform && npm run test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.58.0",

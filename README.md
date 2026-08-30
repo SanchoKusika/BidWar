@@ -43,8 +43,9 @@ React 19 + TypeScript + Vite, FSD-структура, CSS-модули на ди
 ```bash
 npm run dev            # локальный фронт
 npm run build          # прод-сборка
-npm run check          # типы + линт + prettier + правило изоляции платформы
+npm run check          # типы + линт + prettier + правило изоляции платформы + тесты
 npm run format         # prettier --write
+npm run test           # тесты Edge Functions (deno test), требует установленного Deno
 ```
 
 `npm run check` намеренно совпадает по составу с CI. Если добавляешь проверку в
