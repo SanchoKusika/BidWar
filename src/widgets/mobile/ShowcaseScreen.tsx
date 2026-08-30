@@ -232,8 +232,7 @@ export function ShowcaseScreen({
         : s.freeRanking
       : (activeCategory?.title ?? '');
 
-  const meta =
-    segment === 'paid' ? s.paidMeta(globalTotals.count) : s.freeMeta(globalTotals.count);
+  const meta = segment === 'paid' ? s.paidMeta(globalTotals.count) : s.freeMeta(globalTotals.count);
 
   // Точная цена последней позиции честна, только когда список догружен целиком —
   // иначе последняя ЗАГРУЖЕННАЯ строка не обязательно последняя РЕАЛЬНАЯ.

@@ -34,13 +34,12 @@ export function SheetHeader({
 }: SheetHeaderProps) {
   return (
     <div className={styles.header} data-single-line={singleLine}>
-      {media ?? (
-        icon && (
+      {media ??
+        (icon && (
           <span className={styles.iconBox} data-tone={tone}>
             <Icon name={icon} size={22} />
           </span>
-        )
-      )}
+        ))}
       <div className={styles.text}>
         <span className={styles.title}>{title}</span>
         {subtitle && <span className={styles.subtitle}>{subtitle}</span>}

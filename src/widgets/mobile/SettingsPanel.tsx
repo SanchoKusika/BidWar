@@ -170,12 +170,7 @@ export function SettingsPanel({ value, onChange, onRules, onDoc }: SettingsPanel
 
       <SettingsGroup label={t.account}>
         <SettingsRow icon="gavel" title={t.rules} onPress={onRules} />
-        <SettingsRow
-          icon="send"
-          title={t.bot}
-          value={brand.bot}
-          onPress={() => onDoc('bot')}
-        />
+        <SettingsRow icon="send" title={t.bot} value={brand.bot} onPress={() => onDoc('bot')} />
         <SettingsRow icon="life-buoy" title={t.support} onPress={() => onDoc('support')} />
         <SettingsRow icon="file-text" title={t.terms} onPress={() => onDoc('terms')} />
         <SettingsRow icon="log-out" title={t.logOut} disabled />
