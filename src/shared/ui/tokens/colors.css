@@ -67,7 +67,10 @@
 
   /* ── Semantic aliases — LIGHT (default) ──────────────────────────────── */
   --bg-app: var(--tg-theme-bg-color, var(--n-50));
-  --bg-elevated: var(--tg-theme-secondary-bg-color, var(--n-0));
+  /* Не берём tg-theme-secondary-bg-color: серый фон клиента Telegram
+     расходился с белой панелью из макета (код-ревью по скриншотам,
+     30.08.2026) — Sheet и TabBar остаются на своём белом/тёмном всегда. */
+  --bg-elevated: var(--n-0);
   --surface-card: var(--n-0);
   --surface-sunken: var(--n-100);
   --surface-inset: var(--n-50);
@@ -175,7 +178,7 @@
    from Telegram.WebApp.colorScheme; the tg-theme-* fallbacks then win. */
 [data-theme='dark'] {
   --bg-app: var(--tg-theme-bg-color, var(--n-1000));
-  --bg-elevated: var(--tg-theme-secondary-bg-color, var(--n-950));
+  --bg-elevated: var(--n-950);
   --surface-card: #101419;
   --surface-sunken: #0a0d11;
   --surface-inset: #171c23;

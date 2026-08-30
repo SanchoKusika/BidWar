@@ -51,6 +51,14 @@ export interface Platform {
 
   haptic(kind: 'light' | 'medium' | 'heavy' | 'success' | 'error'): void;
 
+  /**
+   * Пока открыта своя шторка, системный свайп-вниз Telegram (сворачивает
+   * мини-апп) конкурирует с drag-to-dismiss шторки за один и тот же жест —
+   * без этого одиночный свайп пальцем сворачивает всё приложение, а не
+   * двигает панель (нужен обходной двойной тап с лупой). В вебе — no-op.
+   */
+  setVerticalSwipesEnabled(enabled: boolean): void;
+
   backButton: BackButton;
   mainButton: SystemButton;
 
