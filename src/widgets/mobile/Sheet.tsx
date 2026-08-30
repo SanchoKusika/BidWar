@@ -2,7 +2,6 @@ import {
   useEffect,
   useRef,
   useState,
-  type AnimationEvent as ReactAnimationEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react';
@@ -20,80 +19,108 @@ export interface SheetProps {
 const DISMISS_DISTANCE = 96;
 /** Резкий свайп закрывает и на меньшей дистанции. */
 const DISMISS_VELOCITY = 0.5;
+/** Значение самого --dur-sheet: страховка, если переменная не прочиталась. */
+const FALLBACK_DURATION_MS = 320;
 
-/** null — не смонтирована; entering/exiting — играют кадры, open — стоит неподвижно. */
-type Phase = 'entering' | 'open' | 'exiting' | null;
+function sheetDurationMs(): number {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--dur-sheet');
+  const ms = Number.parseFloat(raw);
+  return Number.isFinite(ms) ? ms : FALLBACK_DURATION_MS;
+}
 
 /**
- * Оболочка нижней шторки: скрим + закруглённая панель + грабер, со свайпом
- * вниз для закрытия. Единственный модальный паттерн в системе — ни
- * центрированных диалогов, ни тостов (07 Экраны.md, «Layout rules»).
+ * Оболочка нижней шторки: скрим + закруглённая панель + хват, со свайпом вниз
+ * для закрытия. Единственный модальный паттерн в системе — ни центрированных
+ * диалогов, ни тостов (07 Экраны.md, «Layout rules»).
  *
- * Рендерится порталом в document.body: `.app` заворачивает и контент, и
- * TabBar в один overflow:hidden контейнер, и абсолютное позиционирование
- * внутри него не гарантирует, что шторка перекроет TabBar — портал снимает
- * вопрос совсем, встав над всем документом через position: fixed.
+ * Рендерится порталом в document.body: `.app` заворачивает и контент, и TabBar
+ * в один overflow:hidden контейнер, и абсолютное позиционирование внутри него
+ * не гарантирует, что шторка перекроет TabBar — портал снимает вопрос совсем,
+ * встав над всем документом через position: fixed.
  */
 export function Sheet({ open, onClose, children }: SheetProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ startY: number; startedAt: number; dragging: boolean } | null>(null);
-  // Свайп сам по себе уже анимация закрытия — сценарную ds-sheet-panel-out
-  // поверх нёе не играем, иначе панель дёрнется обратно в 0 и тут же снова
-  // уедет вниз. Состояние, а не ref — читается прямо в рендере ниже
-  // (react-hooks/refs запрещает трогать .current во время рендера).
-  const [dragDismissed, setDragDismissed] = useState(false);
   const [dragY, setDragY] = useState(0);
-  const [animated, setAnimated] = useState(false);
-  const [phase, setPhase] = useState<Phase>(open ? 'open' : null);
+  const [dragging, setDragging] = useState(false);
+  /** Есть в DOM. Переживает `open = false` ровно на время анимации закрытия. */
+  const [mounted, setMounted] = useState(open);
+  /** Видимое состояние: с него начинается переход в обе стороны. */
+  const [shown, setShown] = useState(false);
+  const [scrollable, setScrollable] = useState(false);
 
-  // Открытие/закрытие шторки — сравнение с прошлым open прямо в рендере, без
-  // эффекта (react-hooks/set-state-in-effect).
+  // Смена open — сравнением с прошлым значением прямо в рендере, без эффекта
+  // (react-hooks/set-state-in-effect).
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
     setPrevOpen(open);
     setDragY(0);
-    if (open) {
-      setPhase('entering');
-    } else if (dragDismissed) {
-      setDragDismissed(false);
-      setPhase(null);
-    } else {
-      setPhase('exiting');
-    }
+    setDragging(false);
+    if (open) setMounted(true);
+    else setShown(false);
   }
 
-  // Пока шторка на экране (entering/open/exiting) — гасим системный свайп-вниз
-  // Telegram: без этого он забирает жест раньше, чем наш drag ниже (одиночный
-  // свайп сворачивает мини-апп целиком, а панель не двигается вовсе).
-  const visible = phase !== null;
+  // Панель обязана сначала отрисоваться внизу и только следующим кадром
+  // получить целевое состояние: иначе браузер сведёт оба стиля в один
+  // пересчёт и перехода не будет вовсе — шторка просто появится.
   useEffect(() => {
-    if (!visible) return;
+    if (!open || !mounted) return;
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setShown(true));
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, [open, mounted]);
+
+  // Размонтирование — по таймеру, а не по transitionend: событие может не
+  // прийти вообще (вкладка ушла в фон, переход прерван, стиль не совпал), и
+  // тогда шторка осталась бы висеть на экране, а кнопка Cancel выглядела бы
+  // сломанной. Таймер так провалиться не может.
+  useEffect(() => {
+    if (open || !mounted) return;
+    const timer = setTimeout(() => setMounted(false), sheetDurationMs());
+    return () => clearTimeout(timer);
+  }, [open, mounted]);
+
+  // Пока шторка на экране, системный свайп-вниз Telegram выключен: иначе он
+  // забирает жест раньше нашего drag и сворачивает мини-апп целиком вместо
+  // того, чтобы двигать панель.
+  useEffect(() => {
+    if (!mounted) return;
     const platform = getPlatform();
     platform.setVerticalSwipesEnabled(false);
     return () => platform.setVerticalSwipesEnabled(true);
-  }, [visible]);
+  }, [mounted]);
 
-  if (phase === null) return null;
+  // Прокручивается ли панель — от этого зависит, кому достаётся вертикальный
+  // жест (см. touch-action в Sheet.module.css). ResizeObserver вызывает колбэк
+  // сразу после observe, поэтому первого замера отдельной строкой нет: setState
+  // прямо в теле эффекта запрещён (react-hooks/set-state-in-effect).
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    const observer = new ResizeObserver(() => {
+      setScrollable(panel.scrollHeight > panel.clientHeight + 1);
+    });
+    observer.observe(panel);
+    for (const child of panel.children) observer.observe(child);
+    return () => observer.disconnect();
+  }, [mounted]);
 
-  // Кадр CSS-анимации отыграл: entering → open (панель осела), exiting →
-  // размонтирование. Проверка target === currentTarget — событие всплывает от
-  // панели к скриму, а у них разные кадры и может не совпасть длительность.
-  const handleAnimationEnd = (e: ReactAnimationEvent<HTMLDivElement>) => {
-    if (e.target !== e.currentTarget) return;
-    if (phase === 'entering') setPhase('open');
-    else if (phase === 'exiting') setPhase(null);
-  };
+  if (!mounted) return null;
 
   const canStartDrag = (target: EventTarget | null) => {
     const panel = panelRef.current;
     if (!panel || !(target instanceof Node)) return false;
-    // Тащить можно только когда панель проскроллена до самого верха —
-    // иначе свайп вниз должен быть обычным скроллом контента, не закрытием.
-    // Грабер всегда там же (первый элемент), так что за него можно тащить
-    // при любой прокрутке, всё остальное — только у верхней кромки.
     if (!panel.contains(target)) return false;
-    if (target instanceof Element && target.closest(`.${styles.grabber}`)) return true;
-    return panel.scrollTop <= 0;
+    // За хват — всегда: у него touch-action: none, жест не уйдёт скроллу.
+    if (target instanceof Element && target.closest(`.${styles.grabZone}`)) return true;
+    // По телу — когда прокручивать нечего или мы у самой верхней кромки:
+    // иначе свайп вниз должен быть обычным скроллом, а не закрытием.
+    return !scrollable || panel.scrollTop <= 0;
   };
 
   const handlePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -109,53 +136,52 @@ export function Sheet({ open, onClose, children }: SheetProps) {
     if (!state.dragging) {
       if (delta <= 4) return; // движение вверх/дрожание — не начинаем тащить
       state.dragging = true;
-      setAnimated(false);
+      setDragging(true);
       e.currentTarget.setPointerCapture(e.pointerId);
     }
-    e.preventDefault();
     setDragY(Math.max(0, delta));
   };
 
   const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
     const state = drag.current;
     drag.current = null;
-    if (!state?.dragging) return;
-
-    const elapsed = Math.max(1, performance.now() - state.startedAt);
-    const velocity = dragY / elapsed;
-    setAnimated(true);
-    if (dragY > DISMISS_DISTANCE || velocity > DISMISS_VELOCITY) {
-      setDragDismissed(true);
-      onClose();
-    }
-    setDragY(0);
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
+    if (!state?.dragging) return;
+
+    const elapsed = Math.max(1, performance.now() - state.startedAt);
+    const dismiss = dragY > DISMISS_DISTANCE || dragY / elapsed > DISMISS_VELOCITY;
+
+    // Переход нельзя включить и изменить значение в одном кадре — браузер
+    // применит новое положение мгновенно. Поэтому сперва снимаем dragging
+    // (панель возвращает себе transition), и только следующим кадром отпускаем
+    // трансформ: панель доезжает на место или уходит вниз, продолжая жест.
+    setDragging(false);
+    requestAnimationFrame(() => {
+      setDragY(0);
+      if (dismiss) onClose();
+    });
   };
 
   return createPortal(
-    <div
-      className={styles.scrim}
-      data-phase={phase}
-      onClick={onClose}
-      onAnimationEnd={handleAnimationEnd}
-    >
+    <div className={styles.scrim} data-shown={shown} onClick={onClose}>
       <div
         ref={panelRef}
         className={styles.panel}
-        data-phase={phase}
+        data-shown={shown}
+        data-dragging={dragging}
+        data-scrollable={scrollable}
         onClick={(e) => e.stopPropagation()}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        style={{
-          transform: dragY ? `translateY(${dragY}px)` : undefined,
-          transition: animated ? undefined : 'none',
-        }}
+        style={dragY ? { transform: `translateY(${dragY}px)` } : undefined}
       >
-        <span className={styles.grabber} />
+        <div className={styles.grabZone}>
+          <span className={styles.grabber} />
+        </div>
         {children}
       </div>
     </div>,
