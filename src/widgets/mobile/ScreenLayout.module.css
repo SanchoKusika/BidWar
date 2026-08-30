@@ -4,7 +4,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--section-gap);
-  padding: var(--space-10) 0 0;
+  /* Нижний паддинг под плавающий TabBar (он position:absolute и лежит поверх
+     контента) — тот же токен, что уже держит ShowcaseScreen, иначе последняя
+     секция экрана уходит под меню. */
+  padding: var(--space-10) 0 var(--content-bottom-pad);
 }
 
 .gutter {

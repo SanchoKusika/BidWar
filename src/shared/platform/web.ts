@@ -1,6 +1,11 @@
-import type { InvoiceStatus, Platform, SystemButton } from './types';
+import type { BackButton, InvoiceStatus, Platform, SystemButton } from './types';
 
 /** Системных кнопок в вебе нет — их роль играет обычная разметка. */
+const noopBackButton: BackButton = {
+  show: () => {},
+  hide: () => {},
+};
+
 const noopButton: SystemButton = {
   show: () => {},
   hide: () => {},
@@ -37,7 +42,7 @@ export function createWebPlatform(): Platform {
 
     haptic: () => {},
 
-    backButton: noopButton,
+    backButton: noopBackButton,
     mainButton: noopButton,
 
     ready: () => {},

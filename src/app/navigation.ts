@@ -55,7 +55,7 @@ export function useNavigation(platform: Platform): Navigation {
       platform.backButton.hide();
       return;
     }
-    platform.backButton.show('Back', back);
+    platform.backButton.show(back);
     return () => platform.backButton.hide();
   }, [platform, stack.length, back]);
 
