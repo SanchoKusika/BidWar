@@ -44,15 +44,17 @@ export function TasksScreen({ tasks, voteBalance, onTask, onRules }: TasksScreen
         {daily.length > 0 && <Group label={t.daily} items={daily} onTask={onTask} />}
         {oneTime.length > 0 && <Group label={t.oneTime} items={oneTime} onTask={onTask} />}
 
-        <Gutter>
-          <EmptyState
-            icon="clock"
-            segment="free"
-            title={t.emptyTitle}
-            description={t.emptyNote}
-            compact
-          />
-        </Gutter>
+        {tasks.length === 0 && (
+          <Gutter>
+            <EmptyState
+              icon="clock"
+              segment="free"
+              title={t.emptyTitle}
+              description={t.emptyNote}
+              compact
+            />
+          </Gutter>
+        )}
       </ScreenBody>
     </>
   );

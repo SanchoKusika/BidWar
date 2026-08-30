@@ -110,9 +110,12 @@ export function ProfileScreen({
                   <Icon name="plus" size={13} />
                   {t.add}
                 </button>
-              ) : (
+              ) : projects.length >= 2 ? (
+                // onAdd отсутствует по двум разным причинам: оба слота реально заняты
+                // (тогда это честно) или добавление ещё не подключено на этом экране
+                // (тогда данных для утверждения «оба слота заняты» просто нет — молчим).
                 <span className={styles.slotsNote}>{t.bothSlotsUsed}</span>
-              )
+              ) : null
             }
           >
             {t.myProjects}
