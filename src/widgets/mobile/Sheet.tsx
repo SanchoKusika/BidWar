@@ -2,6 +2,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react';
@@ -42,6 +43,7 @@ export function Sheet({ open, onClose, children }: SheetProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ startY: number; startedAt: number; dragging: boolean } | null>(null);
   const [dragY, setDragY] = useState(0);
+  const [dragHeight, setDragHeight] = useState(0);
   const [dragging, setDragging] = useState(false);
   /** Есть в DOM. Переживает `open = false` ровно на время анимации закрытия. */
   const [mounted, setMounted] = useState(open);
@@ -137,6 +139,9 @@ export function Sheet({ open, onClose, children }: SheetProps) {
       if (delta <= 4) return; // движение вверх/дрожание — не начинаем тащить
       state.dragging = true;
       setDragging(true);
+      // Высота панели нужна, чтобы посчитать долю жеста для затемнения;
+      // берётся один раз в начале, дальше она не меняется.
+      setDragHeight(e.currentTarget.offsetHeight);
       e.currentTarget.setPointerCapture(e.pointerId);
     }
     setDragY(Math.max(0, delta));
@@ -164,20 +169,32 @@ export function Sheet({ open, onClose, children }: SheetProps) {
     });
   };
 
+  // Доля утянутого: по ней затемнение и размытие отходят вместе с панелью.
+  const dismissed = dragHeight > 0 ? Math.min(1, dragY / dragHeight) : 0;
+
   return createPortal(
-    <div className={styles.scrim} data-shown={shown} onClick={onClose}>
+    <div
+      className={styles.scrim}
+      data-shown={shown}
+      data-dragging={dragging}
+      onClick={onClose}
+      style={
+        {
+          '--sheet-drag': `${dragY}px`,
+          '--sheet-dismiss': dismissed,
+        } as CSSProperties
+      }
+    >
       <div
         ref={panelRef}
         className={styles.panel}
         data-shown={shown}
-        data-dragging={dragging}
         data-scrollable={scrollable}
         onClick={(e) => e.stopPropagation()}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        style={dragY ? { transform: `translateY(${dragY}px)` } : undefined}
       >
         <div className={styles.grabZone}>
           <span className={styles.grabber} />

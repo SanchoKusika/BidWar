@@ -1,25 +1,33 @@
-/* Открытие и закрытие сделаны переходами, а не @keyframes, сознательно:
-   CSS-модуль скоупит имя анимации (`ds-x` → `_ds-x_hash_1`), а сами кадры
-   лежат глобально в tokens/motion.css — ссылка не находит определение, и
-   анимация молча не проигрывается. У transition имени нет, ломаться нечему.
-   Плюс переход по transform уживается с inline-трансформом от пальца, а
-   анимация с fill:both перебила бы его и жест перестал бы двигать панель. */
+/* Открытие и закрытие сделаны переходами, а не @keyframes, сознательно: у
+   transition нет имени, а имя анимации внутри CSS-модуля скоупится (это уже
+   один раз убило всю анимацию шторки — см. generateScopedName в
+   vite.config.ts). Плюс переход по transform уживается с положением от пальца,
+   а анимация с fill:both перебила бы его и жест перестал бы двигать панель. */
 
 .scrim {
+  /* Насколько шторку утянули вниз: 0 — на месте, 1 — ушла целиком. */
+  --sheet-dismiss: 0;
+
   position: fixed;
   inset: 0;
   z-index: 40;
   display: flex;
   align-items: flex-end;
-  background: var(--surface-scrim);
-  backdrop-filter: var(--blur-scrim);
   opacity: 0;
-  transition: opacity var(--dur-sheet) var(--ease-exit);
+  background: var(--surface-scrim);
+  backdrop-filter: blur(0);
+  /* Та же кривая, что и на въезде: уход на --ease-exit читался рывком, потому
+     что эта кривая к концу разгоняется. */
+  transition:
+    opacity var(--dur-sheet) var(--ease-out),
+    backdrop-filter var(--dur-sheet) var(--ease-out);
 }
 
+/* Затемнение и размытие отходят вместе с пальцем, а не держатся до упора и
+   гаснут рывком в момент отпускания. */
 .scrim[data-shown='true'] {
-  opacity: 1;
-  transition-timing-function: var(--ease-out);
+  opacity: calc(1 - var(--sheet-dismiss));
+  backdrop-filter: blur(calc(var(--blur-scrim-radius) * (1 - var(--sheet-dismiss))));
 }
 
 .panel {
@@ -35,26 +43,30 @@
   background: var(--bg-elevated);
   box-shadow: var(--shadow-sheet);
   transform: translateY(100%);
-  transition: transform var(--dur-sheet) var(--ease-exit);
+  transition: transform var(--dur-sheet) var(--ease-out);
   touch-action: pan-y;
   will-change: transform;
 }
 
+/* Положение от пальца живёт в переменной, а не в inline-стиле: так панель
+   держит его и после конца жеста, а на место доезжает переходом (включить
+   переход и сменить значение одним кадром нельзя — браузер применил бы новое
+   положение мгновенно). */
 .panel[data-shown='true'] {
-  transform: translateY(0);
-  transition-timing-function: var(--ease-out);
+  transform: translateY(var(--sheet-drag, 0px));
 }
 
 /* Панель, которая никуда не прокручивается, тянется за любое место: отдавать
-   вертикальный жест браузеру незачем, скроллить всё равно нечего. Прокручиваемая
-   оставляет тело скроллу, и тянуть её можно за полосу-хват. */
+   вертикальный жест браузеру незачем, скроллить всё равно нечего.
+   Прокручиваемая оставляет тело скроллу и тянется за полосу-хват. */
 .panel[data-scrollable='false'] {
   touch-action: none;
 }
 
-/* Пока палец ведёт панель, перехода быть не должно — иначе она тянется с
+/* Пока палец ведёт шторку, переходов быть не должно — иначе она тянется с
    задержкой в 320 мс вместо того, чтобы липнуть к пальцу. */
-.panel[data-dragging='true'] {
+.scrim[data-dragging='true'],
+.scrim[data-dragging='true'] .panel {
   transition: none;
 }
 
