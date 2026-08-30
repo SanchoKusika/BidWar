@@ -3,3 +3,6 @@ node_modules
 package-lock.json
 # генерируется `npm run db:types`, форматируется генератором
 src/shared/api/database.types.ts
+# локальные настройки Claude Code: в git не попадают, поэтому в CI их нет —
+# без этой строки `npm run check` падает только на машине разработчика
+.claude/
