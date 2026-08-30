@@ -39,8 +39,15 @@ React + TypeScript + CSS-модули (клиент), `deno test` (раннер)
   способом — проброс динамического значения в CSS-переменную.
 - **Денежные величины — целые.** `BIGINT` в очках, `NUMERIC(20,10)` для курсов,
   никаких `float`.
-- **Edge Functions деплоятся руками:** `npx supabase functions deploy <name>`.
-  После миграции — `npm run db:types` (файл генерируемый).
+- **Edge Functions деплоятся руками.** `supabase` CLI на этой машине **не
+  залогинен** (`supabase login` не выполнялся), поэтому рабочий путь —
+  MCP-инструменты Supabase: `apply_migration` (миграции), `deploy_edge_function`
+  (деплой), `generate_typescript_types` (типы), `execute_sql` (проверки). Пароля
+  к базе они не требуют. Альтернатива — `supabase login` и CLI-команды.
+- **`verify_jwt` при деплое** повторяет существующие функции: `true` у всего, что
+  зовёт клиент (`auth`, `add-project`, `click`) и, значит, у `create-payment`;
+  `false` у того, что зовёт внешняя сторона без JWT (`bot`) и, значит, у
+  `payment-webhook`.
 - **Ловушки, на которые уже наступали:** `react-hooks/set-state-in-effect` (сброс
   состояния при смене пропа — сравнением в рендере, не в эффекте),
   `react-hooks/refs` (не мутировать `.current` во время рендера),
@@ -1199,9 +1206,11 @@ serve('create-payment', async (req, ctx) => {
 
 - [ ] **Step 7: Задеплоить и проверить живьём**
 
-```bash
-npx supabase functions deploy create-payment
-```
+Деплой — MCP-инструментом `deploy_edge_function` с `verify_jwt: true` (функцию
+зовёт клиент с anon-ключом, как `add-project`). В `files` передать и сам
+`create-payment/index.ts`, и `validate.ts`, и все `_shared/*`, на которые он
+ссылается. Через CLI это было бы `npx supabase functions deploy create-payment`,
+но он здесь не залогинен.
 
 Проверка отказа без валидного `initData` (подделать его нельзя, и это главное,
 что здесь надо увидеть):
@@ -1322,9 +1331,9 @@ serve('payment-webhook', async (req, ctx) => {
 
 - [ ] **Step 4: Задеплоить**
 
-```bash
-npx supabase functions deploy payment-webhook
-```
+Деплой — MCP-инструментом `deploy_edge_function`, но с **`verify_jwt: false`**:
+провайдер шлёт вебхук без JWT, ровно как Telegram в функцию `bot`. Подпись
+проверяет сам `parseWebhook`, до разбора тела.
 
 - [ ] **Step 5: Прогнать check и закоммитить**
 
