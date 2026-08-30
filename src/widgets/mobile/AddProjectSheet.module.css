@@ -1,0 +1,144 @@
+/* Значения сверены с AddProjectSheet в design/ui_kits/mini_app/Sheets.jsx.
+   Расстояния между блоками задаёт сама шторка (.panel { gap: var(--space-8) }),
+   поэтому здесь только внутренняя геометрия. */
+
+.input {
+  height: 48px;
+  padding: 0 14px;
+  border: var(--border-w) solid var(--border-default);
+  border-radius: var(--radius-control);
+  background: var(--surface-card);
+  /* 16px — не токен типографики: iOS зумит страницу при фокусе на инпуте с
+     font-size меньше 16px, а type-body в ките — 14px. Ниже нельзя. */
+  font-family: var(--font-ui);
+  font-size: 16px;
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--border-focus);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.input:disabled {
+  opacity: 0.6;
+}
+
+/* --- Где соревнуется: две карточки в ряд --- */
+
+.destinations {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.destination {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--card-pad);
+  border: var(--border-w) solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--surface-card);
+  text-align: left;
+  cursor: pointer;
+  transition: var(--t-control);
+}
+
+.destination[data-dimmed='true'] {
+  opacity: 0.55;
+}
+
+.destination:disabled {
+  cursor: not-allowed;
+}
+
+.destination[data-active='true'][data-segment='free'] {
+  background: var(--free-tint);
+  border-color: var(--free-tint-border);
+}
+
+.destination[data-active='true'][data-segment='paid'] {
+  background: var(--paid-tint);
+  border-color: var(--paid-tint-border);
+}
+
+.destinationLabel {
+  font: var(--type-section);
+  color: var(--text-primary);
+}
+
+.destination[data-active='true'][data-segment='free'] .destinationLabel {
+  color: var(--free-accent);
+}
+
+.destination[data-active='true'][data-segment='paid'] .destinationLabel {
+  color: var(--paid-accent);
+}
+
+.destinationSub {
+  font: var(--type-caption);
+  color: var(--text-secondary);
+}
+
+/* --- Категория: те же карточки, по две в ряд --- */
+
+.categories {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.category {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  min-height: var(--hit-min);
+  padding: var(--card-pad);
+  border: var(--border-w) solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--surface-card);
+  color: var(--text-secondary);
+  text-align: left;
+  cursor: pointer;
+  transition: var(--t-control);
+}
+
+.category:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.category[data-active='true'][data-segment='free'] {
+  background: var(--free-tint);
+  border-color: var(--free-tint-border);
+  color: var(--free-accent);
+}
+
+.category[data-active='true'][data-segment='paid'] {
+  background: var(--paid-tint);
+  border-color: var(--paid-tint-border);
+  color: var(--paid-accent);
+}
+
+.categoryName {
+  overflow: hidden;
+  font: var(--type-section);
+  color: var(--text-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category[data-active='true'] .categoryName {
+  color: inherit;
+}
+
+.error {
+  font: var(--type-caption);
+  color: var(--attack-text);
+}

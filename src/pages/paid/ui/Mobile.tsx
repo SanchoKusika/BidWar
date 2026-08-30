@@ -1,3 +1,4 @@
+import type { Navigation } from '@/app/navigation';
 import { useSession } from '@/entities/user';
 import { getPlatform } from '@/shared/platform';
 import { registerClick } from '@/entities/project';
@@ -10,7 +11,11 @@ import {
   useMinPaidAmount,
 } from '../model';
 
-export function PaidMobile() {
+export interface PaidMobileProps {
+  nav: Navigation;
+}
+
+export function PaidMobile({ nav }: PaidMobileProps) {
   const { userId, status: sessionStatus, errorMessage: sessionErrorMessage } = useSession();
   const showcase = usePaidShowcase();
   const categories = usePaidCategories();
@@ -41,6 +46,7 @@ export function PaidMobile() {
       error={showcase.error}
       onLoadMore={showcase.loadMore}
       onRetry={showcase.retry}
+      onOpenRules={() => nav.push({ name: 'rules', anchor: 'bidding' })}
       onOpenProject={(item) => {
         const initData = getPlatform().getInitData();
         if (initData) registerClick({ initData, projectId: item.id }).catch(() => {});

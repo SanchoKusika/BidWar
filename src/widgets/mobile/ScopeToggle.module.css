@@ -1,0 +1,36 @@
+/* Сверено с ScopeToggle в design/ui_kits/mini_app/TopFeed.jsx. */
+
+.wrap {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 2px;
+  border: var(--border-w) solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--surface-card);
+}
+
+.option {
+  height: 24px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-secondary);
+  font: var(--type-micro);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: var(--t-control);
+}
+
+.option[data-active='true'] {
+  color: #fff;
+}
+
+.option[data-active='true'][data-segment='paid'] {
+  background: var(--paid-accent);
+}
+
+.option[data-active='true'][data-segment='free'] {
+  background: var(--free-accent);
+}

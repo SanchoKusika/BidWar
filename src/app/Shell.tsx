@@ -1,50 +1,73 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getPlatform } from '@/shared/platform';
 import { SessionProvider } from '@/entities/user';
-import { TabBar, type TabId } from '@/shared/ui/TabBar';
-import { EmptyState } from '@/shared/ui/EmptyState';
+import { TabBar } from '@/shared/ui/TabBar';
 import { PaidMobile } from '@/pages/paid/ui/Mobile';
 import { FreeMobile } from '@/pages/free/ui/Mobile';
+import { TasksPage } from '@/pages/tasks/ui/Mobile';
+import { ProfilePage } from '@/pages/profile/ui/Mobile';
+import { ProjectPage } from '@/pages/project/ui/Mobile';
+import { RulesScreen } from '@/widgets/mobile/RulesScreen';
+import { DocScreen } from '@/widgets/mobile/DocScreen';
+import { useNavigation } from './navigation';
 import { bindTheme } from './theme';
 import styles from './Shell.module.css';
 
-const COMING_SOON: Partial<Record<TabId, string>> = {
-  tasks: 'Задания',
-  profile: 'Профиль',
-};
-
 /**
- * Каркас мини-аппа: TabBar снизу переключает витрины (07 Экраны.md — мобильная
- * навигация). Tasks и Profile — заглушки, экраны появятся в Срезах 1.7/1.8.
+ * Каркас мини-аппа: TabBar снизу переключает вкладки, поверх любой из них
+ * ложится стек экранов (проект, правила, документ) — см. app/navigation.ts.
  */
 export function Shell() {
-  const platform = getPlatform();
-  const [tab, setTab] = useState<TabId>('paid');
+  const [platform] = useState(getPlatform);
+  const nav = useNavigation(platform);
+  const scroller = useRef<HTMLElement>(null);
 
   useEffect(() => {
     platform.ready();
     return bindTheme(platform);
   }, [platform]);
 
-  const comingSoon = COMING_SOON[tab];
+  // Новый экран начинается сверху, а не там, где остался прошлый.
+  useEffect(() => {
+    if (scroller.current) scroller.current.scrollTop = 0;
+  }, [nav.tab, nav.depth]);
+
+  const openRules = (anchor?: string) => nav.push({ name: 'rules', anchor });
 
   return (
     <SessionProvider>
       <div className={styles.app}>
-        <main className={styles.content}>
-          {tab === 'paid' && <PaidMobile />}
-          {tab === 'free' && <FreeMobile />}
-          {comingSoon && (
-            <div className={styles.comingSoon}>
-              <EmptyState
-                icon="clock"
-                title={comingSoon}
-                description="Появится в одном из следующих срезов."
-              />
-            </div>
+        <main className={styles.content} ref={scroller}>
+          {nav.current === null && nav.tab === 'paid' && <PaidMobile nav={nav} />}
+          {nav.current === null && nav.tab === 'free' && <FreeMobile nav={nav} />}
+          {nav.current === null && nav.tab === 'tasks' && <TasksPage nav={nav} />}
+          {nav.current === null && nav.tab === 'profile' && <ProfilePage nav={nav} />}
+
+          {nav.current?.name === 'project' && (
+            <ProjectPage
+              id={nav.current.id}
+              segment={nav.current.segment}
+              onBack={nav.back}
+              onRules={openRules}
+            />
+          )}
+          {nav.current?.name === 'rules' && (
+            <RulesScreen
+              anchor={nav.current.anchor}
+              onBack={nav.back}
+              onSupport={() => nav.push({ name: 'doc', id: 'support' })}
+            />
+          )}
+          {nav.current?.name === 'doc' && (
+            <DocScreen
+              id={nav.current.id}
+              onBack={nav.back}
+              onDoc={(id) => nav.push({ name: 'doc', id })}
+            />
           )}
         </main>
-        <TabBar active={tab} onChange={setTab} />
+
+        <TabBar active={nav.tab} onChange={nav.setTab} />
       </div>
     </SessionProvider>
   );

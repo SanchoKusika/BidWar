@@ -1,0 +1,145 @@
+/* Сверено с PaySheet в design/ui_kits/mini_app/Sheets.jsx. */
+
+.total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: var(--card-pad);
+  border: var(--border-w) solid transparent;
+  border-radius: var(--radius-card);
+}
+
+.total[data-tone='paid'] {
+  border-color: var(--paid-tint-border);
+  background: var(--paid-tint);
+}
+
+.total[data-tone='attack'] {
+  border-color: var(--attack-tint-border);
+  background: var(--attack-tint);
+}
+
+.totalLabel {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  color: var(--text-muted);
+}
+
+.totalValue {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.totalAmount {
+  font: var(--type-amount-lg);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tighter);
+}
+
+.total[data-tone='paid'] .totalAmount {
+  color: var(--paid-accent);
+}
+
+.total[data-tone='attack'] .totalAmount {
+  color: var(--attack-accent);
+}
+
+.totalUnit {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  color: var(--text-muted);
+}
+
+/* --- Выбор провайдера --- */
+
+.methods {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.method {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--card-pad);
+  border: var(--border-w) solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--surface-card);
+  text-align: left;
+  cursor: pointer;
+  transition: var(--t-control);
+}
+
+.method[data-active='true'][data-tone='paid'] {
+  border-color: var(--paid-tint-border);
+  background: var(--paid-tint);
+}
+
+.method[data-active='true'][data-tone='attack'] {
+  border-color: var(--attack-tint-border);
+  background: var(--attack-tint);
+}
+
+.methodIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--n-100);
+  color: var(--text-secondary);
+}
+
+.method[data-active='true'][data-tone='paid'] .methodIcon {
+  background: var(--paid-accent);
+  color: var(--paid-on-accent);
+}
+
+.method[data-active='true'][data-tone='attack'] .methodIcon {
+  background: var(--attack-accent);
+  color: var(--attack-on-accent);
+}
+
+.methodText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.methodName {
+  font: var(--type-section);
+  color: var(--text-primary);
+}
+
+.methodDesc {
+  overflow: hidden;
+  font: var(--type-caption);
+  color: var(--text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.methodMeta {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 1px;
+  text-align: right;
+}
+
+.methodUnit {
+  font: var(--type-micro);
+  color: var(--text-secondary);
+}
+
+.methodFee {
+  font: var(--type-micro);
+  color: var(--text-muted);
+}

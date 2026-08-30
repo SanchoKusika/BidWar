@@ -1,0 +1,104 @@
+/* Сверено с шторками в design/ui_kits/mini_app/Sheets.jsx. Расстояния между
+   блоками задаёт сама шторка (.panel { gap: var(--space-8) }). */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  color: var(--text-muted);
+}
+
+/* --- Плашка-пояснение --- */
+
+.note {
+  display: flex;
+  gap: 8px;
+  padding: var(--space-5);
+  border: var(--border-w) solid transparent;
+  border-radius: var(--radius-md);
+  font: var(--type-caption);
+  text-wrap: pretty;
+}
+
+.noteIcon {
+  flex: 0 0 auto;
+}
+
+.note[data-tone='free'] {
+  border-color: var(--free-tint-border);
+  background: var(--free-tint);
+  color: var(--free-text);
+}
+
+.note[data-tone='free'] .noteIcon {
+  color: var(--free-accent);
+}
+
+.note[data-tone='paid'] {
+  border-color: var(--paid-tint-border);
+  background: var(--paid-tint);
+  color: var(--paid-text);
+}
+
+.note[data-tone='paid'] .noteIcon {
+  color: var(--paid-accent);
+}
+
+.note[data-tone='attack'] {
+  border-color: var(--attack-tint-border);
+  background: var(--attack-tint);
+  color: var(--attack-text);
+}
+
+.note[data-tone='attack'] .noteIcon {
+  color: var(--attack-accent);
+}
+
+/* Урезанная атака: сообщение служебное, тона экономики ему не положено. */
+.note[data-tone='muted'] {
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+}
+
+.note[data-tone='muted'] .noteIcon {
+  color: var(--text-secondary);
+}
+
+.footnote {
+  margin: 0;
+  font: var(--type-caption);
+  text-wrap: pretty;
+}
+
+.footnote[data-tone='secondary'] {
+  color: var(--text-secondary);
+}
+
+.footnote[data-tone='muted'] {
+  color: var(--text-muted);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Ряд кнопок: узкая слева, основная во всю ширину справа --- */
+
+.actions {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.secondary {
+  flex: 0 0 96px;
+}
+
+.actions > button:last-child {
+  flex: 1;
+}

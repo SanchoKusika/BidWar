@@ -1,0 +1,47 @@
+/* Сверено с ResultSheet в design/ui_kits/mini_app/Sheets.jsx. */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  padding-top: var(--space-6);
+}
+
+.mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-lg);
+}
+
+.mark[data-tone='free'] {
+  background: var(--free-tint);
+  color: var(--free-accent);
+}
+
+.mark[data-tone='paid'] {
+  background: var(--paid-tint);
+  color: var(--paid-accent);
+}
+
+.title {
+  font: var(--type-title);
+  color: var(--text-primary);
+}
+
+.rank {
+  font: var(--type-amount-hero);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tighter);
+  color: var(--text-primary);
+}
+
+.note {
+  font: var(--type-caption);
+  color: var(--text-secondary);
+  text-align: center;
+  text-wrap: pretty;
+}

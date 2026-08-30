@@ -1,0 +1,64 @@
+/* Сверено с шапками шторок в design/ui_kits/mini_app/Sheets.jsx. */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+/* Attack и Pay держат поле справа: имя чужого проекта не должно упираться
+   в край панели. */
+.header[data-single-line='true'] {
+  padding-right: 34px;
+}
+
+.iconBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+}
+
+.iconBox[data-tone='free'] {
+  background: var(--free-tint);
+  color: var(--free-accent);
+}
+
+.iconBox[data-tone='paid'] {
+  background: var(--paid-tint);
+  color: var(--paid-accent);
+}
+
+.iconBox[data-tone='attack'] {
+  background: var(--attack-tint);
+  color: var(--attack-accent);
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  font: var(--type-title);
+  letter-spacing: var(--ls-tight);
+  color: var(--text-primary);
+}
+
+.subtitle {
+  font: var(--type-caption);
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+.header[data-single-line='true'] .subtitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

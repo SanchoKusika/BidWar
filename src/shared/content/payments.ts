@@ -5,7 +5,9 @@ import type { PaymentProvider } from './types';
 //
 // По той же причине в списке карт GlobalPay нет «Мир»: проводят они его или
 // нет — открытый вопрос, а не факт. Появится в списке, когда подтвердится.
-export const payments: readonly PaymentProvider[] = [
+// Непустой кортеж, а не просто массив: платёжное окно обязано кого-то
+// предложить по умолчанию, и это требование продукта, а не удобство типов.
+export const payments: readonly [PaymentProvider, ...PaymentProvider[]] = [
   {
     id: 'globalpay',
     name: 'GlobalPay',

@@ -1,0 +1,48 @@
+/* Сверено с AttackSheet в design/ui_kits/mini_app/Sheets.jsx. */
+
+.steps {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.stepBar {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border-default);
+}
+
+.stepBar[data-on='true'] {
+  background: var(--attack-accent);
+}
+
+.stepLabel {
+  flex: 0 0 auto;
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  color: var(--text-muted);
+}
+
+/* --- «Один платёж, два эффекта» --- */
+
+.effects {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+}
+
+.effectsLabel {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  color: var(--text-muted);
+}
+
+.effectsNote {
+  font: var(--type-caption);
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}

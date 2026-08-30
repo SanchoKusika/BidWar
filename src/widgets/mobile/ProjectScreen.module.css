@@ -1,0 +1,48 @@
+/* Сверено с ProjectScreen в design/ui_kits/mini_app/Screens.jsx. */
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.identityText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font: var(--type-section);
+  letter-spacing: var(--ls-tight);
+  color: var(--text-primary);
+}
+
+.owner {
+  font: var(--type-caption);
+  color: var(--text-secondary);
+}
+
+.description {
+  margin: 0;
+  font: var(--type-body-sm);
+  color: var(--text-primary);
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.otherList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap);
+}

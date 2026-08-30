@@ -3,7 +3,8 @@ import { useSession } from '@/entities/user';
 import { getPlatform } from '@/shared/platform';
 import { createProject, registerClick } from '@/entities/project';
 import { ShowcaseScreen } from '@/widgets/mobile/ShowcaseScreen';
-import { AddProjectForm } from '@/widgets/mobile/AddProjectForm';
+import { AddProjectSheet } from '@/widgets/mobile/AddProjectSheet';
+import type { Navigation } from '@/app/navigation';
 import {
   useFreeCategories,
   useFreeOwnPosition,
@@ -11,7 +12,11 @@ import {
   useFreeTopProject,
 } from '../model';
 
-export function FreeMobile() {
+export interface FreeMobileProps {
+  nav: Navigation;
+}
+
+export function FreeMobile({ nav }: FreeMobileProps) {
   const {
     userId,
     voteBalance,
@@ -55,6 +60,7 @@ export function FreeMobile() {
         error={showcase.error}
         onLoadMore={showcase.loadMore}
         onRetry={showcase.retry}
+        onOpenRules={() => nav.push({ name: 'rules', anchor: 'votes' })}
         onOpenProject={(item) => {
           const initData = getPlatform().getInitData();
           // Fire-and-forget: счётчик не должен задерживать переход по ссылке.
@@ -66,10 +72,11 @@ export function FreeMobile() {
         onAddProject={userId && !own.project ? () => setAddOpen(true) : undefined}
       />
 
-      <AddProjectForm
+      <AddProjectSheet
         open={addOpen}
         onClose={() => setAddOpen(false)}
         categories={categories.categories}
+        taken={{ free: Boolean(own.project) }}
         onSubmit={async ({ url, categoryId }) => {
           const initData = getPlatform().getInitData();
           if (!initData) throw new Error('Открой мини-апп в Telegram, чтобы добавить проект');

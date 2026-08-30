@@ -37,6 +37,11 @@ export interface ProjectCardProps {
   catLeader?: string;
   isOwn?: boolean;
   verified?: boolean;
+  /**
+   * Raise, Attack и Give votes видны, но не нажимаются: экономика подключается
+   * в Срезах 1.5–1.7. «Подробнее» это не касается — переход работает всегда.
+   */
+  actionsDisabled?: boolean;
   onPress?: () => void;
   onRaise?: () => void;
   onAttack?: () => void;
@@ -64,6 +69,7 @@ export function ProjectCard({
   spotUnit,
   catLeader,
   isOwn = false,
+  actionsDisabled = false,
   verified = false,
   onPress,
   onRaise,
@@ -190,6 +196,7 @@ export function ProjectCard({
               size="sm"
               icon="chevrons-up"
               className={styles.action}
+              disabled={actionsDisabled}
               onClick={stop(onRaise)}
             >
               Raise
@@ -201,6 +208,7 @@ export function ProjectCard({
               size="sm"
               icon="swords"
               className={styles.action}
+              disabled={actionsDisabled}
               onClick={stop(onAttack)}
             >
               Attack
@@ -212,6 +220,7 @@ export function ProjectCard({
               size="sm"
               icon="vote"
               className={styles.action}
+              disabled={actionsDisabled}
               onClick={stop(onVote)}
             >
               Give votes

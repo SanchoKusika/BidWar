@@ -1,0 +1,51 @@
+/* Геометрия сверена с KeyRow в design/ui_kits/mini_app/Shell.jsx. */
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-6);
+  padding: 7px 0;
+  border-bottom: var(--border-w) solid var(--border-subtle);
+}
+
+.label {
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+}
+
+.value {
+  font: var(--type-body-sm);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tight);
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.value[data-strong='true'] {
+  font: var(--type-amount-md);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tight);
+}
+
+.value[data-tone='paid'] {
+  color: var(--paid-text);
+}
+
+.value[data-tone='free'] {
+  color: var(--free-text);
+}
+
+.value[data-tone='attack'] {
+  color: var(--attack-text);
+}
+
+.value[data-tone='up'] {
+  color: var(--delta-up);
+}
+
+.value[data-tone='down'] {
+  color: var(--delta-down);
+}
