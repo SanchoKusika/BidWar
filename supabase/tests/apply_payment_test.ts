@@ -502,3 +502,80 @@ Deno.test(
     }
   },
 );
+
+// Находка I7 финального ревью (миграция 20260831120000_apply_payment_lock_order):
+// раньше функция блокировала строки ДВУМЯ отдельными statement'ами — первый
+// {project, leader_before}, второй, отдельным запросом уже после обновления
+// счётчиков, {текущие держатели rank1_since, leader_after}. Каждый по
+// отдельности отсортирован по id, но их объединение — нет: если
+// leader_after не входит в первый набор, вторая блокировка вправе запросить
+// id меньше уже удерживаемого — дедлок с встречной транзакцией, идущей в
+// обратном порядке. В самом срезе 1.5 это недостижимо (paid_amount только
+// растёт), поэтому воспроизвести настоящий дедлок здесь нельзя — приходится
+// вручную сконструировать SQL-обновлением ту раскладку, которую в 1.5 может
+// дать только будущий Attack (1.6): держатель rank1_since с БОЛЬШИМ id, чем
+// у строки с реальным максимумом paid_amount.
+//
+// Тест не доказывает отсутствие дедлока (для этого нужны два реальных
+// соединения и встречный порядок захвата, как в предыдущем тесте файла) —
+// он проверяет более слабое, но необходимое условие: единая блокировка
+// находки I7 обязана захватить ОБЕ строки (старого держателя и настоящего
+// максимума) одним statement'ом ДО каких-либо UPDATE, даже когда держатель
+// не является максимумом и имеет больший id. Если бы находка I7 была
+// реализована с ошибкой (например, набор строк в WHERE не включал бы
+// текущий максимум), этот тест упал бы с потерянным/задвоенным rank1_since
+// или с гонкой при снятии отметки — а не с дедлоком, который эта раскладка
+// физически не может произвести на одном соединении.
+Deno.test(
+  'находка I7: держатель rank1_since с id больше реального максимума — пересчёт не теряется',
+  async () => {
+    await inRollback(async (tx) => {
+      const [top] =
+        await tx`select coalesce(max(paid_amount), 0) as v from projects where type = 'paid'`;
+      const base = Number(top.v) + 1_000_000;
+
+      // A вставляется первым — гарантированно меньший id, чем у B.
+      const a = await seed(tx, base + 100);
+      await tx`update projects set status = 'active' where id = ${a.projectId}`;
+      const b = await seed(tx, base + 200);
+      await tx`update projects set status = 'active' where id = ${b.projectId}`;
+
+      // B — держатель rank1_since (был лидером до гипотетической атаки).
+      await tx`update projects set rank1_since = now() where id = ${b.projectId}`;
+
+      // Раскладка отчёта: реальный максимум paid_amount переезжает на A —
+      // строку с МЕНЬШИМ id, чем у текущего держателя B. В 1.5 так не
+      // бывает естественным путём (paid_amount только растёт и B был выше A
+      // на момент, когда получал rank1_since) — здесь это сделано прямым
+      // UPDATE, чтобы получить нужную для теста комбинацию id/paid_amount,
+      // не дожидаясь Attack из 1.6.
+      await tx`update projects set paid_amount = paid_amount + 1000000 where id = ${a.projectId}`;
+
+      assertEquals(a.projectId < b.projectId, true, 'A обязан иметь меньший id, чем B');
+
+      // Платёж по третьему проекту C — маленький, лидерство не меняет.
+      // Нужен только чтобы прогнать полный путь apply_payment (включая
+      // единую блокировку находки I7) в этой раскладке.
+      const c = await seed(tx, 1);
+      const [result] = await tx`select * from apply_payment(${c.paymentId}, 'evt-i7', true)`;
+      assertEquals(
+        result.applied,
+        true,
+        'платёж применяется, дедлока/ошибки на одном соединении нет',
+      );
+
+      const [aAfter] = await tx`select rank1_since from projects where id = ${a.projectId}`;
+      const [bAfter] = await tx`select rank1_since from projects where id = ${b.projectId}`;
+      assertEquals(
+        aAfter.rank1_since !== null,
+        true,
+        'настоящий максимум (A, меньший id) обязан получить rank1_since',
+      );
+      assertEquals(
+        bAfter.rank1_since,
+        null,
+        'у B (был держателем, но больше не максимум) отметка обязана быть снята',
+      );
+    });
+  },
+);
