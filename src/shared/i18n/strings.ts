@@ -47,6 +47,21 @@ export const strings = {
     bidAfter: 'Your bid after',
     projectedPosition: 'Projected position',
     note: 'One charge on the next screen. The raise applies when the provider confirms the payment — no balance is kept for you.',
+    resultTitle: 'Bid raised',
+    resultNote: (amount: string, unit: string) =>
+      `${amount} ${unit} applied. The position updates for everyone right away.`,
+    openingResultTitle: 'You are in the Paid Top',
+    failed: 'The payment did not go through — nothing was charged.',
+    // status: 'pending' — платёж создан, подтверждение ещё не пришло. Это не
+    // отказ (у мока встречается только по команде stuck_pending; полноценная
+    // шторка ожидания — Срез 1.10), и говорить «не прошёл» тут неверно
+    // (находка «status: pending» финального ревью).
+    pendingConfirmation: 'Payment created, waiting for confirmation — do not pay again yet.',
+    // Соединение оборвалось ПОСЛЕ отправки запроса — мы не знаем, успел ли
+    // сервер применить платёж до разрыва. «Ничего не списано» здесь была бы
+    // ложью, которую нельзя проверить (находка I6 финального ревью).
+    unknownOutcome:
+      'Connection dropped before we heard back — we do not know if the charge went through. Check your position before paying again.',
   },
 
   attack: {
@@ -253,10 +268,17 @@ export const strings = {
     // В ките эта строка называла Platega и Stripe поимённо; провайдеры с тех
     // пор сменились, поэтому валюта берётся из карточки самого провайдера.
     chargeNote: (provider: string, unit: string) => `${provider} charges in ${unit}.`,
+    // Мок — не hosted-провайдер со своей страницей: он подтверждает платёж
+    // прямо внутри create-payment (Срез 1.5, находка «Сноски врут» финального
+    // ревью). Отдельная копия для него — честная, а не общий шаблон с
+    // подставленным именем 'Test payment'.
+    chargeNoteMock: 'Test payment confirms instantly, right here — no separate page, no charge.',
     attackWarning: (rival: string) =>
       `The charge goes to the platform, never to ${rival}. Once the provider confirms it, it cannot be undone — and they get a bot alert naming you and the amount.`,
     submit: (amount: string, provider: string) => `Pay ${amount} via ${provider}`,
     footnote: (provider: string) =>
       `The payment opens on ${provider}'s own secure page and applies when ${provider} confirms it. BidWar keeps no balance for you — there is no wallet to top up and nothing of yours sitting with us.`,
+    footnoteMock:
+      'Test payment has no secure page of its own — it confirms immediately, right on this screen, and moves no real money. BidWar keeps no balance for you either way.',
   },
 } as const;

@@ -6,3 +6,7 @@ src/shared/api/database.types.ts
 # локальные настройки Claude Code: в git не попадают, поэтому в CI их нет —
 # без этой строки `npm run check` падает только на машине разработчика
 .claude/
+# рабочие файлы skill'а superpowers (SDD-брифы задач): сам каталог несёт
+# собственный .gitignore и в репозиторий не попадает — по той же причине,
+# что и .claude/ выше
+.superpowers/

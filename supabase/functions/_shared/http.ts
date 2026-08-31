@@ -130,7 +130,10 @@ function serializeError(error: unknown): unknown {
   if (error instanceof Error) {
     const extra: Record<string, unknown> = {};
     for (const key of ['code', 'details', 'hint'] as const) {
-      if (key in error) extra[key] = (error as Record<string, unknown>)[key];
+      // Error не пересекается с Record<string, unknown> достаточно, чтобы TS
+      // разрешил прямой каст (PostgrestError добавляет code/details/hint поверх
+      // Error структурно, а не по объявленному индексу) — сначала через unknown.
+      if (key in error) extra[key] = (error as unknown as Record<string, unknown>)[key];
     }
     return { message: error.message, stack: error.stack, ...extra };
   }

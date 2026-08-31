@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AmountInput } from '@/shared/ui/AmountInput';
 import { Button } from '@/shared/ui/Button';
 import { Icon } from '@/shared/ui/Icon';
 import { strings } from '@/shared/i18n/strings';
@@ -18,7 +19,29 @@ export interface AddProjectSheetProps {
   categories: CategoryStat[];
   /** Слоты аккаунта: по одному проекту в каждом топе, второй туда же не влезет. */
   taken?: { free?: boolean; paid?: boolean };
-  onSubmit: (params: { url: string; categoryId: number; segment: ShowcaseType }) => Promise<void>;
+  /**
+   * Минимальный шаг платного входа (app_config.paid_limits) — только для
+   * предпросмотра поля ставки, окончательно считает сервер. Проп не передан
+   * ⇒ платный вход на этой странице ещё не подключён (так вызывает Free-
+   * страница, у которой платежей нет) — сегмент Paid остаётся на месте, но
+   * выбрать его нельзя.
+   */
+  minPaidAmount?: number;
+  /**
+   * Топ, с которого открыли шторку — им и должен предзаполняться segment.
+   * Без него сегмент по умолчанию решался только по занятости Free-слота
+   * (taken.free), а на Paid Top этот слот почти всегда свободен — шторка
+   * открывалась на Free, и поле ставки было не видно, пока не переключить
+   * карточку руками (код-ревью раунд 1).
+   */
+  preferredSegment?: ShowcaseType;
+  onSubmit: (params: {
+    url: string;
+    categoryId: number;
+    segment: ShowcaseType;
+    /** Открывающая ставка платного входа — значимо только при segment === 'paid'. */
+    bid: number;
+  }) => Promise<void>;
 }
 
 /**
@@ -33,19 +56,24 @@ export interface AddProjectSheetProps {
  *     в макете, по которому сверялись, она зелёная — то есть под Free Top,
  *     который здесь и стоит по умолчанию.
  *
- * Paid Top виден, но неактивен: вход туда — открывающий Raise-платёж, он
- * появится вместе с платёжным слоем (Срез 1.5).
+ * Paid Top виден всегда; выбираем ли его — зависит от minPaidAmount: платёжный
+ * слой пришёл в Срезе 1.5, но подключён пока только на самой странице Paid —
+ * Free-страница по-прежнему не передаёт minPaidAmount, и там карточка на
+ * месте, но задизейблена (см. paidSoon).
  */
 export function AddProjectSheet({
   open,
   onClose,
   categories,
   taken = {},
+  minPaidAmount,
+  preferredSegment,
   onSubmit,
 }: AddProjectSheetProps) {
   const [url, setUrl] = useState('');
   const [segment, setSegment] = useState<ShowcaseType>('free');
   const [categoryId, setCategoryId] = useState<number | null>(null);
+  const [bid, setBid] = useState(minPaidAmount ?? 0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,15 +84,19 @@ export function AddProjectSheet({
     setPrevOpen(open);
     if (open) {
       setUrl('');
-      setSegment(taken.free ? 'paid' : 'free');
+      setSegment(preferredSegment ?? (taken.free ? 'paid' : 'free'));
       setCategoryId(null);
+      setBid(minPaidAmount ?? 0);
       setError(null);
     }
   }
 
   const paid = segment === 'paid';
+  const paidOpen = minPaidAmount !== undefined;
   const blockedSeg = Boolean(taken[segment]);
-  const canSubmit = url.trim().length >= 4 && categoryId !== null && !blockedSeg && !submitting;
+  const bidTooLow = paid && paidOpen && bid < minPaidAmount;
+  const canSubmit =
+    url.trim().length >= 4 && categoryId !== null && !blockedSeg && !submitting && !bidTooLow;
 
   const handleClose = () => {
     if (submitting) return;
@@ -77,7 +109,7 @@ export function AddProjectSheet({
     setSubmitting(true);
     setError(null);
     try {
-      await onSubmit({ url: url.trim(), categoryId, segment });
+      await onSubmit({ url: url.trim(), categoryId, segment, bid });
     } catch (e) {
       setError(e instanceof Error ? e.message : t.genericError);
     } finally {
@@ -110,8 +142,9 @@ export function AddProjectSheet({
         <div className={styles.destinations}>
           {destinations.map((d) => {
             const used = Boolean(taken[d.id]);
-            // Paid Top ещё не открыт — карточка на месте, но выбрать нельзя.
-            const locked = d.id === 'paid';
+            // Без minPaidAmount платить не с чем считать — карточка на месте,
+            // но выбрать нельзя (см. паспорт пропа выше).
+            const locked = d.id === 'paid' && !paidOpen;
             return (
               <button
                 key={d.id}
@@ -132,6 +165,21 @@ export function AddProjectSheet({
           })}
         </div>
       </SheetField>
+
+      {paid && paidOpen && (
+        <AmountInput
+          segment="paid"
+          value={bid}
+          onChange={setBid}
+          currency="UZS"
+          step={minPaidAmount}
+          min={minPaidAmount}
+          presets={[minPaidAmount, minPaidAmount * 2, minPaidAmount * 10]}
+          label={t.openingBidLabel}
+          error={bidTooLow ? t.openingBidError(String(minPaidAmount)) : undefined}
+          disabled={submitting}
+        />
+      )}
 
       <SheetField label={t.categoryLabel}>
         <div className={styles.categories}>

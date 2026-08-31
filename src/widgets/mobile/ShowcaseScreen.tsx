@@ -168,6 +168,8 @@ export interface ShowcaseScreenProps {
   onOpenProject: (item: ProjectListItem) => void;
   /** Есть только на Free Top — на Paid Top вход требует оплаты (Срез 1.5), кнопка неактивна. */
   onAddProject?: () => void;
+  /** Raise своей ставки — приходит с Paid Top начиная со Среза 1.5. */
+  onAction?: () => void;
   onOpenRules: () => void;
   /** Лента «только что» — нет источника, см. PREVIEW.activityFeed. */
   activity?: readonly ActivityItem[];
@@ -185,10 +187,10 @@ export interface ShowcaseScreenProps {
  * ничего не фильтрует — в отличие от disabled-кнопок ниже, он выглядел бы
  * рабочим, поэтому спрятан флагом, а не просто задизейблен.
  *
- * Raise/Attack/Vote ещё не подключены — кнопки видны (пиксель в пиксель как
- * в ките), но неактивны до своих срезов. Add project — рабочая, но только на
- * Free Top (onAddProject приходит от вызывающей страницы); на Paid Top вход
- * требует оплаты (Срез 1.5), там кнопка тоже неактивна.
+ * Raise подключён (Срез 1.5, onAction приходит с Paid Top); Attack/Vote ещё
+ * нет — их кнопки видны (пиксель в пиксель как в ките), но неактивны до
+ * своих срезов. Add project — рабочая на обоих топах (onAddProject приходит
+ * от вызывающей страницы), на Paid Top вход требует оплаты (Срез 1.5).
  */
 export function ShowcaseScreen({
   segment,
@@ -215,6 +217,7 @@ export function ShowcaseScreen({
   onRetry,
   onOpenProject,
   onAddProject,
+  onAction,
   onOpenRules,
   activity,
 }: ShowcaseScreenProps) {
@@ -300,8 +303,9 @@ export function ShowcaseScreen({
                 }
                 entryHint={entryHint}
                 actionLabel={segment === 'paid' ? s.raiseMine : s.voteMine}
-                // Raise/Vote ещё не подключены (1.5/1.7) — кнопка на месте, но неактивна.
-                actionDisabled
+                // На Free Top кнопка ждёт Vote (Срез 1.7) — неактивна без onAction.
+                actionDisabled={!onAction}
+                onAction={onAction}
                 addDisabled={!onAddProject}
                 onAdd={onAddProject}
               />
