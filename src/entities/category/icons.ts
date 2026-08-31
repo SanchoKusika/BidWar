@@ -7,4 +7,5 @@ export const CATEGORY_ICON: Record<string, IconName> = {
   sites: 'globe',
   business: 'briefcase',
   services: 'wrench',
+  profiles: 'user',
 };

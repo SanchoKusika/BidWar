@@ -3,7 +3,8 @@ import { AmountInput } from '@/shared/ui/AmountInput';
 import { Button } from '@/shared/ui/Button';
 import { Icon } from '@/shared/ui/Icon';
 import { strings } from '@/shared/i18n/strings';
-import { CATEGORY_ICON, type CategoryStat } from '@/entities/category';
+import { CATEGORY_ICON, detectCategoryIdByUrl, type CategoryStat } from '@/entities/category';
+import { normalizeUrlInput, tryParseUrl } from '@/shared/lib/url';
 import type { ShowcaseType } from '@/entities/project';
 import { Sheet } from './Sheet';
 import { SheetHeader } from './SheetHeader';
@@ -73,6 +74,12 @@ export function AddProjectSheet({
   const [url, setUrl] = useState('');
   const [segment, setSegment] = useState<ShowcaseType>('free');
   const [categoryId, setCategoryId] = useState<number | null>(null);
+  /**
+   * Пока false — категория подставляется автоматически по ссылке (см.
+   * handleUrlChange). Тап по плитке руками — необратимо на время сессии
+   * шторки: дальнейшие правки ссылки больше не перебивают выбор человека.
+   */
+  const [categoryTouched, setCategoryTouched] = useState(false);
   const [bid, setBid] = useState(minPaidAmount ?? 0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,10 +93,31 @@ export function AddProjectSheet({
       setUrl('');
       setSegment(preferredSegment ?? (taken.free ? 'paid' : 'free'));
       setCategoryId(null);
+      setCategoryTouched(false);
       setBid(minPaidAmount ?? 0);
       setError(null);
     }
   }
+
+  /**
+   * Автоподсказка категории по домену (t.me/instagram.com/…) — только пока
+   * человек сам не тронул плитки. Ошибиться не страшно: неверную категорию
+   * видно сразу и меняется одним тапом (entities/category/detect.ts).
+   */
+  const handleUrlChange = (value: string) => {
+    setUrl(value);
+    if (categoryTouched) return;
+    const parsed = tryParseUrl(value);
+    if (!parsed) return;
+    const guess = detectCategoryIdByUrl(parsed, categories);
+    if (guess !== null) setCategoryId(guess);
+  };
+
+  // Поле показывает нормальный вид ссылки уже до сабмита — окончательно её
+  // всё равно нормализует и проверяет сервер (см. _shared/url.ts).
+  const handleUrlBlur = () => {
+    if (url.trim()) setUrl(normalizeUrlInput(url));
+  };
 
   const paid = segment === 'paid';
   const paidOpen = minPaidAmount !== undefined;
@@ -132,7 +160,8 @@ export function AddProjectSheet({
           inputMode="url"
           placeholder={t.linkPlaceholder}
           value={url}
-          onChange={(e) => setUrl(e.target.value)}
+          onChange={(e) => handleUrlChange(e.target.value)}
+          onBlur={handleUrlBlur}
           className={styles.input}
           disabled={submitting}
         />
@@ -191,7 +220,10 @@ export function AddProjectSheet({
               data-segment={segment}
               data-active={categoryId === cat.categoryId}
               disabled={submitting}
-              onClick={() => setCategoryId(cat.categoryId)}
+              onClick={() => {
+                setCategoryId(cat.categoryId);
+                setCategoryTouched(true);
+              }}
             >
               <Icon name={CATEGORY_ICON[cat.slug] ?? 'folder'} size={16} />
               <span className={styles.categoryName}>{cat.title}</span>
