@@ -126,13 +126,21 @@ serve('create-payment', async (req, ctx) => {
 
     let row: { id: number };
     if (abandoned) {
+      // Находка C2 финального ревью: между SELECT abandoned выше и этим
+      // UPDATE конкурентный запрос того же пользователя (двойной тап —
+      // находка I4) мог успеть подтвердить платёж первым — строка уже не
+      // pending_payment. `.eq('status', ...)` превращает эту гонку в честные
+      // 0 строк вместо необработанного исключения из
+      // projects_identity_is_immutable, если вторая попытка меняет категорию.
       const { data, error: writeError } = await db
         .from('projects')
         .update(fields)
         .eq('id', abandoned.id)
+        .eq('status', 'pending_payment')
         .select('id')
-        .single();
+        .maybeSingle();
       if (writeError) throw writeError;
+      if (!data) throw badRequest('Слот платного топа уже занят — проверь свою позицию');
       row = data;
     } else {
       const { data, error: writeError } = await db

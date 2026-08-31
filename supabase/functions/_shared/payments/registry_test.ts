@@ -26,6 +26,21 @@ Deno.test('неизвестное значение PAYMENT_PROVIDER бросае
   });
 });
 
+// Находка I9 финального ревью: раньше `?? 'mock'` делал незаданную
+// переменную неотличимой от `PAYMENT_PROVIDER=mock` — единственный настоящий
+// рубеж между тестовым контуром и боевым молчал в сторону мока.
+Deno.test('незаданная PAYMENT_PROVIDER бросает, а не молча отдаёт мок', () => {
+  withEnv(undefined, () => {
+    assertThrows(() => getProvider(), Error, 'PAYMENT_PROVIDER не задан');
+  });
+});
+
+Deno.test('mockCommandsAllowed на незаданной переменной — false', () => {
+  withEnv(undefined, () => {
+    assertEquals(mockCommandsAllowed(), false);
+  });
+});
+
 Deno.test('регистр важен — "Mock" не равен "mock"', () => {
   withEnv('Mock', () => {
     assertThrows(() => getProvider(), Error, 'Mock');
