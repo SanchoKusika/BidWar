@@ -1,9 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Navigation } from '@/app/navigation';
 import { useSession } from '@/entities/user';
 import { getPlatform } from '@/shared/platform';
-import { registerClick, type ProjectListItem } from '@/entities/project';
-import { createRaisePayment, type PaymentResult } from '@/features/raise';
+import {
+  registerClick,
+  createProject,
+  useOwnPosition,
+  type ProjectListItem,
+} from '@/entities/project';
+import {
+  createRaisePayment,
+  PaymentOutcomeUnknownError,
+  type PaymentResult,
+} from '@/features/raise';
 import { CURRENCY_SUFFIX, formatMoney } from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
 import { ShowcaseScreen } from '@/widgets/mobile/ShowcaseScreen';
@@ -41,6 +50,11 @@ export function PaidMobile({ nav }: PaidMobileProps) {
   const showcase = usePaidShowcase();
   const categories = usePaidCategories();
   const own = usePaidOwnPosition(showcase.categoryId, userId);
+  // Только чтобы честно показать занятость Free-слота в AddProjectSheet —
+  // own выше знает исключительно про Paid (находка I3 финального ревью:
+  // AddProjectSheet.taken.free раньше не приходил вообще, подпись «свободно»
+  // врала, даже если бесплатный проект у пользователя уже есть).
+  const ownFree = useOwnPosition('free', null, userId);
   const topProject = usePaidTopProject();
   const minStep = useMinPaidAmount();
 
@@ -49,12 +63,22 @@ export function PaidMobile({ nav }: PaidMobileProps) {
   const [pending, setPending] = useState<Pending | null>(null);
   const [result, setResult] = useState<ActionResult | null>(null);
   const [payError, setPayError] = useState<string | null>(null);
+  const payErrorRef = useRef<HTMLDivElement>(null);
+
+  // Баннер отказа лежит последним блоком в потоке страницы — на проскроленной
+  // витрине его не видно, и человек жмёт Pay ещё раз (мелкая находка
+  // финального ревью). Эффект, не setState — обычный DOM-побочный эффект,
+  // под react-hooks/set-state-in-effect не подпадает.
+  useEffect(() => {
+    if (payError) payErrorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [payError]);
 
   const refresh = () => {
     showcase.retry();
     categories.retry();
     topProject.retry();
     own.retry();
+    ownFree.retry();
   };
 
   const pay = async () => {
@@ -84,11 +108,29 @@ export function PaidMobile({ nav }: PaidMobileProps) {
       // Сеть/функция могут упасть на любом шаге — обычный путь отказа, не
       // экзотика. Шторку закрываем по той же причине, что и в ветке выше.
       setPending(null);
-      setPayError(error instanceof Error ? error.message : strings.raise.failed);
+      // Находка I6 финального ревью: PaymentOutcomeUnknownError — это разрыв
+      // соединения ПОСЛЕ отправки запроса, когда неизвестно, успел ли сервер
+      // применить платёж. «Ничего не списано» здесь была бы непроверяемой
+      // ложью — для любой другой ошибки (провайдер/сервер ответили, пусть и
+      // отказом) это по-прежнему честно.
+      setPayError(
+        error instanceof PaymentOutcomeUnknownError
+          ? strings.raise.unknownOutcome
+          : error instanceof Error
+            ? error.message
+            : strings.raise.failed,
+      );
       return;
     }
 
     setPending(null);
+    if (outcome.status === 'pending') {
+      // Мок отдаёт pending только по команде stuck_pending (тестам), у
+      // настоящего провайдера это будет нормальный путь до Среза 1.10 —
+      // называть это отказом нельзя (мелкая находка финального ревью).
+      setPayError(strings.raise.pendingConfirmation);
+      return;
+    }
     if (outcome.status !== 'confirmed') {
       setPayError(strings.raise.failed);
       return;
@@ -171,10 +213,22 @@ export function PaidMobile({ nav }: PaidMobileProps) {
         open={addOpen}
         onClose={() => setAddOpen(false)}
         categories={categories.categories}
-        taken={{ paid: Boolean(own.project) }}
+        taken={{ paid: Boolean(own.project), free: Boolean(ownFree.project) }}
         minPaidAmount={minStep}
         preferredSegment="paid"
-        onSubmit={async ({ url, categoryId, bid }) => {
+        onSubmit={async ({ url, categoryId, segment, bid }) => {
+          // Находка I3 финального ревью: выбор пользователя в шторке обязан
+          // соблюдаться — Free с вкладки Paid должен вести в бесплатное
+          // добавление (как на Free-странице), а не безусловно в платёжную
+          // шторку с заголовком "Pay the opening bid".
+          if (segment === 'free') {
+            const initData = getPlatform().getInitData();
+            if (!initData) throw new Error('Открой мини-апп в Telegram, чтобы добавить проект');
+            await createProject({ initData, categoryId, url });
+            setAddOpen(false);
+            refresh();
+            return;
+          }
           setAddOpen(false);
           setPending({ kind: 'opening', amount: bid, url, categoryId });
         }}
@@ -202,10 +256,11 @@ export function PaidMobile({ nav }: PaidMobileProps) {
       <ResultSheet open={result !== null} result={result} onClose={() => setResult(null)} />
 
       {payError && (
-        <div className={styles.payError}>
+        <div ref={payErrorRef} className={styles.payError}>
           {/* muted, не attack: тон «необратимое» тут неверен — платёж как раз
               НЕ прошёл, ничего не списано (комментарий SheetParts.tsx,
-              код-ревью раунд 1). */}
+              код-ревью раунд 1). Кроме unknownOutcome — там как раз неизвестно,
+              но и его лучше не пугать тоном "необратимое". */}
           <SheetNote tone="muted" icon="triangle-alert">
             {payError}
           </SheetNote>

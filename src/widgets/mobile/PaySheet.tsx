@@ -33,7 +33,8 @@ export interface PaySheetProps {
   payload: PayPayload | null;
   currency?: DisplayCurrency;
   onClose: () => void;
-  onConfirm: (providerId: string) => void;
+  /** Может быть асинхронным: шторка ждёт результат, прежде чем разрешить повторный тап. */
+  onConfirm: (providerId: string) => void | Promise<void>;
 }
 
 const TITLE: Record<PayPayload['kind'], string> = {
@@ -52,11 +53,18 @@ const TITLE: Record<PayPayload['kind'], string> = {
  */
 export function PaySheet({ open, payload, currency = 'UZS', onClose, onConfirm }: PaySheetProps) {
   const [providerId, setProviderId] = useState(activePaymentMethods[0].id);
+  // Находка I4 финального ревью: без своего "в полёте" второй тап по Pay на
+  // медленной сети успевал уйти вторым запросом create-payment ещё до того,
+  // как первый вернулся и закрыл шторку через pending — двойной платёж.
+  const [submitting, setSubmitting] = useState(false);
 
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
     setPrevOpen(open);
-    if (open) setProviderId(activePaymentMethods[0].id);
+    if (open) {
+      setProviderId(activePaymentMethods[0].id);
+      setSubmitting(false);
+    }
   }
 
   if (!payload) return null;
@@ -64,10 +72,26 @@ export function PaySheet({ open, payload, currency = 'UZS', onClose, onConfirm }
   const attack = payload.kind === 'attack';
   const tone = attack ? 'attack' : 'paid';
   const provider = activePaymentMethods.find((p) => p.id === providerId) ?? activePaymentMethods[0];
+  const mock = provider.id === 'mock';
   const amount = formatMoney(payload.amount, { currency, compact: false });
 
+  const handleClose = () => {
+    if (submitting) return;
+    onClose();
+  };
+
+  const handleConfirm = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      await onConfirm(provider.id);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <Sheet open={open} onClose={onClose}>
+    <Sheet open={open} onClose={handleClose}>
       <SheetHeader
         icon={attack ? 'swords' : 'credit-card'}
         tone={tone}
@@ -109,6 +133,7 @@ export function PaySheet({ open, payload, currency = 'UZS', onClose, onConfirm }
                 className={styles.method}
                 data-tone={tone}
                 data-active={on}
+                disabled={submitting}
                 onClick={() => setProviderId(p.id)}
               >
                 <span className={styles.methodIcon}>
@@ -128,20 +153,26 @@ export function PaySheet({ open, payload, currency = 'UZS', onClose, onConfirm }
         </div>
       </SheetField>
 
-      <SheetFootnote tone="muted">{t.chargeNote(provider.name, provider.unit)}</SheetFootnote>
+      <SheetFootnote tone="muted">
+        {mock ? t.chargeNoteMock : t.chargeNote(provider.name, provider.unit)}
+      </SheetFootnote>
 
-      <SheetActions onSecondary={onClose}>
+      <SheetActions onSecondary={handleClose} secondaryDisabled={submitting}>
         <Button
           variant={attack ? 'attack' : 'paid'}
           size="lg"
           icon="credit-card"
-          onClick={() => onConfirm(provider.id)}
+          loading={submitting}
+          disabled={submitting}
+          onClick={handleConfirm}
         >
           {t.submit(amount, provider.name)}
         </Button>
       </SheetActions>
 
-      <SheetFootnote tone="muted">{t.footnote(provider.name)}</SheetFootnote>
+      <SheetFootnote tone="muted">
+        {mock ? t.footnoteMock : t.footnote(provider.name)}
+      </SheetFootnote>
     </Sheet>
   );
 }

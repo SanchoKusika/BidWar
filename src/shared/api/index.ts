@@ -2,7 +2,7 @@ export { getSupabase } from './client';
 export { fetchHealth } from './health';
 export { authenticate } from './auth';
 export { fetchPaidLimits } from './config';
-export { functionErrorMessage } from './errors';
+export { functionErrorMessage, isPaymentOutcomeUnknown } from './errors';
 
 export type { Health } from './health';
 export type { AuthResult } from './auth';
