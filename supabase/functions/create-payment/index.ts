@@ -7,7 +7,18 @@ import { fetchOg } from '../_shared/og.ts';
 import { fetchFxRates, toPoints } from '../_shared/payments/fx.ts';
 import { getProvider, mockCommandsAllowed } from '../_shared/payments/registry.ts';
 import type { MockCommand } from '../_shared/payments/mock.ts';
-import { parseRequest, type CreatePaymentBody } from './validate.ts';
+import {
+  parseRequest,
+  assertMinPaidAmount,
+  parsePaidLimits,
+  type CreatePaymentBody,
+} from './validate.ts';
+
+// projects_one_pending_per_user_and_type_idx — миграция
+// 20260831100000_pending_payment_unique_index.sql. Единственный unique-индекс,
+// который может дать 23505 на insert ниже: активные индексы (user_and_type,
+// url_and_type) ограничены status = 'active' и на pending_payment не смотрят.
+const PENDING_SLOT_INDEX = 'projects_one_pending_per_user_and_type_idx';
 
 /**
  * Единственная точка, где начинается платёж. Валидация трижды, а не дважды
@@ -20,15 +31,10 @@ serve('create-payment', async (req, ctx) => {
   const body = await ctx.body<CreatePaymentBody>();
   const db = getAdminClient();
 
-  const { data: limits, error: limitsError } = await db
-    .from('app_config')
-    .select('value')
-    .eq('key', 'paid_limits')
-    .single();
-  if (limitsError) throw limitsError;
-  const minPaidAmount = (limits.value as { min_paid_amount?: number }).min_paid_amount ?? 50000;
-
-  const parsed = parseRequest(body, minPaidAmount);
+  // Схемный разбор (типы, целостность, синтаксис URL) не трогает базу и идёт
+  // до verifyInitData. Сравнение с минимумом ставки — после: оно само читает
+  // app_config, а до подписи это чтение делать нельзя.
+  const parsed = parseRequest(body);
 
   const botToken = Deno.env.get('BOT_TOKEN');
   if (!botToken) throw new Error('BOT_TOKEN не задан в окружении функции');
@@ -36,6 +42,15 @@ serve('create-payment', async (req, ctx) => {
   if (!verified) throw unauthorized('initData не прошёл проверку');
 
   const { userId } = await resolveTelegramUser(verified.user, verified.startParam);
+
+  const { data: limits, error: limitsError } = await db
+    .from('app_config')
+    .select('value')
+    .eq('key', 'paid_limits')
+    .single();
+  if (limitsError) throw limitsError;
+  const { minPaidAmount } = parsePaidLimits(limits.value);
+  assertMinPaidAmount(parsed.amount, minPaidAmount);
 
   let projectId: number;
 
@@ -83,13 +98,18 @@ serve('create-payment', async (req, ctx) => {
 
     // Брошенные оплаты не копятся: у пользователя не больше одной строки
     // pending_payment на топ. Удалять нельзя — на неё ссылается платёж.
-    const { data: abandoned } = await db
+    // Инвариант обеспечен на уровне БД (projects_one_pending_per_user_and_type_idx,
+    // миграция 20260831100000), а не только этой проверкой: между этим SELECT
+    // и insert ниже конкурентный запрос того же пользователя мог успеть
+    // вставить свою pending_payment-строку — тогда insert словит 23505.
+    const { data: abandoned, error: abandonedError } = await db
       .from('projects')
       .select('id')
       .eq('user_id', userId)
       .eq('type', 'paid')
       .eq('status', 'pending_payment')
       .maybeSingle();
+    if (abandonedError) throw abandonedError;
 
     const fields = {
       user_id: userId,
@@ -104,10 +124,30 @@ serve('create-payment', async (req, ctx) => {
       og_fetched_at: new Date().toISOString(),
     };
 
-    const { data: row, error: writeError } = abandoned
-      ? await db.from('projects').update(fields).eq('id', abandoned.id).select('id').single()
-      : await db.from('projects').insert(fields).select('id').single();
-    if (writeError) throw writeError;
+    let row: { id: number };
+    if (abandoned) {
+      const { data, error: writeError } = await db
+        .from('projects')
+        .update(fields)
+        .eq('id', abandoned.id)
+        .select('id')
+        .single();
+      if (writeError) throw writeError;
+      row = data;
+    } else {
+      const { data, error: writeError } = await db
+        .from('projects')
+        .insert(fields)
+        .select('id')
+        .single();
+      if (writeError) {
+        if (writeError.code === '23505' && writeError.message.includes(PENDING_SLOT_INDEX)) {
+          throw badRequest('У тебя уже есть незавершённая оплата этого топа — попробуй ещё раз');
+        }
+        throw writeError;
+      }
+      row = data;
+    }
     projectId = row.id;
   }
 
