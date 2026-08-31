@@ -47,6 +47,11 @@ export const strings = {
     bidAfter: 'Your bid after',
     projectedPosition: 'Projected position',
     note: 'One charge on the next screen. The raise applies when the provider confirms the payment — no balance is kept for you.',
+    resultTitle: 'Bid raised',
+    resultNote: (amount: string, unit: string) =>
+      `${amount} ${unit} applied. The position updates for everyone right away.`,
+    openingResultTitle: 'You are in the Paid Top',
+    failed: 'The payment did not go through — nothing was charged.',
   },
 
   attack: {

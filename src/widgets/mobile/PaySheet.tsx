@@ -4,7 +4,7 @@ import { Icon, type IconName } from '@/shared/ui/Icon';
 import { KeyRow, type KeyRowTone } from '@/shared/ui/KeyRow';
 import { CURRENCY_SUFFIX, formatMoney, type DisplayCurrency } from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
-import { payments } from '@/shared/content';
+import { activePaymentMethods } from '@/shared/content';
 import { Sheet } from './Sheet';
 import { SheetHeader } from './SheetHeader';
 import { SheetActions, SheetField, SheetFootnote, SheetNote, SheetRows } from './SheetParts';
@@ -51,19 +51,19 @@ const TITLE: Record<PayPayload['kind'], string> = {
  * покупает. Поэтому в шторке нет ни пополнения, ни остатка.
  */
 export function PaySheet({ open, payload, currency = 'UZS', onClose, onConfirm }: PaySheetProps) {
-  const [providerId, setProviderId] = useState(payments[0].id);
+  const [providerId, setProviderId] = useState(activePaymentMethods[0].id);
 
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
     setPrevOpen(open);
-    if (open) setProviderId(payments[0].id);
+    if (open) setProviderId(activePaymentMethods[0].id);
   }
 
   if (!payload) return null;
 
   const attack = payload.kind === 'attack';
   const tone = attack ? 'attack' : 'paid';
-  const provider = payments.find((p) => p.id === providerId) ?? payments[0];
+  const provider = activePaymentMethods.find((p) => p.id === providerId) ?? activePaymentMethods[0];
   const amount = formatMoney(payload.amount, { currency, compact: false });
 
   return (
@@ -100,7 +100,7 @@ export function PaySheet({ open, payload, currency = 'UZS', onClose, onConfirm }
 
       <SheetField label={t.methodLabel}>
         <div className={styles.methods}>
-          {payments.map((p) => {
+          {activePaymentMethods.map((p) => {
             const on = p.id === providerId;
             return (
               <button
