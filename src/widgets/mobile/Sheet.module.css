@@ -13,6 +13,20 @@
   z-index: 40;
   display: flex;
   align-items: flex-end;
+}
+
+/* Затемнение и размытие фона — на отдельном псевдоэлементе, а не прямо на
+   .scrim: раньше opacity стояла на .scrim целиком, а .panel лежит внутри
+   него в DOM — драг утягивал прозрачность не только фона, но и самой
+   панели (находка «избавься от прозрачности при жесте»). У .before своя
+   компоновка (position: absolute), и .panel её родителем не является, так
+   что панель остаётся полностью непрозрачной весь жест. */
+.scrim::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   opacity: 0;
   background: var(--surface-scrim);
   backdrop-filter: blur(0);
@@ -25,7 +39,7 @@
 
 /* Затемнение и размытие отходят вместе с пальцем, а не держатся до упора и
    гаснут рывком в момент отпускания. */
-.scrim[data-shown='true'] {
+.scrim[data-shown='true']::before {
   opacity: calc(1 - var(--sheet-dismiss));
   backdrop-filter: blur(calc(var(--blur-scrim-radius) * (1 - var(--sheet-dismiss))));
 }
@@ -36,15 +50,15 @@
   gap: var(--space-8);
   width: 100%;
   max-height: 88%;
-  padding: 0 var(--page-gutter) calc(var(--space-12) + env(safe-area-inset-bottom, 0px));
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  /* Хват и скролл контента живут внутри своими блоками (.grabZone, .content) —
+     сама панель больше не скроллится, только клипует их под закруглённые
+     углы. */
+  overflow: hidden;
   border-radius: var(--radius-panel) var(--radius-panel) 0 0;
   background: var(--bg-elevated);
   box-shadow: var(--shadow-sheet);
   transform: translateY(100%);
   transition: transform var(--dur-sheet) var(--ease-out);
-  touch-action: pan-y;
   will-change: transform;
 }
 
@@ -56,34 +70,29 @@
   transform: translateY(var(--sheet-drag, 0px));
 }
 
-/* Панель, которая никуда не прокручивается, тянется за любое место: отдавать
-   вертикальный жест браузеру незачем, скроллить всё равно нечего.
-   Прокручиваемая оставляет тело скроллу и тянется за полосу-хват. */
-.panel[data-scrollable='false'] {
-  touch-action: none;
-}
-
 /* Пока палец ведёт шторку, переходов быть не должно — иначе она тянется с
    задержкой в 320 мс вместо того, чтобы липнуть к пальцу. */
-.scrim[data-dragging='true'],
+.scrim[data-dragging='true']::before,
 .scrim[data-dragging='true'] .panel {
   transition: none;
 }
 
 /* Хват — полоса во всю ширину панели, а не сама плашка 36×4: тянуть надо за
-   что-то, во что можно попасть пальцем. touch-action: none обязателен, иначе
+   что-то, во что можно попасть пальцем. Вынесена из скроллящегося контента
+   отдельным несжимаемым блоком (находка «хват уезжает при скролле») — иначе
+   при прокрутке длинной шторки полоса уходила вместе с контентом, и жест
+   закрытия становился недоступен. touch-action: none обязателен, иначе
    вертикальный жест забирает скролл (а в Telegram — ещё и свайп «свернуть
    мини-апп»), и до pointermove дело не доходит. */
 .grabZone {
-  display: flex;
   flex: 0 0 auto;
+  display: flex;
   align-items: center;
   justify-content: center;
-  /* Отрицательные поля возвращают плашку ровно туда, где она была до появления
-     полосы: по бокам — под padding панели, снизу — гасят собственный padding,
-     чтобы отступ до первого блока остался прежним (--space-8 из gap). */
-  margin: 0 calc(var(--page-gutter) * -1) calc(var(--space-5) * -1);
-  padding: var(--space-5) 0;
+  /* Только сверху: снизу расстояние до контента даёт flex-gap самой .panel
+     (--space-8) — так суммарный отступ от грабера до первого блока совпадает
+     с макетом без отдельной компенсации отступа. */
+  padding: var(--space-5) 0 0;
   touch-action: none;
   cursor: grab;
 }
@@ -97,4 +106,27 @@
   height: 4px;
   border-radius: var(--radius-pill);
   background: var(--border-strong);
+}
+
+/* Единственный реально скроллящийся блок панели — раньше им была сама .panel
+   целиком, из-за чего .grabZone уезжала вместе с прокруткой. min-height: 0
+   обязателен: без него flex-элемент в колонке не сжимается меньше своего
+   контента, и overflow-y здесь никогда бы не включился. */
+.content {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: 0 var(--page-gutter) calc(var(--space-12) + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+/* Панель, которой нечего прокручивать, тянется за любое место в контенте:
+   отдавать вертикальный жест браузеру незачем, скроллить всё равно нечего.
+   Прокручиваемая оставляет тело скроллу и тянется только за хват. */
+.content[data-scrollable='false'] {
+  touch-action: none;
 }
