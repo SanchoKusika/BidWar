@@ -4,14 +4,13 @@ import { verifyInitData } from '../_shared/telegram.ts';
 import { resolveTelegramUser } from '../_shared/identity.ts';
 import { getAdminClient } from '../_shared/db.ts';
 import { fetchOg } from '../_shared/og.ts';
+import { parseHttpUrl } from '../_shared/url.ts';
 
 interface AddProjectRequest {
   initData?: string;
   categoryId?: number;
   url?: string;
 }
-
-const MAX_URL_LENGTH = 2048;
 
 // projects_one_active_per_{user_and_type,url_and_type}_idx — имена реальных
 // уникальных индексов из миграции схемы, по ним и различаем 23505.
@@ -29,18 +28,14 @@ serve('add-project', async (req, ctx) => {
 
   const body = await ctx.body<AddProjectRequest>();
   if (!body.initData) throw badRequest('initData обязателен');
-  if (!body.url || body.url.length > MAX_URL_LENGTH) throw badRequest('Некорректная ссылка');
+  if (!body.url) throw badRequest('Ссылка обязательна');
   if (!Number.isInteger(body.categoryId)) throw badRequest('categoryId обязателен');
 
-  let parsedUrl: URL;
-  try {
-    parsedUrl = new URL(body.url);
-  } catch {
-    throw badRequest('Ссылка не распознана');
-  }
-  if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
-    throw badRequest('Ссылка должна быть http(s)');
-  }
+  // parseHttpUrl сама подставляет https://, если пользователь набрал ссылку
+  // без протокола («t.me/channel») — раньше именно из-за его отсутствия
+  // ЛЮБАЯ такая ссылка заваливалась здесь, до похода за OG-превью (находка
+  // этого захода, см. комментарий в _shared/url.ts).
+  const parsedUrl = parseHttpUrl(body.url);
 
   const botToken = Deno.env.get('BOT_TOKEN');
   if (!botToken) throw new Error('BOT_TOKEN не задан в окружении функции');
