@@ -41,6 +41,8 @@ function sheetDurationMs(): number {
  */
 export function Sheet({ open, onClose, children }: SheetProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  /** Единственный реально скроллящийся блок — см. комментарий у .content в Sheet.module.css. */
+  const contentRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ startY: number; startedAt: number; dragging: boolean } | null>(null);
   const [dragY, setDragY] = useState(0);
   const [dragHeight, setDragHeight] = useState(0);
@@ -97,18 +99,20 @@ export function Sheet({ open, onClose, children }: SheetProps) {
     return () => platform.setVerticalSwipesEnabled(true);
   }, [mounted]);
 
-  // Прокручивается ли панель — от этого зависит, кому достаётся вертикальный
-  // жест (см. touch-action в Sheet.module.css). ResizeObserver вызывает колбэк
-  // сразу после observe, поэтому первого замера отдельной строкой нет: setState
-  // прямо в теле эффекта запрещён (react-hooks/set-state-in-effect).
+  // Прокручивается ли контент — от этого зависит, кому достаётся вертикальный
+  // жест (см. touch-action в Sheet.module.css). Меряем .content, а не .panel:
+  // сама панель больше не скроллится (см. комментарий у .content в модуле).
+  // ResizeObserver вызывает колбэк сразу после observe, поэтому первого замера
+  // отдельной строкой нет: setState прямо в теле эффекта запрещён
+  // (react-hooks/set-state-in-effect).
   useEffect(() => {
-    const panel = panelRef.current;
-    if (!panel) return;
+    const content = contentRef.current;
+    if (!content) return;
     const observer = new ResizeObserver(() => {
-      setScrollable(panel.scrollHeight > panel.clientHeight + 1);
+      setScrollable(content.scrollHeight > content.clientHeight + 1);
     });
-    observer.observe(panel);
-    for (const child of panel.children) observer.observe(child);
+    observer.observe(content);
+    for (const child of content.children) observer.observe(child);
     return () => observer.disconnect();
   }, [mounted]);
 
@@ -122,7 +126,8 @@ export function Sheet({ open, onClose, children }: SheetProps) {
     if (target instanceof Element && target.closest(`.${styles.grabZone}`)) return true;
     // По телу — когда прокручивать нечего или мы у самой верхней кромки:
     // иначе свайп вниз должен быть обычным скроллом, а не закрытием.
-    return !scrollable || panel.scrollTop <= 0;
+    const content = contentRef.current;
+    return !scrollable || !content || content.scrollTop <= 0;
   };
 
   const handlePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -189,7 +194,6 @@ export function Sheet({ open, onClose, children }: SheetProps) {
         ref={panelRef}
         className={styles.panel}
         data-shown={shown}
-        data-scrollable={scrollable}
         onClick={(e) => e.stopPropagation()}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -199,7 +203,9 @@ export function Sheet({ open, onClose, children }: SheetProps) {
         <div className={styles.grabZone}>
           <span className={styles.grabber} />
         </div>
-        {children}
+        <div ref={contentRef} className={styles.content} data-scrollable={scrollable}>
+          {children}
+        </div>
       </div>
     </div>,
     document.body,

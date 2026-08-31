@@ -1,4 +1,5 @@
 import { badRequest } from '../_shared/http.ts';
+import { parseHttpUrl } from '../_shared/url.ts';
 
 export interface CreatePaymentBody {
   initData?: string;
@@ -12,8 +13,6 @@ export interface CreatePaymentBody {
 export type ParsedRequest =
   | { kind: 'topup'; initData: string; amount: bigint; projectId: number }
   | { kind: 'opening'; initData: string; amount: bigint; categoryId: number; url: string };
-
-const MAX_URL_LENGTH = 2048;
 
 // Не бизнес-правило (то — устройство минимума, см. assertMinPaidAmount), а
 // граница здравого смысла для типов: без неё '1e20' проходит Number.isInteger
@@ -56,17 +55,10 @@ export function parseRequest(body: CreatePaymentBody): ParsedRequest {
   if (!Number.isInteger(body.categoryId) || !body.url) {
     throw badRequest('Нужен либо projectId, либо пара categoryId + url');
   }
-  if (body.url.length > MAX_URL_LENGTH) throw badRequest('Ссылка слишком длинная');
 
-  let parsed: URL;
-  try {
-    parsed = new URL(body.url);
-  } catch {
-    throw badRequest('Ссылка не распознана');
-  }
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw badRequest('Ссылка должна быть http(s)');
-  }
+  // parseHttpUrl сама подставляет https://, если протокол не указан — см.
+  // комментарий в _shared/url.ts (общая точка для этого и add-project).
+  const parsed = parseHttpUrl(body.url);
 
   return {
     kind: 'opening',
