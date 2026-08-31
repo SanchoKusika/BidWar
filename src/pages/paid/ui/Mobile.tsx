@@ -61,7 +61,11 @@ export function PaidMobile({ nav }: PaidMobileProps) {
     if (!pending) return;
     const initData = getPlatform().getInitData();
     if (!initData) {
-      // В вебе initData пустой — платёж пройти не может, это ожидаемо.
+      // В вебе initData пустой — платёж пройти не может, это ожидаемо. Шторку
+      // закрываем сразу же: PaySheet — портал с position: fixed, он рисуется
+      // поверх баннера payError, лежащего в обычном потоке, — отказ иначе
+      // остаётся не виден, пока не закрыть шторку руками (код-ревью раунд 1).
+      setPending(null);
       setPayError(strings.raise.failed);
       return;
     }
@@ -77,6 +81,9 @@ export function PaidMobile({ nav }: PaidMobileProps) {
           : { categoryId: pending.categoryId, url: pending.url }),
       });
     } catch (error) {
+      // Сеть/функция могут упасть на любом шаге — обычный путь отказа, не
+      // экзотика. Шторку закрываем по той же причине, что и в ветке выше.
+      setPending(null);
       setPayError(error instanceof Error ? error.message : strings.raise.failed);
       return;
     }
@@ -87,20 +94,31 @@ export function PaidMobile({ nav }: PaidMobileProps) {
       return;
     }
 
-    // Позицию считает витрина после перечитывания; до тех пор показываем ту,
-    // что была, — цифра в квитанции справочная.
+    // Ранг не гадаем: own.rank сразу после этой строки — ещё дораисовый (его
+    // обновит только retry() внутри refresh(), см. код-ревью раунд 1).
+    // Квитанция открывается с прочерком, а свежий ранг подставляет сравнение
+    // в рендере ниже, когда own.loading подтвердит, что пришли новые данные.
     refresh();
     setResult({
       kind: 'raise',
       title:
         pending.kind === 'raise' ? strings.raise.resultTitle : strings.raise.openingResultTitle,
-      rank: own.rank ?? 1,
+      rank: null,
       note: strings.raise.resultNote(
         formatMoney(pending.amount, { compact: false }),
         CURRENCY_SUFFIX.UZS,
       ),
     });
   };
+
+  // Квитанция открыта и ждёт подтверждённый ранг — как только own.rank
+  // перечитался (own.loading снова false), разово подставляем его. Сравнение
+  // в рендере, не в эффекте (react-hooks/set-state-in-effect); own.loading —
+  // обязательное условие, иначе сюда сразу же попал бы старый own.rank,
+  // который useOwnPosition отдаёт до завершения перезапроса.
+  if (result && result.rank === null && !own.loading && own.rank !== null) {
+    setResult({ ...result, rank: own.rank });
+  }
 
   return (
     <>
@@ -155,6 +173,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
         categories={categories.categories}
         taken={{ paid: Boolean(own.project) }}
         minPaidAmount={minStep}
+        preferredSegment="paid"
         onSubmit={async ({ url, categoryId, bid }) => {
           setAddOpen(false);
           setPending({ kind: 'opening', amount: bid, url, categoryId });
@@ -173,6 +192,10 @@ export function PaidMobile({ nav }: PaidMobileProps) {
             : null
         }
         onClose={() => setPending(null)}
+        // providerId игнорируется: сейчас активен один способ (mock, флаг
+        // PREVIEW.mockPayments), и createRaisePayment вообще не принимает
+        // провайдера. Как только в Срезе 1.10 включатся настоящие способы,
+        // это место придётся пересмотреть — сигнала одному providerId нет.
         onConfirm={pay}
       />
 
@@ -180,7 +203,10 @@ export function PaidMobile({ nav }: PaidMobileProps) {
 
       {payError && (
         <div className={styles.payError}>
-          <SheetNote tone="attack" icon="triangle-alert">
+          {/* muted, не attack: тон «необратимое» тут неверен — платёж как раз
+              НЕ прошёл, ничего не списано (комментарий SheetParts.tsx,
+              код-ревью раунд 1). */}
+          <SheetNote tone="muted" icon="triangle-alert">
             {payError}
           </SheetNote>
         </div>

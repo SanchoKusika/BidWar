@@ -27,6 +27,14 @@ export interface AddProjectSheetProps {
    * выбрать его нельзя.
    */
   minPaidAmount?: number;
+  /**
+   * Топ, с которого открыли шторку — им и должен предзаполняться segment.
+   * Без него сегмент по умолчанию решался только по занятости Free-слота
+   * (taken.free), а на Paid Top этот слот почти всегда свободен — шторка
+   * открывалась на Free, и поле ставки было не видно, пока не переключить
+   * карточку руками (код-ревью раунд 1).
+   */
+  preferredSegment?: ShowcaseType;
   onSubmit: (params: {
     url: string;
     categoryId: number;
@@ -59,6 +67,7 @@ export function AddProjectSheet({
   categories,
   taken = {},
   minPaidAmount,
+  preferredSegment,
   onSubmit,
 }: AddProjectSheetProps) {
   const [url, setUrl] = useState('');
@@ -75,7 +84,7 @@ export function AddProjectSheet({
     setPrevOpen(open);
     if (open) {
       setUrl('');
-      setSegment(taken.free ? 'paid' : 'free');
+      setSegment(preferredSegment ?? (taken.free ? 'paid' : 'free'));
       setCategoryId(null);
       setBid(minPaidAmount ?? 0);
       setError(null);
