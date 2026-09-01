@@ -82,7 +82,7 @@ export function ProjectPage({ id, segment, onBack, onRules, onGoPaid }: ProjectP
         getPlatform().openLink(project.url);
       }}
       onRaise={onGoPaid}
-      onAttack={() => {}}
+      onAttack={onGoPaid}
       onVote={() => {}}
       onOpenOther={() => {}}
       onRules={() => onRules(project.type === 'paid' ? 'attacks' : 'votes')}

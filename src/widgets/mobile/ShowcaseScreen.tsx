@@ -180,6 +180,12 @@ export interface ShowcaseScreenProps {
    * без нажатия: показать цену позиции честно и без него.
    */
   onTakeSpot?: (item: ProjectListItem) => void;
+  /**
+   * Attack по чужой платной строке (Срез 1.6). Не передан ⇒ кнопки нет вовсе:
+   * атаковать нечем, пока у самого нет записи в платном топе, и неактивная
+   * кнопка врала бы про доступное действие сильнее, чем её отсутствие.
+   */
+  onAttack?: (item: ProjectListItem, rank: number) => void;
   /** Есть только на Free Top — на Paid Top вход требует оплаты (Срез 1.5), кнопка неактивна. */
   onAddProject?: () => void;
   /** Raise своей ставки — приходит с Paid Top начиная со Среза 1.5. */
@@ -232,6 +238,7 @@ export function ShowcaseScreen({
   onRetry,
   onOpenProject,
   onTakeSpot,
+  onAttack,
   onAddProject,
   onAction,
   onOpenRules,
@@ -437,6 +444,11 @@ export function ShowcaseScreen({
                       isOwn={isOwn}
                       onPress={() => onOpenProject(item)}
                       onTakeSpot={spot && onTakeSpot ? () => onTakeSpot(item) : undefined}
+                      onAttack={
+                        !isOwn && onAttack && segment === 'paid'
+                          ? () => onAttack(item, rank)
+                          : undefined
+                      }
                     />
                   </div>
                 );

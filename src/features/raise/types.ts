@@ -17,11 +17,4 @@ export interface CreatePaymentParams {
   url?: string;
 }
 
-export interface PaymentResult {
-  paymentId: string;
-  status: 'confirmed' | 'pending' | 'failed';
-  /** Чем открыть оплату у hosted-провайдера. У мока нечего открывать. */
-  openUrl: string | null;
-  projectId: number;
-  pointsGranted: number;
-}
+export type { PaymentResult } from '@/shared/api';

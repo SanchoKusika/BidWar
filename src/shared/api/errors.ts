@@ -1,4 +1,19 @@
 /**
+ * Соединение оборвалось до ответа create-payment — неизвестно, успел ли
+ * сервер применить платёж (находка I6 финального ревью). Отдельный класс, а
+ * не просто текст сообщения: вызывающий код обязан показать другую
+ * формулировку, а не «ничего не списано», и делать это по `instanceof`, а не
+ * по совпадению строки. Живёт в shared/api, а не в features/raise: тем же
+ * путём ходит Attack, а фича не импортирует соседнюю фичу.
+ */
+export class PaymentOutcomeUnknownError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'PaymentOutcomeUnknownError';
+  }
+}
+
+/**
  * supabase-js даёт на неуспешный вызов Edge Function `FunctionsHttpError`, чьё
  * `.message` — всегда одна и та же общая строка ("Edge Function returned a
  * non-2xx status code"); настоящее сообщение (`{error:{message}}` из

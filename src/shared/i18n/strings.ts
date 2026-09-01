@@ -9,6 +9,7 @@
 
 export const strings = {
   common: {
+    loading: 'Working out the numbers…',
     cancel: 'Cancel',
     back: 'Back',
     done: 'Done',
@@ -79,8 +80,8 @@ export const strings = {
     yourBid: 'Your bid',
     plainNote:
       'You pay the platform, not them. The gap between you closes twice as fast as a plain raise.',
-    haircutNote: (pct: number) =>
-      `Repeat attack on this rival inside 48 h — you are credited ${pct}% of the amount, they still lose all of it.`,
+    haircutNote: (pct: number, hours: number) =>
+      `Repeat attack on this rival inside ${hours} h — you are credited ${pct}% of the amount, they still lose all of it.`,
     quota: (targetLeft: number, targetMax: number, dayLeft: number, dayMax: number) =>
       `${targetLeft} of ${targetMax} attacks left on this rival today · ${dayLeft} of ${dayMax} overall`,
     review: 'Review attack',
@@ -90,10 +91,19 @@ export const strings = {
     creditedShare: (pct: number) => `${pct}% of the amount`,
     gap: 'Gap between you',
     gapPassed: 'you pass them',
+    floorReached: 'Their bid is already at its floor — there is nothing left to take.',
+    quoteFailed: 'Could not work out this attack. Try again.',
+    resultTitle: 'Attack landed',
+    resultNote: (damage: string, credited: string, unit: string) =>
+      `Their bid lost ${damage} ${unit}, yours gained ${credited} ${unit}.`,
     trimmedNote: (landed: string, floor: string) =>
       `Trimmed to ${landed} — their bid cannot fall below its floor of ${floor}. You are charged only for the part that lands.`,
+    // Про уведомление жертве здесь раньше стояло обещание («gets a bot alert
+    // naming you and the amount») — бот ничего не рассылает, и это была
+    // неправда в самом ответственном месте интерфейса. Вернуть строку можно
+    // будет вместе с рассылкой бота, не раньше.
     warning: (name: string) =>
-      `Real money, and it cannot be undone. ${name} gets a bot alert naming you and the amount.`,
+      `Real money, and it cannot be undone. ${name}'s bid drops the moment the payment clears.`,
   },
 
   vote: {
@@ -209,6 +219,7 @@ export const strings = {
     earn: 'Earn',
     paidLabel: 'PAID, 30 DAYS',
     noWallet: 'No wallet — each bid is its own card payment.',
+    refresh: 'Refresh',
     myProjects: 'My projects',
     add: 'Add',
     bothSlotsUsed: 'Both slots in use',

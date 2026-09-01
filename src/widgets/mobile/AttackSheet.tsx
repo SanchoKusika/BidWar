@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui/Button';
 import { KeyRow } from '@/shared/ui/KeyRow';
 import { CURRENCY_SUFFIX, formatMoney, type DisplayCurrency } from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
-import type { PaidLimits } from '@/shared/api';
+import { creditedFromBp, type AttackQuote } from '@/features/attack';
 import type { ProjectListItem } from '@/entities/project';
 import { Sheet } from './Sheet';
 import { SheetHeader } from './SheetHeader';
@@ -19,17 +19,11 @@ export interface AttackSheetProps {
   target: ProjectListItem | null;
   rank: number | null;
   /**
-   * Начальная ставка цели: ниже её половины ставку не опустить. В
-   * ProjectListItem её пока нет — приедет вместе с Attack (Срез 1.6),
-   * до тех пор считаем от текущей.
+   * Расчёт с сервера (`attack-quote`): пол цели, остаток до него, коэффициент
+   * зачисления и остаток скользящих лимитов. null — ещё не приехал.
    */
-  targetInitial?: number | null;
-  /** Своя ставка в платном топе — на неё зачисляется часть суммы. */
-  myAmount: number;
-  /** Сколько раз по этой цели уже били за сутки, и сколько всего. */
-  priorAttacks: number;
-  attacksToday: number;
-  limits: PaidLimits;
+  quote: AttackQuote | null;
+  quoteError: string | null;
   currency?: DisplayCurrency;
   onClose: () => void;
   onConfirm: (landed: number, credited: number) => void;
@@ -39,32 +33,32 @@ export interface AttackSheetProps {
  * Перенос AttackSheet из дизайн-кита (design/ui_kits/mini_app/Sheets.jsx):
  * два шага — сумма, затем подтверждение с обеими итоговыми ставками.
  *
- * Все коэффициенты приходят из app_config через `limits`, а не лежат
- * константами в клиенте: иначе предпросмотр разъедется с расчётом сервера.
- * Здесь именно предпросмотр — окончательную сумму считает edge-функция.
+ * Ни одно правило здесь не считается: пол, коэффициент и лимиты приходят
+ * готовыми из `attack-quote`, шторка только показывает, что из них следует
+ * для выбранной суммы. Свой набор коэффициентов в клиенте разъехался бы с
+ * тем, по которому спишут деньги, — а окончательный расчёт всё равно делает
+ * `apply_payment` под блокировкой строк.
  */
 export function AttackSheet({
   open,
   target,
   rank,
-  targetInitial,
-  myAmount,
-  priorAttacks,
-  attacksToday,
-  limits,
+  quote,
+  quoteError,
   currency = 'UZS',
   onClose,
   onConfirm,
 }: AttackSheetProps) {
   const [step, setStep] = useState<1 | 2>(1);
-  const [amount, setAmount] = useState(limits.minAttackAmount * 25);
+  /** null — человек ещё не трогал ползунок, показываем предложенную сумму. */
+  const [amount, setAmount] = useState<number | null>(null);
 
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
     setPrevOpen(open);
     if (open) {
       setStep(1);
-      setAmount(limits.minAttackAmount * 25);
+      setAmount(null);
     }
   }
 
@@ -73,46 +67,68 @@ export function AttackSheet({
   const unit = CURRENCY_SUFFIX[currency];
   const money = (v: number) => formatMoney(v, { currency, compact: false });
 
-  const floor = Math.max(
-    limits.minPaidAmount,
-    Math.round((targetInitial ?? target.paidAmount) * limits.attackFloorOfInitial),
+  const header = (
+    <SheetHeader
+      icon="swords"
+      tone="attack"
+      singleLine
+      title={step === 1 ? t.title : t.titleConfirm}
+      subtitle={rank !== null ? t.subtitle(target.name, rank) : target.name}
+    />
   );
-  const room = Math.max(0, target.paidAmount - floor);
-  /* Урезаем до того, что реально долетит: за упор в пол платить не надо. */
-  const landed = Math.min(amount, room);
-  const trimmed = landed < amount;
-  const coefficient = Math.max(
-    limits.attackHaircutFloor,
-    1 - limits.attackHaircutStep * priorAttacks,
-  );
-  const credited = Math.round(landed * coefficient);
-  const pct = Math.round(coefficient * 100);
 
-  const theirAfter = target.paidAmount - landed;
-  const myAfter = myAmount + credited;
-  const gapBefore = Math.abs(target.paidAmount - myAmount);
+  // Расчёт не приехал — показывать нечего и посчитать нечем. Пустая шторка с
+  // причиной честнее, чем цифры на догадках.
+  if (!quote) {
+    return (
+      <Sheet open={open} onClose={onClose}>
+        {header}
+        <SheetNote tone="muted" icon={quoteError ? 'triangle-alert' : 'info'}>
+          {quoteError ?? strings.common.loading}
+        </SheetNote>
+        <SheetActions onSecondary={onClose}>
+          <Button variant="attack-quiet" size="lg" disabled>
+            {t.review}
+          </Button>
+        </SheetActions>
+      </Sheet>
+    );
+  }
+
+  const suggested = Math.min(
+    Math.max(quote.minAttackAmount, quote.minAttackAmount * 25),
+    Math.max(quote.minAttackAmount, quote.room),
+  );
+  const value = amount ?? suggested;
+
+  /* Урезаем до того, что реально долетит: за упор в пол платить не надо. */
+  const landed = Math.min(value, quote.room);
+  const trimmed = landed < value;
+  const credited = creditedFromBp(landed, quote.coefficientBp);
+  const pct = Math.round(quote.coefficientBp / 100);
+
+  const theirAfter = quote.targetAmount - landed;
+  const myAfter = quote.ownAmount + credited;
+  const gapBefore = Math.abs(quote.targetAmount - quote.ownAmount);
   const gapAfter = theirAfter - myAfter;
 
-  const targetSpent = priorAttacks >= limits.maxAttacksPerTargetPerDay;
-  const daySpent = attacksToday >= limits.maxAttacksTotalPerDay;
-  const blocked = landed < limits.minAttackAmount || targetSpent || daySpent;
-  const error = targetSpent
-    ? t.targetLimitError(limits.maxAttacksPerTargetPerDay)
-    : daySpent
-      ? t.dayLimitError(limits.maxAttacksTotalPerDay)
-      : landed < limits.minAttackAmount
-        ? t.amountError(`${money(limits.minAttackAmount)} ${unit}`)
-        : undefined;
+  const noRoom = quote.room <= 0;
+  const targetSpent = quote.attacksLeftOnTarget <= 0;
+  const daySpent = quote.attacksLeftToday <= 0;
+  const blocked = noRoom || targetSpent || daySpent || landed < quote.minAttackAmount;
+  const error = noRoom
+    ? t.floorReached
+    : targetSpent
+      ? t.targetLimitError(quote.maxAttacksOnTarget)
+      : daySpent
+        ? t.dayLimitError(quote.maxAttacksToday)
+        : landed < quote.minAttackAmount
+          ? t.amountError(`${money(quote.minAttackAmount)} ${unit}`)
+          : undefined;
 
   return (
     <Sheet open={open} onClose={onClose}>
-      <SheetHeader
-        icon="swords"
-        tone="attack"
-        singleLine
-        title={step === 1 ? t.title : t.titleConfirm}
-        subtitle={rank !== null ? t.subtitle(target.name, rank) : target.name}
-      />
+      {header}
 
       <div className={styles.steps}>
         <span className={styles.stepBar} data-on="true" />
@@ -124,16 +140,16 @@ export function AttackSheet({
         <>
           <AmountInput
             segment="attack"
-            value={amount}
+            value={value}
             onChange={setAmount}
             currency={currency}
-            step={limits.minAttackAmount * 5}
-            min={limits.minAttackAmount}
-            max={Math.max(limits.minAttackAmount, room)}
+            step={quote.minAttackAmount * 5}
+            min={quote.minAttackAmount}
+            max={Math.max(quote.minAttackAmount, quote.room)}
             presets={[
-              limits.minAttackAmount * 10,
-              limits.minAttackAmount * 25,
-              limits.minAttackAmount * 50,
+              quote.minAttackAmount * 10,
+              quote.minAttackAmount * 25,
+              quote.minAttackAmount * 50,
             ]}
             label={t.amountLabel}
             error={error}
@@ -144,20 +160,22 @@ export function AttackSheet({
             <KeyRow label={t.theirBid} value={`− ${money(landed)}`} tone="attack" />
             <KeyRow
               label={t.yourBid}
-              value={`+ ${money(credited)}${coefficient < 1 ? ` (${pct}%)` : ''}`}
+              value={`+ ${money(credited)}${quote.coefficientBp < 10000 ? ` (${pct}%)` : ''}`}
               tone="paid"
             />
             <span className={styles.effectsNote}>
-              {coefficient < 1 ? t.haircutNote(pct) : t.plainNote}
+              {quote.coefficientBp < 10000
+                ? t.haircutNote(pct, quote.haircutResetHours)
+                : t.plainNote}
             </span>
           </div>
 
           <SheetFootnote tone="muted">
             {t.quota(
-              limits.maxAttacksPerTargetPerDay - priorAttacks,
-              limits.maxAttacksPerTargetPerDay,
-              limits.maxAttacksTotalPerDay - attacksToday,
-              limits.maxAttacksTotalPerDay,
+              quote.attacksLeftOnTarget,
+              quote.maxAttacksOnTarget,
+              quote.attacksLeftToday,
+              quote.maxAttacksToday,
             )}
           </SheetFootnote>
 
@@ -178,12 +196,12 @@ export function AttackSheet({
             />
             <KeyRow
               label={t.rivalBid(target.name)}
-              value={`${money(target.paidAmount)} → ${money(theirAfter)}`}
+              value={`${money(quote.targetAmount)} → ${money(theirAfter)}`}
               tone="attack"
             />
             <KeyRow
               label={t.yourBid}
-              value={`${money(myAmount)} → ${money(myAfter)}`}
+              value={`${money(quote.ownAmount)} → ${money(myAfter)}`}
               tone="paid"
             />
             <KeyRow label={t.creditedToYou} value={t.creditedShare(pct)} />
@@ -196,7 +214,7 @@ export function AttackSheet({
 
           {trimmed && (
             <SheetNote tone="muted" icon="info">
-              {t.trimmedNote(money(landed), money(floor))}
+              {t.trimmedNote(money(landed), money(quote.floor))}
             </SheetNote>
           )}
 
