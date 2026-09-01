@@ -284,8 +284,11 @@ export const strings = {
     // ревью). Отдельная копия для него — честная, а не общий шаблон с
     // подставленным именем 'Test payment'.
     chargeNoteMock: 'Test payment confirms instantly, right here — no separate page, no charge.',
+    // Та же неправда про «бот пришлёт цели алерт», что чинили в attack.warning
+    // (Срез 1.6) — здесь она пряталась вторым экземпляром, потому что до этого
+    // среза Attack на Pay-шторку попасть не мог. Бот уведомлений не рассылает.
     attackWarning: (rival: string) =>
-      `The charge goes to the platform, never to ${rival}. Once the provider confirms it, it cannot be undone — and they get a bot alert naming you and the amount.`,
+      `The charge goes to the platform, never to ${rival}. Once the provider confirms it, it cannot be undone.`,
     submit: (amount: string, provider: string) => `Pay ${amount} via ${provider}`,
     footnote: (provider: string) =>
       `The payment opens on ${provider}'s own secure page and applies when ${provider} confirms it. BidWar keeps no balance for you — there is no wallet to top up and nothing of yours sitting with us.`,
