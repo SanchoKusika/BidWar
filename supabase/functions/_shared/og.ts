@@ -210,6 +210,43 @@ function hostnameOf(url: string): string {
   }
 }
 
+/**
+ * href первой подходящей `<link rel=...>`. Порядок задаёт вызывающий, а не
+ * порядок тегов в документе: apple-touch-icon обычно 180×180, а `rel="icon"`
+ * сплошь и рядом 16×16 — в кружке превью 52px разница видна сразу.
+ *
+ * `rel` — список токенов через пробел (`rel="shortcut icon"`), поэтому
+ * сравнение по токенам, а не по строке целиком.
+ */
+function extractIconHref(html: string, wanted: readonly string[]): string | null {
+  const links = html.match(/<link\b[^>]*>/gi) ?? [];
+
+  for (const want of wanted) {
+    for (const tag of links) {
+      const rel = tag.match(/\brel=["']([^"']*)["']/i)?.[1];
+      if (!rel || !rel.toLowerCase().split(/\s+/).includes(want)) continue;
+      const href = tag.match(/\bhref=["']([^"']*)["']/i)?.[1]?.trim();
+      if (href) return href;
+    }
+  }
+  return null;
+}
+
+/**
+ * Чем показать сайт, у которого нет Open Graph. Аватарка в топе — половина
+ * узнаваемости строки, а у обычного сайта og:image нет почти никогда.
+ *
+ * `/favicon.ico` в конце — догадка, а не находка: существование файла здесь не
+ * проверяется (это был бы ещё один сетевой запрос в платёжном пути). Промах
+ * ничего не ломает — картинка не загрузится, и карточка покажет букву-
+ * заглушку, ровно как и с пустым превью (OgPreview обрабатывает onError).
+ */
+function faviconUrl(html: string, finalUrl: string): string | null {
+  const href = extractIconHref(html, ['apple-touch-icon', 'icon']);
+  if (href) return resolveMaybeRelative(href, finalUrl);
+  return resolveMaybeRelative('/favicon.ico', finalUrl);
+}
+
 function resolveMaybeRelative(value: string, base: string): string | null {
   try {
     return new URL(value, base).toString();
@@ -247,7 +284,8 @@ export function parseOgHtml(
     : null;
 
   const rawImage = firstMeta(html, ['og:image', 'twitter:image']);
-  const imageUrl = rawImage ? resolveMaybeRelative(rawImage, finalUrl) : null;
+  const imageUrl =
+    (rawImage ? resolveMaybeRelative(rawImage, finalUrl) : null) ?? faviconUrl(html, finalUrl);
 
   return { name, description, imageUrl };
 }

@@ -59,6 +59,7 @@ export function Shell() {
               segment={nav.current.segment}
               onBack={nav.back}
               onRules={openRules}
+              onGoPaid={() => nav.setTab('paid')}
             />
           )}
           {nav.current?.name === 'rules' && (

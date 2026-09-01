@@ -61,7 +61,16 @@ export function PaidMobile({ nav }: PaidMobileProps) {
   const minStep = useMinPaidAmount();
 
   const [raiseOpen, setRaiseOpen] = useState(false);
+  /**
+   * Сумма, предзаполненная из «занять это место». Это доплата, а не итоговая
+   * ставка: цена на карточке — абсолютная («столько будет стоить позиция»), а
+   * Raise прибавляется к своей текущей. Минимальный шаг всё равно снизу —
+   * доплатить меньше него нельзя, даже если позиция ниже своей.
+   */
+  const [raisePreset, setRaisePreset] = useState<number | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  /** Открывающая ставка, предзаполненная из «занять это место». */
+  const [takeSpotBid, setTakeSpotBid] = useState<number | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
   const [result, setResult] = useState<ActionResult | null>(null);
   const [payError, setPayError] = useState<string | null>(null);
@@ -196,14 +205,41 @@ export function PaidMobile({ nav }: PaidMobileProps) {
           if (initData) registerClick({ initData, projectId: item.id }).catch(() => {});
           getPlatform().openLink(item.url);
         }}
-        onAction={own.project ? () => setRaiseOpen(true) : undefined}
-        onAddProject={userId && !own.project ? () => setAddOpen(true) : undefined}
+        onAction={
+          own.project
+            ? () => {
+                setRaisePreset(null);
+                setRaiseOpen(true);
+              }
+            : undefined
+        }
+        onTakeSpot={(item) => {
+          const target = item.paidAmount + minStep;
+          if (own.project) {
+            setRaisePreset(Math.max(minStep, target - own.project.paidAmount));
+            setRaiseOpen(true);
+            return;
+          }
+          // Своей платной записи ещё нет — место занимается открывающим входом,
+          // и цена с карточки становится начальной ставкой.
+          setTakeSpotBid(target);
+          setAddOpen(true);
+        }}
+        onAddProject={
+          userId && !own.project
+            ? () => {
+                setTakeSpotBid(null);
+                setAddOpen(true);
+              }
+            : undefined
+        }
       />
 
       <RaiseSheet
         open={raiseOpen}
         project={own.project}
         rank={own.rank}
+        preset={raisePreset}
         minAmount={minStep}
         onClose={() => setRaiseOpen(false)}
         onConfirm={(amount) => {
@@ -215,10 +251,14 @@ export function PaidMobile({ nav }: PaidMobileProps) {
 
       <AddProjectSheet
         open={addOpen}
-        onClose={() => setAddOpen(false)}
+        onClose={() => {
+          setAddOpen(false);
+          setTakeSpotBid(null);
+        }}
         categories={categories.categories}
         taken={{ paid: Boolean(own.project), free: Boolean(ownFree.project) }}
         minPaidAmount={minStep}
+        bidPreset={takeSpotBid}
         preferredSegment="paid"
         onSubmit={async ({ url, categoryId, segment, bid }) => {
           // Находка I3 финального ревью: выбор пользователя в шторке обязан

@@ -173,6 +173,27 @@
   color-scheme: light;
 }
 
+/* ── Явный выбор темы человеком бьёт тему клиента ──────────────────────────
+   Четыре токена выше берут значение у Telegram (--tg-theme-*), а нашу палитру
+   держат лишь как fallback. Пока тема следует за клиентом, это и нужно: фон и
+   текст мини-аппа совпадают с чатом. Но стоит выбрать Light в тёмном
+   Telegram — фон, текст и ссылки оставались телеграмными тёмными, а вся
+   остальная палитра становилась светлой. Отсюда «светлая тема сломана
+   тумблером, а системная светлая — в порядке» (найдено на боевом клиенте
+   01.09.2026).
+
+   `initial` для пользовательского свойства — гарантированно недопустимое
+   значение: var() тогда подставляет именно fallback, то есть нашу палитру.
+   `!important` здесь не украшение и не перестраховка: telegram-web-app.js
+   ставит эти переменные инлайном на <html> через style.setProperty, а инлайн
+   бьёт любое обычное правило таблицы стилей. */
+:root[data-theme-source='user'] {
+  --tg-theme-bg-color: initial !important;
+  --tg-theme-text-color: initial !important;
+  --tg-theme-hint-color: initial !important;
+  --tg-theme-link-color: initial !important;
+}
+
 /* ── Semantic aliases — DARK ───────────────────────────────────────────────
    Applied via [data-theme="dark"] on <html>. In a Telegram Mini App set it
    from Telegram.WebApp.colorScheme; the tg-theme-* fallbacks then win. */

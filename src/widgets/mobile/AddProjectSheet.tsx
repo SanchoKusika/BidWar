@@ -36,6 +36,8 @@ export interface AddProjectSheetProps {
    * карточку руками (код-ревью раунд 1).
    */
   preferredSegment?: ShowcaseType;
+  /** Предзаполненная открывающая ставка: приходит из «занять это место». */
+  bidPreset?: number | null;
   onSubmit: (params: {
     url: string;
     categoryId: number;
@@ -69,6 +71,7 @@ export function AddProjectSheet({
   taken = {},
   minPaidAmount,
   preferredSegment,
+  bidPreset,
   onSubmit,
 }: AddProjectSheetProps) {
   const [url, setUrl] = useState('');
@@ -80,7 +83,7 @@ export function AddProjectSheet({
    * шторки: дальнейшие правки ссылки больше не перебивают выбор человека.
    */
   const [categoryTouched, setCategoryTouched] = useState(false);
-  const [bid, setBid] = useState(minPaidAmount ?? 0);
+  const [bid, setBid] = useState(bidPreset ?? minPaidAmount ?? 0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -94,7 +97,7 @@ export function AddProjectSheet({
       setSegment(preferredSegment ?? (taken.free ? 'paid' : 'free'));
       setCategoryId(null);
       setCategoryTouched(false);
-      setBid(minPaidAmount ?? 0);
+      setBid(bidPreset ?? minPaidAmount ?? 0);
       setError(null);
     }
   }

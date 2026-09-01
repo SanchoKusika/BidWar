@@ -6,6 +6,7 @@ import { Button } from './Button';
 import { Icon } from './Icon';
 import { formatCount, type DisplayCurrency } from '@/shared/lib/format';
 import { cx } from '@/shared/lib/cx';
+import { displayUrl } from '@/shared/lib/url';
 import styles from './ProjectCard.module.css';
 
 /** Действие внутри карточки не должно открывать саму карточку. */
@@ -85,7 +86,10 @@ export function ProjectCard({
 }: ProjectCardProps) {
   const medal = rank !== undefined && rank >= 1 && rank <= 3 ? rank : undefined;
   const actions = [onRaise, onAttack, onVote].filter(Boolean).length;
-  const subtitle = description ?? url;
+  // Описания у сайта может не быть вовсе (нет ни og:description, ни meta
+  // description — так у google.com). Тогда под названием стоит сама ссылка, и
+  // показывать её со схемой незачем: она тут подпись, а не адрес перехода.
+  const subtitle = description ?? (url ? displayUrl(url) : undefined);
   const showTenure = rank === 1 && Boolean(heldFor);
 
   return (
