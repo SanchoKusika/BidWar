@@ -50,6 +50,8 @@ export function ProfilePage({ nav }: ProfilePageProps) {
       // (см. паспорт пропа в ProfileScreen) — блок трат прячется целиком,
       // вместо того чтобы показывать ноль поверх настоящих платежей.
       projects={mine.projects}
+      onRefresh={mine.retry}
+      refreshing={mine.loading}
       referralLink={`${brand.botLink}?start=BW-9F2K`}
       referralInvited={PREVIEW.referral ? 7 : 0}
       referralEarned={PREVIEW.referral ? 350 : 0}
