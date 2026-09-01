@@ -15,6 +15,7 @@ import {
   formatVotes,
   type DisplayCurrency,
 } from '@/shared/lib/format';
+import { displayUrl } from '@/shared/lib/url';
 import { PREVIEW } from '@/shared/config/preview';
 import { strings } from '@/shared/i18n/strings';
 import type { ProjectListItem, ShowcaseType } from '@/entities/project';
@@ -103,7 +104,9 @@ export function ProjectScreen({
       <PageHeader
         segment={segment}
         title={project.name}
-        meta={categoryTitle ? `${project.url} · ${categoryTitle}` : project.url}
+        meta={
+          categoryTitle ? `${displayUrl(project.url)} · ${categoryTitle}` : displayUrl(project.url)
+        }
         onBack={onBack}
         right={
           <StatBlock
@@ -159,7 +162,7 @@ export function ProjectScreen({
             </div>
 
             <Button variant="secondary" size="md" block icon="external-link" onClick={onOpenLink}>
-              {t.open(project.url)}
+              {t.open(displayUrl(project.url))}
             </Button>
 
             <div className={styles.actions}>
@@ -169,7 +172,10 @@ export function ProjectScreen({
                   size="lg"
                   block
                   icon="chevrons-up"
-                  disabled
+                  // Свой платный проект поднять можно (Срез 1.5) — кнопка ведёт
+                  // на вкладку Paid, где живёт сам путь оплаты. Чужой перебить
+                  // пока нечем: это Attack, Срез 1.6.
+                  disabled={!isOwn}
                   onClick={onRaise}
                 >
                   {isOwn ? t.raiseMine : t.outbid}

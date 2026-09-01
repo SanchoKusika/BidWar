@@ -35,11 +35,23 @@ export interface ProfileScreenProps {
   handle: string;
   joined: string;
   voteBalance: number | null;
-  /** Списано за 30 дней и за всё время. Баланса у продукта нет — только траты. */
-  paidMonth: number;
-  paidTotal: number;
+  /**
+   * Траты: за 30 дней, за всё время и построчно. Баланса у продукта нет —
+   * карточка показывает не «сколько лежит», а «сколько заплачено».
+   *
+   * Не передан ⇒ источника ещё нет, и блок трат вместе с карточкой «Paid»
+   * не рисуется вовсе. Ноль тут был бы неправдой: платежи в
+   * payment_transactions уже есть, просто клиент их не читает — политики на
+   * чтение у таблицы нет, а сессии Supabase (и значит auth.uid()) у мини-аппа
+   * нет вообще, личность живёт в initData и проверяется на сервере. Нужна своя
+   * edge-функция — Срез 1.8.
+   */
+  spending?: {
+    month: number;
+    total: number;
+    receipts: readonly Receipt[];
+  };
   projects: readonly { project: ProjectListItem; rank: number | null }[];
-  receipts: readonly Receipt[];
   referralLink: string;
   referralInvited: number;
   referralEarned: number;
@@ -66,10 +78,8 @@ export function ProfileScreen({
   handle,
   joined,
   voteBalance,
-  paidMonth,
-  paidTotal,
+  spending,
   projects,
-  receipts,
   referralLink,
   referralInvited,
   referralEarned,
@@ -103,13 +113,15 @@ export function ProfileScreen({
               </Button>
             }
           />
-          <Balance
-            label={t.paidLabel}
-            value={money(paidMonth)}
-            unit={CURRENCY_SUFFIX[currency]}
-            tone="paid"
-            action={<span className={styles.balanceNote}>{t.noWallet}</span>}
-          />
+          {spending && (
+            <Balance
+              label={t.paidLabel}
+              value={money(spending.month)}
+              unit={CURRENCY_SUFFIX[currency]}
+              tone="paid"
+              action={<span className={styles.balanceNote}>{t.noWallet}</span>}
+            />
+          )}
         </Gutter>
 
         <Section>
@@ -150,9 +162,9 @@ export function ProfileScreen({
                   onDetails={() => onOpenProject(project)}
                   onRaise={project.type === 'paid' ? () => onRaise(project) : undefined}
                   onVote={project.type === 'free' ? () => onVote(project) : undefined}
-                  // Действия ждут своих срезов, но в ките они здесь есть — и
-                  // без них карточка профиля выглядит недоделанной.
-                  actionsDisabled
+                  // Raise работает с 1.5 и ведёт на вкладку Paid; Give votes
+                  // ждёт Среза 1.7 и потому остаётся выключенным.
+                  actionsDisabled={project.type === 'free'}
                 />
               ))
             ) : (
@@ -180,27 +192,29 @@ export function ProfileScreen({
           <SettingsPanel {...settings} />
         </Gutter>
 
-        <Section>
-          <SectionLabel>{t.receipts}</SectionLabel>
-          <Gutter>
-            <RowsCard>
-              <KeyRow
-                label={t.paidAllTime}
-                value={`${money(paidTotal)} ${CURRENCY_SUFFIX[currency]}`}
-                strong
-                tone="paid"
-              />
-              {receipts.map((r) => (
+        {spending && (
+          <Section>
+            <SectionLabel>{t.receipts}</SectionLabel>
+            <Gutter>
+              <RowsCard>
                 <KeyRow
-                  key={r.id}
-                  label={`${r.label} · ${r.when}${r.provider ? ` · ${r.provider}` : ''}`}
-                  value={`−${money(r.amount)}`}
-                  tone={r.kind === 'attack' ? 'attack' : undefined}
+                  label={t.paidAllTime}
+                  value={`${money(spending.total)} ${CURRENCY_SUFFIX[currency]}`}
+                  strong
+                  tone="paid"
                 />
-              ))}
-            </RowsCard>
-          </Gutter>
-        </Section>
+                {spending.receipts.map((r) => (
+                  <KeyRow
+                    key={r.id}
+                    label={`${r.label} · ${r.when}${r.provider ? ` · ${r.provider}` : ''}`}
+                    value={`−${money(r.amount)}`}
+                    tone={r.kind === 'attack' ? 'attack' : undefined}
+                  />
+                ))}
+              </RowsCard>
+            </Gutter>
+          </Section>
+        )}
       </ScreenBody>
     </>
   );

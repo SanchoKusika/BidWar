@@ -16,6 +16,8 @@ export interface ProjectPageProps {
   segment: ShowcaseType;
   onBack: () => void;
   onRules: (anchor?: string) => void;
+  /** Уводит на вкладку Paid — там живёт шторка Raise и сама оплата. */
+  onGoPaid: () => void;
 }
 
 /** Лента изменений ставки: транзакции пока никто не пишет (PREVIEW.activityFeed). */
@@ -28,11 +30,11 @@ const ACTIVITY_FIXTURES: readonly ActivityEntry[] = [
 /** Кто держит позицию: публичного хендла в users нет (PREVIEW.ownerHandle). */
 const OWNER_FIXTURE = { buyer: '@mebelsavdo', since: 'Aug 2026' };
 
-export function ProjectPage({ id, segment, onBack, onRules }: ProjectPageProps) {
+export function ProjectPage({ id, segment, onBack, onRules, onGoPaid }: ProjectPageProps) {
   const { userId } = useSession();
   const { currency, compactAmounts } = useSettings();
   const categories = useCategoryStats(segment);
-  const { project, rank, status } = useProject(id, segment);
+  const { project, rank, otherEntry, otherRank, status } = useProject(id, segment);
 
   if (status === 'loading') {
     return (
@@ -69,8 +71,9 @@ export function ProjectPage({ id, segment, onBack, onRules }: ProjectPageProps) 
       compactAmounts={compactAmounts}
       owner={PREVIEW.ownerHandle ? OWNER_FIXTURE : undefined}
       activity={PREVIEW.activityFeed ? ACTIVITY_FIXTURES : undefined}
-      otherEntry={null}
-      otherIsOwn={false}
+      otherEntry={otherEntry}
+      otherRank={otherRank}
+      otherIsOwn={userId !== null && otherEntry?.userId === userId}
       onBack={onBack}
       onOpenLink={() => {
         const initData = getPlatform().getInitData();
@@ -78,7 +81,7 @@ export function ProjectPage({ id, segment, onBack, onRules }: ProjectPageProps) 
         if (initData) registerClick({ initData, projectId: project.id }).catch(() => {});
         getPlatform().openLink(project.url);
       }}
-      onRaise={() => {}}
+      onRaise={onGoPaid}
       onAttack={() => {}}
       onVote={() => {}}
       onOpenOther={() => {}}

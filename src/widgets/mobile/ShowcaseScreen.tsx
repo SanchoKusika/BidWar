@@ -175,6 +175,11 @@ export interface ShowcaseScreenProps {
   onLoadMore: () => void;
   onRetry: () => void;
   onOpenProject: (item: ProjectListItem) => void;
+  /**
+   * «Занять это место» на чужой карточке. Не передан ⇒ блок остаётся ценником
+   * без нажатия: показать цену позиции честно и без него.
+   */
+  onTakeSpot?: (item: ProjectListItem) => void;
   /** Есть только на Free Top — на Paid Top вход требует оплаты (Срез 1.5), кнопка неактивна. */
   onAddProject?: () => void;
   /** Raise своей ставки — приходит с Paid Top начиная со Среза 1.5. */
@@ -226,6 +231,7 @@ export function ShowcaseScreen({
   onLoadMore,
   onRetry,
   onOpenProject,
+  onTakeSpot,
   onAddProject,
   onAction,
   onOpenRules,
@@ -430,6 +436,7 @@ export function ShowcaseScreen({
                       spotUnit={spot?.unit}
                       isOwn={isOwn}
                       onPress={() => onOpenProject(item)}
+                      onTakeSpot={spot && onTakeSpot ? () => onTakeSpot(item) : undefined}
                     />
                   </div>
                 );
