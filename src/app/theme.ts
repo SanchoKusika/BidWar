@@ -10,8 +10,14 @@ import { getSettings, subscribeSettings } from '@/shared/settings';
 export function bindTheme(platform: Platform): () => void {
   const apply = () => {
     const choice = getSettings().theme;
-    document.documentElement.dataset['theme'] =
-      choice === 'auto' ? platform.getColorScheme() : choice;
+    const root = document.documentElement;
+    root.dataset['theme'] = choice === 'auto' ? platform.getColorScheme() : choice;
+
+    // Пометка «тему выбрал человек» нужна не разметке, а токенам: по ней
+    // colors.css гасит переменные Telegram, иначе выбранная светлая тема
+    // осталась бы с тёмным фоном клиента (см. комментарий там же).
+    if (choice === 'auto') delete root.dataset['themeSource'];
+    else root.dataset['themeSource'] = 'user';
   };
 
   apply();
