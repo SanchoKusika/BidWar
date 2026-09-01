@@ -605,8 +605,10 @@ export type Database = {
         }
         Returns: {
           applied: boolean
+          credited_points: number
           points_granted: number
           project_id: number
+          reason: string
         }[]
       }
       register_project_click: {
