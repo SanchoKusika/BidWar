@@ -187,8 +187,9 @@ export function ProjectScreen({
                   size="lg"
                   block
                   icon="swords"
-                  // Ведёт на вкладку Paid — тем же способом, что и Raise выше:
-                  // шторка атаки и оплата живут там, а не на карточке.
+                  // Ведёт на вкладку Paid и открывает шторку атаки на этом
+                  // проекте (app/navigation.ts — Attack и оплата живут там,
+                  // а не на карточке).
                   onClick={onAttack}
                 >
                   {t.attack}

@@ -60,6 +60,7 @@ export function Shell() {
               onBack={nav.back}
               onRules={openRules}
               onGoPaid={() => nav.setTab('paid')}
+              onAttack={(target, rank) => nav.requestAttack(target, rank)}
             />
           )}
           {nav.current?.name === 'rules' && (

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Navigation } from '@/app/navigation';
+import type { AttackRequest, Navigation } from '@/app/navigation';
 import { useSession } from '@/entities/user';
 import { getPlatform } from '@/shared/platform';
 import {
@@ -80,6 +80,13 @@ export function PaidMobile({ nav }: PaidMobileProps) {
   const [attackRank, setAttackRank] = useState<number | null>(null);
   const [attackQuote, setAttackQuote] = useState<AttackQuote | null>(null);
   const [attackQuoteError, setAttackQuoteError] = useState<string | null>(null);
+  /**
+   * Последний забранный запрос атаки со страницы проекта — зеркало для
+   * сравнения в рендере (react-hooks/set-state-in-effect, CLAUDE.md), чтобы
+   * один и тот же nav.attackRequest не открывал шторку повторно на каждый
+   * ререндер.
+   */
+  const [handledAttackRequest, setHandledAttackRequest] = useState<AttackRequest | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
   const [result, setResult] = useState<ActionResult | null>(null);
   const [payError, setPayError] = useState<string | null>(null);
@@ -244,6 +251,19 @@ export function PaidMobile({ nav }: PaidMobileProps) {
   // который useOwnPosition отдаёт до завершения перезапроса.
   if (result && result.rank === null && !own.loading && own.rank !== null) {
     setResult({ ...result, rank: own.rank });
+  }
+
+  // Запрос атаки со страницы проекта (nav.requestAttack) открывает шторку
+  // прямо здесь — сравнение в рендере, не в эффекте, по той же причине, что
+  // и выше: страница проекта — отдельный экран, и к моменту перехода на
+  // вкладку Paid этот компонент монтируется заново, так что useEffect от
+  // самого attackTarget тут не срабатывает первым.
+  if (nav.attackRequest && nav.attackRequest !== handledAttackRequest) {
+    setHandledAttackRequest(nav.attackRequest);
+    setAttackTarget(nav.attackRequest.target);
+    setAttackRank(nav.attackRequest.rank);
+    setAttackQuote(null);
+    setAttackQuoteError(null);
   }
 
   return (

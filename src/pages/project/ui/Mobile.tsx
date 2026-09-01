@@ -1,7 +1,7 @@
 import { getPlatform } from '@/shared/platform';
 import { useSession } from '@/entities/user';
 import { useCategoryStats } from '@/entities/category';
-import { registerClick, type ShowcaseType } from '@/entities/project';
+import { registerClick, type ProjectListItem, type ShowcaseType } from '@/entities/project';
 import { SkeletonFeed } from '@/shared/ui/Skeleton';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { PREVIEW } from '@/shared/config/preview';
@@ -18,6 +18,8 @@ export interface ProjectPageProps {
   onRules: (anchor?: string) => void;
   /** Уводит на вкладку Paid — там живёт шторка Raise и сама оплата. */
   onGoPaid: () => void;
+  /** Уводит на вкладку Paid и просит открыть шторку атаки на этом проекте. */
+  onAttack: (target: ProjectListItem, rank: number | null) => void;
 }
 
 /** Лента изменений ставки: транзакции пока никто не пишет (PREVIEW.activityFeed). */
@@ -30,7 +32,14 @@ const ACTIVITY_FIXTURES: readonly ActivityEntry[] = [
 /** Кто держит позицию: публичного хендла в users нет (PREVIEW.ownerHandle). */
 const OWNER_FIXTURE = { buyer: '@mebelsavdo', since: 'Aug 2026' };
 
-export function ProjectPage({ id, segment, onBack, onRules, onGoPaid }: ProjectPageProps) {
+export function ProjectPage({
+  id,
+  segment,
+  onBack,
+  onRules,
+  onGoPaid,
+  onAttack,
+}: ProjectPageProps) {
   const { userId } = useSession();
   const { currency, compactAmounts } = useSettings();
   const categories = useCategoryStats(segment);
@@ -82,7 +91,7 @@ export function ProjectPage({ id, segment, onBack, onRules, onGoPaid }: ProjectP
         getPlatform().openLink(project.url);
       }}
       onRaise={onGoPaid}
-      onAttack={onGoPaid}
+      onAttack={() => onAttack(project, rank)}
       onVote={() => {}}
       onOpenOther={() => {}}
       onRules={() => onRules(project.type === 'paid' ? 'attacks' : 'votes')}
