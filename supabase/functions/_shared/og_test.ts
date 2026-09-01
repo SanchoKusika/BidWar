@@ -32,7 +32,8 @@ Deno.test('без og:description берётся <meta name="description">', () =
   assertEquals(parseOgHtml(html, BASE), {
     name: 'Мебель Савдо',
     description: 'Мебель на заказ в Ташкенте',
-    imageUrl: null,
+    // Картинки в разметке нет — остаётся догадка про /favicon.ico.
+    imageUrl: 'https://example.com/favicon.ico',
   });
 });
 
@@ -78,11 +79,39 @@ Deno.test('переносы строк в описании схлопывают�
   assertEquals(parseOgHtml(html, BASE).description, 'Первая строка вторая строка');
 });
 
-Deno.test('нет ничего — имя по хосту, описание и картинка пустые', () => {
+Deno.test('без og:image берётся apple-touch-icon — он крупнее обычной фавиконки', () => {
+  const html = `
+    <link rel="icon" href="/favicon-16.png">
+    <link rel="apple-touch-icon" href="/touch-180.png">`;
+  assertEquals(parseOgHtml(html, BASE).imageUrl, 'https://example.com/touch-180.png');
+});
+
+Deno.test('rel="shortcut icon" тоже считается иконкой', () => {
+  const html = `<link rel="shortcut icon" href="/fav.ico">`;
+  assertEquals(parseOgHtml(html, BASE).imageUrl, 'https://example.com/fav.ico');
+});
+
+Deno.test('нет ни og:image, ни <link rel=icon> — /favicon.ico от корня', () => {
+  // Догадка, а не находка: если её там нет, картинка не загрузится и карточка
+  // покажет букву-заглушку — ровно то же, что и без картинки вовсе.
+  assertEquals(
+    parseOgHtml('<head></head>', 'https://example.com/deep/page?x=1').imageUrl,
+    'https://example.com/favicon.ico',
+  );
+});
+
+Deno.test('og:image сильнее любой иконки', () => {
+  const html = `
+    <meta property="og:image" content="https://cdn.example.com/card.jpg">
+    <link rel="apple-touch-icon" href="/touch.png">`;
+  assertEquals(parseOgHtml(html, BASE).imageUrl, 'https://cdn.example.com/card.jpg');
+});
+
+Deno.test('нет ничего — имя по хосту, описание пустое, картинка по /favicon.ico', () => {
   assertEquals(parseOgHtml('<head></head>', BASE), {
     name: 'example.com',
     description: null,
-    imageUrl: null,
+    imageUrl: 'https://example.com/favicon.ico',
   });
 });
 
