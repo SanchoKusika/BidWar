@@ -14,6 +14,30 @@ Deno.test('открывающий вход: нужны категория и с�
   assertEquals(parsed.kind, 'opening');
 });
 
+Deno.test('атака: достаточно targetProjectId', () => {
+  const parsed = parseRequest({ ...base, amount: 10000, targetProjectId: 9 });
+  assertEquals(parsed.kind, 'attack');
+  assertEquals(parsed.amount, 10000n);
+});
+
+// Атакующую запись сервер берёт из подписанного initData. Принять её от
+// клиента значило бы разрешить бить, начисляя очки чужому проекту.
+Deno.test('атака: свой projectId в теле запроса отвергается', () => {
+  assertThrows(
+    () => parseRequest({ ...base, targetProjectId: 9, projectId: 3 }),
+    Error,
+    'только targetProjectId',
+  );
+});
+
+Deno.test('атака: ссылка в теле запроса отвергается', () => {
+  assertThrows(
+    () => parseRequest({ ...base, targetProjectId: 9, url: 'https://example.com' }),
+    Error,
+    'только targetProjectId',
+  );
+});
+
 Deno.test('без projectId и без пары категория+ссылка — отказ', () => {
   assertThrows(() => parseRequest(base), Error, 'projectId');
 });

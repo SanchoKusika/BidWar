@@ -7,12 +7,15 @@ export interface CreatePaymentBody {
   projectId?: number;
   categoryId?: number;
   url?: string;
+  /** Атака: по кому бьём. Свой проект сервер находит сам, его не передают. */
+  targetProjectId?: number;
   mockCommand?: string;
 }
 
 export type ParsedRequest =
   | { kind: 'topup'; initData: string; amount: bigint; projectId: number }
-  | { kind: 'opening'; initData: string; amount: bigint; categoryId: number; url: string };
+  | { kind: 'opening'; initData: string; amount: bigint; categoryId: number; url: string }
+  | { kind: 'attack'; initData: string; amount: bigint; targetProjectId: number };
 
 // Не бизнес-правило (то — устройство минимума, см. assertMinPaidAmount), а
 // граница здравого смысла для типов: без неё '1e20' проходит Number.isInteger
@@ -41,6 +44,21 @@ export function parseRequest(body: CreatePaymentBody): ParsedRequest {
   }
   if (amount > MAX_AMOUNT) {
     throw badRequest(`Сумма превышает допустимый предел — ${MAX_AMOUNT}`);
+  }
+
+  // Атака проверяется первой и требует, чтобы своего projectId в запросе НЕ
+  // было: атакующая запись определяется сервером по подписанному initData.
+  // Принять её от клиента значило бы разрешить бить в чужую пользу.
+  if (Number.isInteger(body.targetProjectId)) {
+    if (body.projectId !== undefined || body.url !== undefined) {
+      throw badRequest('Для атаки нужен только targetProjectId');
+    }
+    return {
+      kind: 'attack',
+      initData: body.initData,
+      amount: BigInt(amount),
+      targetProjectId: body.targetProjectId!,
+    };
   }
 
   if (Number.isInteger(body.projectId)) {

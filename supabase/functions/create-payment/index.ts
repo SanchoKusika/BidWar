@@ -6,6 +6,7 @@ import { getAdminClient } from '../_shared/db.ts';
 import { fetchOg } from '../_shared/og.ts';
 import { fetchFxRates, toPoints } from '../_shared/payments/fx.ts';
 import { getProvider, mockCommandsAllowed } from '../_shared/payments/registry.ts';
+import { assertAttackAllowed, loadAttackQuote } from '../_shared/attack_quote.ts';
 import type { MockCommand } from '../_shared/payments/mock.ts';
 import {
   parseRequest,
@@ -19,6 +20,22 @@ import {
 // который может дать 23505 на insert ниже: активные индексы (user_and_type,
 // url_and_type) ограничены status = 'active' и на pending_payment не смотрят.
 const PENDING_SLOT_INDEX = 'projects_one_pending_per_user_and_type_idx';
+
+/**
+ * Минимум ставки читается из app_config и потому обязан идти уже после
+ * verifyInitData. Вызывается в каждой ветке отдельно, а не один раз наверху:
+ * у атаки минимум свой и ниже — общая проверка молча запрещала бы половину
+ * допустимых атак.
+ */
+async function assertPaidMinimum(db: ReturnType<typeof getAdminClient>, amount: bigint) {
+  const { data, error } = await db
+    .from('app_config')
+    .select('value')
+    .eq('key', 'paid_limits')
+    .single();
+  if (error) throw error;
+  assertMinPaidAmount(amount, parsePaidLimits(data.value).minPaidAmount);
+}
 
 /**
  * Единственная точка, где начинается платёж. Валидация трижды, а не дважды
@@ -43,18 +60,25 @@ serve('create-payment', async (req, ctx) => {
 
   const { userId } = await resolveTelegramUser(verified.user, verified.startParam);
 
-  const { data: limits, error: limitsError } = await db
-    .from('app_config')
-    .select('value')
-    .eq('key', 'paid_limits')
-    .single();
-  if (limitsError) throw limitsError;
-  const { minPaidAmount } = parsePaidLimits(limits.value);
-  assertMinPaidAmount(parsed.amount, minPaidAmount);
-
   let projectId: number;
+  let targetProjectId: number | null = null;
 
-  if (parsed.kind === 'topup') {
+  if (parsed.kind === 'attack') {
+    // У атаки свой минимум (`min_attack_amount`), он ниже входного порога
+    // топа — assertMinPaidAmount здесь была бы не та проверка. Всё остальное
+    // уже посчитано в расчёте: пол цели, остаток скользящих лимитов, свой
+    // проект. Атакующую запись сервер берёт оттуда, а не из тела запроса.
+    const quote = await loadAttackQuote(userId, parsed.targetProjectId);
+    assertAttackAllowed(quote, Number(parsed.amount));
+    projectId = quote.ownProjectId;
+    targetProjectId = quote.targetProjectId;
+    ctx.log('attack invoice', {
+      targetProjectId,
+      room: quote.room,
+      coefficientBp: quote.coefficientBp,
+    });
+  } else if (parsed.kind === 'topup') {
+    await assertPaidMinimum(db, parsed.amount);
     const { data: project, error } = await db
       .from('projects')
       .select('id, user_id, type, status')
@@ -67,6 +91,8 @@ serve('create-payment', async (req, ctx) => {
     if (project.status !== 'active') throw badRequest('Проект неактивен');
     projectId = project.id;
   } else {
+    await assertPaidMinimum(db, parsed.amount);
+
     // Занятость слота и занятость адреса — два разных unique-индекса
     // (projects_one_active_per_{user_and_type,url_and_type}_idx) и две разных
     // причины отказа для пользователя. Один `.or(...)` с `.maybeSingle()`
@@ -181,7 +207,8 @@ serve('create-payment', async (req, ctx) => {
     .insert({
       user_id: userId,
       project_id: projectId,
-      intent: 'raise',
+      target_project_id: targetProjectId,
+      intent: parsed.kind === 'attack' ? 'attack' : 'raise',
       provider: provider.id,
       original_currency: provider.currency,
       original_amount: Number(parsed.amount),
@@ -196,11 +223,17 @@ serve('create-payment', async (req, ctx) => {
   const result = await provider.createPayment({
     paymentId: payment.id,
     userId,
-    intent: 'raise',
+    intent: parsed.kind === 'attack' ? 'attack' : 'raise',
     projectId,
+    ...(targetProjectId !== null ? { targetProjectId } : {}),
     amount: parsed.amount,
   });
 
-  ctx.log('payment created', { paymentId: payment.id, status: result.status, projectId });
+  ctx.log('payment created', {
+    paymentId: payment.id,
+    status: result.status,
+    projectId,
+    intent: parsed.kind,
+  });
   return result;
 });
