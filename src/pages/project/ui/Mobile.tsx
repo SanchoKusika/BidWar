@@ -5,6 +5,7 @@ import { registerClick, type ShowcaseType } from '@/entities/project';
 import { SkeletonFeed } from '@/shared/ui/Skeleton';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { PREVIEW } from '@/shared/config/preview';
+import { useSettings } from '@/shared/settings';
 import { strings } from '@/shared/i18n/strings';
 import { ProjectScreen, type ActivityEntry } from '@/widgets/mobile/ProjectScreen';
 import { useProject } from '../model';
@@ -29,6 +30,7 @@ const OWNER_FIXTURE = { buyer: '@mebelsavdo', since: 'Aug 2026' };
 
 export function ProjectPage({ id, segment, onBack, onRules }: ProjectPageProps) {
   const { userId } = useSession();
+  const { currency, compactAmounts } = useSettings();
   const categories = useCategoryStats(segment);
   const { project, rank, status } = useProject(id, segment);
 
@@ -63,6 +65,8 @@ export function ProjectPage({ id, segment, onBack, onRules }: ProjectPageProps) 
       rank={rank}
       categoryTitle={category?.title ?? null}
       isOwn={userId !== null && project.userId === userId}
+      currency={currency}
+      compactAmounts={compactAmounts}
       owner={PREVIEW.ownerHandle ? OWNER_FIXTURE : undefined}
       activity={PREVIEW.activityFeed ? ACTIVITY_FIXTURES : undefined}
       otherEntry={null}

@@ -154,17 +154,37 @@ async function fetchWithGuards(startUrl: string): Promise<{ finalUrl: string; bo
   throw new BlockedUrlError('Слишком много редиректов');
 }
 
-function extractMeta(html: string, property: string): string | null {
-  const escaped = property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/**
+ * Ищет мета-тег и по `property=`, и по `name=`: Open Graph пишут через
+ * property, а обычное описание страницы — `<meta name="description">`, то есть
+ * ровно тот текст, который показывает поисковик под ссылкой. Раньше смотрели
+ * только на property, поэтому у сайта без Open Graph описания не было вовсе.
+ *
+ * Кавычки вокруг имени обязательны в регулярке: без них `og:image` совпал бы с
+ * идущим раньше `og:image:width`.
+ */
+function extractMeta(html: string, key: string): string | null {
+  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const direct = new RegExp(
-    `<meta[^>]+property=["']${escaped}["'][^>]*content=["']([^"']*)["']`,
+    `<meta[^>]+(?:property|name)=["']${escaped}["'][^>]*content=["']([^"']*)["']`,
     'i',
   );
   const reversed = new RegExp(
-    `<meta[^>]+content=["']([^"']*)["'][^>]*property=["']${escaped}["']`,
+    `<meta[^>]+content=["']([^"']*)["'][^>]*(?:property|name)=["']${escaped}["']`,
     'i',
   );
-  return html.match(direct)?.[1] ?? html.match(reversed)?.[1] ?? null;
+  const value = html.match(direct)?.[1] ?? html.match(reversed)?.[1] ?? null;
+  // Пустой content — не находка: пусть подхватится следующий источник.
+  return value?.trim() ? value : null;
+}
+
+/** Первый непустой из списка мета-тегов. */
+function firstMeta(html: string, keys: readonly string[]): string | null {
+  for (const key of keys) {
+    const value = extractMeta(html, key);
+    if (value) return value;
+  }
+  return null;
 }
 
 function extractTitle(html: string): string | null {
@@ -199,6 +219,40 @@ function resolveMaybeRelative(value: string, base: string): string | null {
 }
 
 /**
+ * Разбор <head> в карточку проекта. Вынесен из fetchOg отдельно от сети, чтобы
+ * его можно было проверить тестом (og_test.ts).
+ *
+ * Порядок источников один и тот же для всех трёх полей: Open Graph → Twitter
+ * Card → обычные теги страницы. У t.me og:description — это текст блока «О
+ * себе» канала или профиля, а og:image — аватар; у сайта без Open Graph то же
+ * место занимают <title> и <meta name="description">.
+ */
+export function parseOgHtml(
+  html: string,
+  finalUrl: string,
+): { name: string; description: string | null; imageUrl: string | null } {
+  const name = decodeHtmlEntities(
+    firstMeta(html, ['og:title', 'twitter:title']) || extractTitle(html) || hostnameOf(finalUrl),
+  ).slice(0, MAX_NAME_LENGTH);
+
+  // Описание живёт в карточке одной строкой под названием, а многострочное «О
+  // себе» канала приезжает с переносами — схлопываем их в пробелы здесь, а не
+  // в вёрстке: в базе тогда лежит ровно то, что показывается.
+  const rawDescription = firstMeta(html, ['og:description', 'twitter:description', 'description']);
+  const description = rawDescription
+    ? decodeHtmlEntities(rawDescription)
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, MAX_DESCRIPTION_LENGTH)
+    : null;
+
+  const rawImage = firstMeta(html, ['og:image', 'twitter:image']);
+  const imageUrl = rawImage ? resolveMaybeRelative(rawImage, finalUrl) : null;
+
+  return { name, description, imageUrl };
+}
+
+/**
  * Никогда не бросает: сбой сети/SSRF-блок/что угодно даёт `status: 'failed'`
  * и имя по хосту вместо ошибки — публикация проекта не блокируется
  * (02 Архитектура.md, таблица «Обработка ошибок»).
@@ -206,20 +260,7 @@ function resolveMaybeRelative(value: string, base: string): string | null {
 export async function fetchOg(url: string): Promise<OgResult> {
   try {
     const { finalUrl, body } = await fetchWithGuards(url);
-
-    const name = decodeHtmlEntities(
-      extractMeta(body, 'og:title') || extractTitle(body) || hostnameOf(finalUrl),
-    ).slice(0, MAX_NAME_LENGTH);
-
-    const rawDescription = extractMeta(body, 'og:description');
-    const description = rawDescription
-      ? decodeHtmlEntities(rawDescription).slice(0, MAX_DESCRIPTION_LENGTH)
-      : null;
-
-    const rawImage = extractMeta(body, 'og:image');
-    const imageUrl = rawImage ? resolveMaybeRelative(rawImage, finalUrl) : null;
-
-    return { name, description, imageUrl, status: 'ok' };
+    return { ...parseOgHtml(body, finalUrl), status: 'ok' };
   } catch (error) {
     console.warn(
       JSON.stringify({
