@@ -29,6 +29,12 @@ interface TgWebApp {
   ready(): void;
   expand(): void;
   openLink(url: string, options?: { try_instant_view?: boolean }): void;
+  /**
+   * Bot API 6.1+. Принимает только хост t.me — на любом другом
+   * telegram-web-app.js бросает WebAppTgUrlInvalid, поэтому зовётся строго
+   * через openTelegramUrl() ниже.
+   */
+  openTelegramLink?(url: string): void;
   openInvoice(url: string, callback: (status: InvoiceStatus) => void): void;
   onEvent(event: string, handler: () => void): void;
   offEvent(event: string, handler: () => void): void;
@@ -52,6 +58,36 @@ export function getTelegramWebApp(): TgWebApp | null {
 export function isTelegramMiniApp(): boolean {
   const tg = getTelegramWebApp();
   return Boolean(tg?.initData);
+}
+
+const TELEGRAM_LINK_HOSTS = new Set(['t.me', 'telegram.me', 'www.t.me', 'www.telegram.me']);
+
+/**
+ * Ссылку на Telegram надо открывать телеграмом, а не браузером.
+ *
+ * `openLink` уводит адрес в браузер (на телефоне — во встроенный браузер
+ * Telegram), и для `t.me/...` это лишний прыжок: браузер открывается только
+ * затем, чтобы тут же вернуть человека обратно в приложение. `openTelegramLink`
+ * открывает канал, профиль или бота прямо внутри Telegram, и с Bot API 7.0
+ * мини-апп при этом не закрывается.
+ *
+ * `telegram.me` переписывается в `t.me`: это его давний алиас, но
+ * telegram-web-app.js сверяет хост буквально и на всём, кроме `t.me`, бросает.
+ *
+ * Возвращает null, если ссылка не телеграмная или разбор не удался — тогда
+ * работает обычный openLink.
+ */
+function telegramLinkUrl(url: string): string | null {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return null;
+  }
+
+  if (!TELEGRAM_LINK_HOSTS.has(parsed.hostname.toLowerCase())) return null;
+  parsed.hostname = 't.me';
+  return parsed.toString();
 }
 
 function wrapBackButton(button: TgBackButton): BackButton {
@@ -109,7 +145,16 @@ export function createTelegramPlatform(tg: TgWebApp): Platform {
       return () => tg.offEvent('themeChanged', listener);
     },
 
-    openLink: (url) => tg.openLink(url),
+    openLink(url) {
+      // Выбор метода — дело этого слоя: фичам про Telegram знать нечего, они
+      // просто просят «открой ссылку» (CLAUDE.md, изоляция платформы).
+      const tgUrl = telegramLinkUrl(url);
+      if (tgUrl && tg.openTelegramLink) {
+        tg.openTelegramLink(tgUrl);
+        return;
+      }
+      tg.openLink(url);
+    },
 
     openInvoice: (url) =>
       new Promise<InvoiceStatus>((resolve) => {
