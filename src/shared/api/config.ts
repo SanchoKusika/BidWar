@@ -74,3 +74,33 @@ export async function fetchPaidLimits(): Promise<PaidLimits> {
 }
 
 export { FALLBACK as PAID_LIMITS_FALLBACK };
+
+interface FxRatesRow {
+  usd_to_uzs?: number;
+  rub_to_uzs?: number;
+}
+
+/**
+ * Курсы к очку (1 очко = 1 сум по якорю) из `app_config.fx_rates` — тот же
+ * источник, по которому считает `create-payment`. Валюта показа в профиле не
+ * должна опираться на второй набор чисел в клиенте: разъехавшись, они покажут
+ * человеку не ту сумму, что списал провайдер.
+ *
+ * Строки нет или курс битый — возвращаем то, что удалось разобрать: у
+ * `formatMoney` остаётся его собственный набор, и показ просто не меняется.
+ */
+export async function fetchFxRates(): Promise<{ USD?: number; RUB?: number }> {
+  const { data, error } = await getSupabase()
+    .from('app_config')
+    .select('value')
+    .eq('key', 'fx_rates')
+    .maybeSingle();
+
+  if (error) throw error;
+
+  const v = (data?.value ?? {}) as FxRatesRow;
+  return {
+    ...(v.usd_to_uzs ? { USD: 1 / v.usd_to_uzs } : {}),
+    ...(v.rub_to_uzs ? { RUB: 1 / v.rub_to_uzs } : {}),
+  };
+}

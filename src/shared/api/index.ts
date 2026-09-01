@@ -1,7 +1,7 @@
 export { getSupabase } from './client';
 export { fetchHealth } from './health';
 export { authenticate } from './auth';
-export { fetchPaidLimits } from './config';
+export { fetchPaidLimits, fetchFxRates } from './config';
 export { functionErrorMessage, isPaymentOutcomeUnknown } from './errors';
 
 export type { Health } from './health';

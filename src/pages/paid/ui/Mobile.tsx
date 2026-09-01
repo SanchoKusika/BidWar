@@ -14,6 +14,7 @@ import {
   type PaymentResult,
 } from '@/features/raise';
 import { CURRENCY_SUFFIX, formatMoney } from '@/shared/lib/format';
+import { useSettings } from '@/shared/settings';
 import { strings } from '@/shared/i18n/strings';
 import { ShowcaseScreen } from '@/widgets/mobile/ShowcaseScreen';
 import { AddProjectSheet } from '@/widgets/mobile/AddProjectSheet';
@@ -47,6 +48,7 @@ type Pending =
  */
 export function PaidMobile({ nav }: PaidMobileProps) {
   const { userId, status: sessionStatus, errorMessage: sessionErrorMessage } = useSession();
+  const { currency, compactAmounts } = useSettings();
   const showcase = usePaidShowcase();
   const categories = usePaidCategories();
   const own = usePaidOwnPosition(showcase.categoryId, userId);
@@ -166,6 +168,8 @@ export function PaidMobile({ nav }: PaidMobileProps) {
     <>
       <ShowcaseScreen
         segment="paid"
+        currency={currency}
+        compactAmounts={compactAmounts}
         minStep={minStep}
         categories={categories.categories}
         topProjectName={topProject.name}

@@ -43,10 +43,17 @@ function metricOf(item: Pick<ProjectListItem, 'type' | 'paidAmount' | 'votes'>):
   return item.type === 'paid' ? item.paidAmount : item.votes;
 }
 
-function formatMetric(value: number, segment: ShowcaseType, currency: DisplayCurrency): string {
-  return segment === 'paid'
-    ? formatMoney(value, { currency, compact: false })
-    : formatVotes(value, { compact: false });
+/**
+ * Валюта показа и «сокращать ли суммы» — обе из настроек профиля, и ходят
+ * вместе везде, где число попадает на экран.
+ */
+interface MoneyFormat {
+  currency: DisplayCurrency;
+  compact: boolean;
+}
+
+function formatMetric(value: number, segment: ShowcaseType, money: MoneyFormat): string {
+  return segment === 'paid' ? formatMoney(value, money) : formatVotes(value, money);
 }
 
 function unitOf(segment: ShowcaseType, currency: DisplayCurrency): string {
@@ -87,14 +94,14 @@ function tierFor(
   rank: number,
   items: ProjectListItem[],
   segment: ShowcaseType,
-  currency: DisplayCurrency,
+  money: MoneyFormat,
   unit: string,
 ): { label: string; note?: string } | null {
   const band = TIER_BANDS[rank];
   if (!band) return null;
 
   const last = items[Math.min(items.length, band.end) - 1];
-  const note = last ? `from ${formatMetric(metricOf(last), segment, currency)} ${unit}` : undefined;
+  const note = last ? `from ${formatMetric(metricOf(last), segment, money)} ${unit}` : undefined;
 
   return { label: band.label, note };
 }
@@ -102,12 +109,12 @@ function tierFor(
 function spotFor(
   item: ProjectListItem,
   segment: ShowcaseType,
-  currency: DisplayCurrency,
+  money: MoneyFormat,
   minStep: number,
   unit: string,
 ): { price: string; unit: string } {
   const price = metricOf(item) + minStep;
-  return { price: formatMetric(price, segment, currency), unit };
+  return { price: formatMetric(price, segment, money), unit };
 }
 
 /**
@@ -123,7 +130,7 @@ function gapHint(
   neighborAbove: NeighborProject | null,
   mine: ProjectListItem,
   segment: ShowcaseType,
-  currency: DisplayCurrency,
+  money: MoneyFormat,
   minStep: number,
   unit: string,
 ): string | undefined {
@@ -133,7 +140,7 @@ function gapHint(
   // Без своего ранга нельзя назвать и позицию соседа — врать числом не станем.
   if (!neighborAbove || rank === null) return undefined;
   const diff = neighborAbove.metric - metricOf(mine) + minStep;
-  const amount = formatMetric(diff, segment, currency);
+  const amount = formatMetric(diff, segment, money);
   return segment === 'paid'
     ? s.gapPaid(`${amount} ${unit}`, neighborAbove.name, rank - 1)
     : s.gapFree(amount, neighborAbove.name, rank - 1);
@@ -142,6 +149,8 @@ function gapHint(
 export interface ShowcaseScreenProps {
   segment: ShowcaseType;
   currency?: DisplayCurrency;
+  /** «12.5 mln» вместо «12 500 000» — настройка профиля (shared/settings). */
+  compactAmounts?: boolean;
   /** Минимальный шаг ставки/голоса — цена «занять место» и подсказки дистанции. */
   minStep: number;
   categories: CategoryStat[];
@@ -195,6 +204,7 @@ export interface ShowcaseScreenProps {
 export function ShowcaseScreen({
   segment,
   currency = 'UZS',
+  compactAmounts = false,
   minStep,
   categories,
   topProjectName,
@@ -222,6 +232,10 @@ export function ShowcaseScreen({
   activity,
 }: ShowcaseScreenProps) {
   const [scope, setScope] = useState<Scope>('all');
+  const money: MoneyFormat = { currency, compact: compactAmounts };
+  // Цена «занять это место» и «сколько нужно, чтобы обойти» — числа, по
+  // которым человек платит: сокращение здесь заставит недоплатить.
+  const exact: MoneyFormat = { currency, compact: false };
   const categoryById: CategoryById = new Map(categories.map((c) => [c.categoryId, c]));
   const globalTotals = totalsFor(categories, categoryById, null);
   const scopedTotals = totalsFor(categories, categoryById, categoryId);
@@ -240,8 +254,7 @@ export function ShowcaseScreen({
   // Точная цена последней позиции честна, только когда список догружен целиком —
   // иначе последняя ЗАГРУЖЕННАЯ строка не обязательно последняя РЕАЛЬНАЯ.
   const lastItem = items.at(-1);
-  const cheapest =
-    !hasMore && lastItem ? spotFor(lastItem, segment, currency, minStep, unit) : null;
+  const cheapest = !hasMore && lastItem ? spotFor(lastItem, segment, exact, minStep, unit) : null;
   const entryHint =
     segment === 'paid'
       ? cheapest
@@ -284,21 +297,11 @@ export function ShowcaseScreen({
               <OwnPositionPanel
                 segment={segment}
                 rank={ownRank}
-                value={
-                  ownProject ? formatMetric(metricOf(ownProject), segment, currency) : undefined
-                }
+                value={ownProject ? formatMetric(metricOf(ownProject), segment, money) : undefined}
                 unit={unit}
                 hint={
                   ownProject
-                    ? gapHint(
-                        ownRank,
-                        ownNeighborAbove,
-                        ownProject,
-                        segment,
-                        currency,
-                        minStep,
-                        unit,
-                      )
+                    ? gapHint(ownRank, ownNeighborAbove, ownProject, segment, exact, minStep, unit)
                     : undefined
                 }
                 entryHint={entryHint}
@@ -319,7 +322,7 @@ export function ShowcaseScreen({
               name="All"
               icon="layout-grid"
               segment={segment}
-              pool={formatMetric(globalTotals.pool, segment, currency)}
+              pool={formatMetric(globalTotals.pool, segment, money)}
               unit={unit}
               projects={globalTotals.count}
               leader={topProjectName ?? undefined}
@@ -333,7 +336,7 @@ export function ShowcaseScreen({
                 name={cat.title}
                 icon={CATEGORY_ICON[cat.slug] ?? 'folder'}
                 segment={segment}
-                pool={formatMetric(cat.pool, segment, currency)}
+                pool={formatMetric(cat.pool, segment, money)}
                 unit={unit}
                 projects={cat.projectCount}
                 leader={cat.leaderName ?? undefined}
@@ -353,7 +356,7 @@ export function ShowcaseScreen({
               {scopeLabel} · {scopedTotals.count}
             </span>
             <span className={styles.rankingSub}>
-              {s.inPlay(formatMetric(scopedTotals.pool, segment, currency), unit)}
+              {s.inPlay(formatMetric(scopedTotals.pool, segment, money), unit)}
             </span>
           </span>
           {PREVIEW.todayScope && (
@@ -393,9 +396,9 @@ export function ShowcaseScreen({
                 // Ярусы имеют смысл только в общем разрезе — внутри категории
                 // позиции уже пересчитаны как 1..N её собственного списка.
                 const tier =
-                  categoryId === null ? tierFor(rank, items, segment, currency, unit) : null;
+                  categoryId === null ? tierFor(rank, items, segment, money, unit) : null;
                 const isOwn = userId !== null && item.userId === userId;
-                const spot = !isOwn ? spotFor(item, segment, currency, minStep, unit) : null;
+                const spot = !isOwn ? spotFor(item, segment, exact, minStep, unit) : null;
 
                 return (
                   <div key={item.id} className={styles.row}>
@@ -411,9 +414,11 @@ export function ShowcaseScreen({
                       rank={rank}
                       name={item.name}
                       url={item.url}
+                      description={item.ogDescription ?? undefined}
                       ogImage={item.ogImageUrl ?? undefined}
                       value={metricOf(item)}
                       currency={currency}
+                      compactAmounts={compactAmounts}
                       clicks={item.clicks}
                       heldFor={
                         rank === 1 && item.rank1Since

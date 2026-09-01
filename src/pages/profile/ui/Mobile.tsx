@@ -2,20 +2,28 @@ import { useState } from 'react';
 import { useSession } from '@/entities/user';
 import { brand } from '@/shared/content';
 import { PREVIEW } from '@/shared/config/preview';
+import type { DisplayCurrency } from '@/shared/lib/format';
+import { setSetting, useSettings, type AppSettings, type ThemeChoice } from '@/shared/settings';
 import { ProfileScreen, type Receipt } from '@/widgets/mobile/ProfileScreen';
 import type { SettingsState } from '@/widgets/mobile/SettingsPanel';
 import type { Navigation } from '@/app/navigation';
+import { useMyProjects } from '../model';
 
 export interface ProfilePageProps {
   nav: Navigation;
 }
 
-const DEFAULT_SETTINGS: SettingsState = {
+/**
+ * Поля настроек без единого обработчика: язык, вибрация, три уведомления и
+ * подтверждение платежей. Панель их рисует только под PREVIEW.settingsStubs —
+ * состояние им нужно, чтобы тумблер в этом режиме хотя бы двигался, и дальше
+ * профиля оно не уходит.
+ */
+type StubSettings = Omit<SettingsState, keyof AppSettings>;
+
+const STUB_DEFAULTS: StubSettings = {
   language: 'RU',
-  theme: 'auto',
   haptics: true,
-  currency: 'UZS',
-  compactAmounts: true,
   alertAttacked: true,
   alertLostPosition: true,
   alertNewTasks: false,
@@ -54,12 +62,15 @@ const RECEIPT_FIXTURES: readonly Receipt[] = [
 ];
 
 /**
- * Профиль. Реальны только хендл и баланс голосов из сессии; проекты, траты,
- * чеки и рефералка ждут своих срезов — см. PREVIEW.
+ * Профиль. Реальны хендл и баланс голосов из сессии, свои записи в обоих топах
+ * и настройки отображения; траты, чеки и рефералка ждут своих срезов — см.
+ * PREVIEW.
  */
 export function ProfilePage({ nav }: ProfilePageProps) {
-  const { displayName, voteBalance } = useSession();
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const { userId, displayName, voteBalance } = useSession();
+  const settings = useSettings();
+  const [stubs, setStubs] = useState(STUB_DEFAULTS);
+  const mine = useMyProjects(userId);
 
   return (
     <ProfileScreen
@@ -68,14 +79,24 @@ export function ProfilePage({ nav }: ProfilePageProps) {
       voteBalance={voteBalance}
       paidMonth={PREVIEW.receipts ? 3250000 : 0}
       paidTotal={PREVIEW.receipts ? 18400000 : 0}
-      projects={[]}
+      projects={mine.projects}
       receipts={PREVIEW.receipts ? RECEIPT_FIXTURES : []}
       referralLink={`${brand.botLink}?start=BW-9F2K`}
       referralInvited={PREVIEW.referral ? 7 : 0}
       referralEarned={PREVIEW.referral ? 350 : 0}
+      currency={settings.currency}
+      compactAmounts={settings.compactAmounts}
       settings={{
-        value: settings,
-        onChange: (key, next) => setSettings((prev) => ({ ...prev, [key]: next })),
+        value: { ...settings, ...stubs },
+        // Разбор по ключу, а не один setSetting(key, next): сузить сам ключ
+        // TypeScript умеет, а связанное с ним значение — нет, поэтому тип
+        // значения подтверждается здесь по одной ветке на настройку.
+        onChange: (key, next) => {
+          if (key === 'theme') setSetting('theme', next as ThemeChoice);
+          else if (key === 'currency') setSetting('currency', next as DisplayCurrency);
+          else if (key === 'compactAmounts') setSetting('compactAmounts', next as boolean);
+          else setStubs((prev) => ({ ...prev, [key]: next }));
+        },
         onRules: () => nav.push({ name: 'rules', anchor: 'bidding' }),
         onDoc: (id) => nav.push({ name: 'doc', id }),
       }}

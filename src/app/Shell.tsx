@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { getPlatform } from '@/shared/platform';
+import { fetchFxRates } from '@/shared/api';
+import { setRates } from '@/shared/lib/format';
 import { SessionProvider } from '@/entities/user';
 import { TabBar } from '@/shared/ui/TabBar';
 import { PaidMobile } from '@/pages/paid/ui/Mobile';
@@ -26,6 +28,14 @@ export function Shell() {
     platform.ready();
     return bindTheme(platform);
   }, [platform]);
+
+  // Курсы валюты показа — с сервера, одним запросом на старте. Отказ не
+  // страшен: у formatMoney остаются свои значения, просто без обновления.
+  useEffect(() => {
+    fetchFxRates()
+      .then(setRates)
+      .catch(() => {});
+  }, []);
 
   // Новый экран начинается сверху, а не там, где остался прошлый.
   useEffect(() => {

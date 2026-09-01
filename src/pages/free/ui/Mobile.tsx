@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSession } from '@/entities/user';
 import { getPlatform } from '@/shared/platform';
+import { useSettings } from '@/shared/settings';
 import { createProject, registerClick } from '@/entities/project';
 import { ShowcaseScreen } from '@/widgets/mobile/ShowcaseScreen';
 import { AddProjectSheet } from '@/widgets/mobile/AddProjectSheet';
@@ -23,6 +24,7 @@ export function FreeMobile({ nav }: FreeMobileProps) {
     status: sessionStatus,
     errorMessage: sessionErrorMessage,
   } = useSession();
+  const { currency, compactAmounts } = useSettings();
   const showcase = useFreeShowcase();
   const categories = useFreeCategories();
   const own = useFreeOwnPosition(showcase.categoryId, userId);
@@ -40,6 +42,8 @@ export function FreeMobile({ nav }: FreeMobileProps) {
     <>
       <ShowcaseScreen
         segment="free"
+        currency={currency}
+        compactAmounts={compactAmounts}
         minStep={1}
         categories={categories.categories}
         topProjectName={topProject.name}

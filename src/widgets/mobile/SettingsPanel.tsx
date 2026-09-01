@@ -2,6 +2,8 @@ import { Segmented } from '@/shared/ui/Segmented';
 import { SettingsGroup, SettingsRow } from '@/shared/ui/Settings';
 import { Switch } from '@/shared/ui/Switch';
 import type { DisplayCurrency } from '@/shared/lib/format';
+import type { AppSettings, ThemeChoice } from '@/shared/settings';
+import { PREVIEW } from '@/shared/config/preview';
 import { brand, payments, type DocId } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
 import styles from './SettingsPanel.module.css';
@@ -9,14 +11,15 @@ import styles from './SettingsPanel.module.css';
 const t = strings.settings;
 
 export type Language = 'RU' | 'UZ' | 'EN';
-export type ThemeChoice = 'auto' | 'light' | 'dark';
+export type { ThemeChoice };
 
-export interface SettingsState {
+/**
+ * Работающие настройки приходят из `shared/settings`, остальные поля — только
+ * заглушки кита и живут за `PREVIEW.settingsStubs`.
+ */
+export interface SettingsState extends AppSettings {
   language: Language;
-  theme: ThemeChoice;
   haptics: boolean;
-  currency: DisplayCurrency;
-  compactAmounts: boolean;
   alertAttacked: boolean;
   alertLostPosition: boolean;
   alertNewTasks: boolean;
@@ -49,18 +52,20 @@ export function SettingsPanel({ value, onChange, onRules, onDoc }: SettingsPanel
   return (
     <div className={styles.panel}>
       <SettingsGroup label={t.appearance} footnote={t.appearanceNote}>
-        <SettingsRow
-          icon="languages"
-          title={t.language}
-          control={
-            <Segmented
-              options={['RU', 'UZ', 'EN']}
-              value={value.language}
-              onChange={(v) => onChange('language', v as Language)}
-              size="sm"
-            />
-          }
-        />
+        {PREVIEW.settingsStubs && (
+          <SettingsRow
+            icon="languages"
+            title={t.language}
+            control={
+              <Segmented
+                options={['RU', 'UZ', 'EN']}
+                value={value.language}
+                onChange={(v) => onChange('language', v as Language)}
+                size="sm"
+              />
+            }
+          />
+        )}
         <SettingsRow
           icon="sun-moon"
           title={t.theme}
@@ -74,18 +79,20 @@ export function SettingsPanel({ value, onChange, onRules, onDoc }: SettingsPanel
             />
           }
         />
-        <SettingsRow
-          icon="vibrate"
-          title={t.vibration}
-          description={t.vibrationNote}
-          control={
-            <Switch
-              checked={value.haptics}
-              onChange={(v) => onChange('haptics', v)}
-              label={t.vibration}
-            />
-          }
-        />
+        {PREVIEW.settingsStubs && (
+          <SettingsRow
+            icon="vibrate"
+            title={t.vibration}
+            description={t.vibrationNote}
+            control={
+              <Switch
+                checked={value.haptics}
+                onChange={(v) => onChange('haptics', v)}
+                label={t.vibration}
+              />
+            }
+          />
+        )}
         <SettingsRow
           icon="banknote"
           title={t.currency}
@@ -113,57 +120,61 @@ export function SettingsPanel({ value, onChange, onRules, onDoc }: SettingsPanel
         />
       </SettingsGroup>
 
-      <SettingsGroup label={t.notifications} footnote={t.notificationsNote}>
-        <SettingsRow
-          icon="swords"
-          title={t.attacked}
-          control={
-            <Switch
-              checked={value.alertAttacked}
-              onChange={(v) => onChange('alertAttacked', v)}
-              label={t.attacked}
-            />
-          }
-        />
-        <SettingsRow
-          icon="trending-down"
-          title={t.lostPosition}
-          control={
-            <Switch
-              checked={value.alertLostPosition}
-              onChange={(v) => onChange('alertLostPosition', v)}
-              label={t.lostPosition}
-            />
-          }
-        />
-        <SettingsRow
-          icon="list-checks"
-          title={t.newTasks}
-          description={t.newTasksNote}
-          control={
-            <Switch
-              checked={value.alertNewTasks}
-              onChange={(v) => onChange('alertNewTasks', v)}
-              segment="free"
-              label={t.newTasks}
-            />
-          }
-        />
-      </SettingsGroup>
+      {PREVIEW.settingsStubs && (
+        <SettingsGroup label={t.notifications} footnote={t.notificationsNote}>
+          <SettingsRow
+            icon="swords"
+            title={t.attacked}
+            control={
+              <Switch
+                checked={value.alertAttacked}
+                onChange={(v) => onChange('alertAttacked', v)}
+                label={t.attacked}
+              />
+            }
+          />
+          <SettingsRow
+            icon="trending-down"
+            title={t.lostPosition}
+            control={
+              <Switch
+                checked={value.alertLostPosition}
+                onChange={(v) => onChange('alertLostPosition', v)}
+                label={t.lostPosition}
+              />
+            }
+          />
+          <SettingsRow
+            icon="list-checks"
+            title={t.newTasks}
+            description={t.newTasksNote}
+            control={
+              <Switch
+                checked={value.alertNewTasks}
+                onChange={(v) => onChange('alertNewTasks', v)}
+                segment="free"
+                label={t.newTasks}
+              />
+            }
+          />
+        </SettingsGroup>
+      )}
 
       <SettingsGroup label={t.payments} footnote={t.paymentsNote}>
-        <SettingsRow
-          icon="shield-check"
-          title={t.confirmPayments}
-          description={t.confirmPaymentsNote}
-          control={
-            <Switch
-              checked={value.confirmPayments}
-              onChange={(v) => onChange('confirmPayments', v)}
-              label={t.confirmPayments}
-            />
-          }
-        />
+        {PREVIEW.settingsStubs && (
+          <SettingsRow
+            icon="shield-check"
+            title={t.confirmPayments}
+            description={t.confirmPaymentsNote}
+            control={
+              <Switch
+                checked={value.confirmPayments}
+                onChange={(v) => onChange('confirmPayments', v)}
+                label={t.confirmPayments}
+              />
+            }
+          />
+        )}
         <SettingsRow icon="credit-card" title={t.paymentMethods} value={PROVIDERS} disabled />
         <SettingsRow icon="receipt-text" title={t.paymentHistory} disabled />
       </SettingsGroup>
