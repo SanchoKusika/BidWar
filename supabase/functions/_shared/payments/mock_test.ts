@@ -28,7 +28,13 @@ function applyOnce(result: ApplyResult) {
 Deno.test(
   'applied = false из хранимки даёт status "failed", даже когда провайдер просил confirmed = true',
   async () => {
-    const { apply } = applyOnce({ applied: false, projectId: 42, pointsGranted: 0 });
+    const { apply } = applyOnce({
+      applied: false,
+      projectId: 42,
+      pointsGranted: 0,
+      creditedPoints: 0,
+      reason: 'slot_taken',
+    });
     const provider = createMockProvider(undefined, apply);
 
     const result = await provider.createPayment(BASE_INPUT);
@@ -39,7 +45,13 @@ Deno.test(
 );
 
 Deno.test('applied = true из хранимки даёт status "confirmed"', async () => {
-  const { apply } = applyOnce({ applied: true, projectId: 42, pointsGranted: 100000 });
+  const { apply } = applyOnce({
+    applied: true,
+    projectId: 42,
+    pointsGranted: 100000,
+    creditedPoints: 100000,
+    reason: null,
+  });
   const provider = createMockProvider(undefined, apply);
 
   const result = await provider.createPayment(BASE_INPUT);
@@ -52,7 +64,13 @@ Deno.test('command "decline" просит confirmed = false у хранимки'
   let seenConfirmed: boolean | undefined;
   const apply = (_paymentId: string, _eventId: string, confirmed: boolean) => {
     seenConfirmed = confirmed;
-    return Promise.resolve<ApplyResult>({ applied: false, projectId: 42, pointsGranted: 0 });
+    return Promise.resolve<ApplyResult>({
+      applied: false,
+      projectId: 42,
+      pointsGranted: 0,
+      creditedPoints: 0,
+      reason: 'slot_taken',
+    });
   };
   const provider = createMockProvider('decline', apply);
 
@@ -71,8 +89,20 @@ Deno.test('command "duplicate" вызывает apply дважды и берёт
     // Первый вызов проходит, второй (повторный вебхук) — идемпотентный no-op.
     return Promise.resolve<ApplyResult>(
       call === 1
-        ? { applied: true, projectId: 42, pointsGranted: 100000 }
-        : { applied: false, projectId: 42, pointsGranted: 0 },
+        ? {
+            applied: true,
+            projectId: 42,
+            pointsGranted: 100000,
+            creditedPoints: 100000,
+            reason: null,
+          }
+        : {
+            applied: false,
+            projectId: 42,
+            pointsGranted: 0,
+            creditedPoints: 0,
+            reason: 'slot_taken',
+          },
     );
   };
   const provider = createMockProvider('duplicate', apply);
@@ -88,7 +118,13 @@ Deno.test('command "stuck_pending" не зовёт хранимку вообще
   let called = false;
   const apply = () => {
     called = true;
-    return Promise.resolve<ApplyResult>({ applied: true, projectId: 42, pointsGranted: 100000 });
+    return Promise.resolve<ApplyResult>({
+      applied: true,
+      projectId: 42,
+      pointsGranted: 100000,
+      creditedPoints: 100000,
+      reason: null,
+    });
   };
   const provider = createMockProvider('stuck_pending', apply);
 
@@ -97,6 +133,30 @@ Deno.test('command "stuck_pending" не зовёт хранимку вообще
   assertEquals(called, false);
   assertEquals(result.status, 'pending');
   assertEquals(result.openUrl, null);
+});
+
+// Attack: урон цели и зачисление себе — разные числа, и мок обязан донести
+// оба. Раньше наружу шло одно pointsGranted, и квитанция атаки показала бы
+// человеку сумму урона как прибавку к своей ставке.
+Deno.test('атака доносит и урон, и зачисление после хейрката', async () => {
+  const { apply } = applyOnce({
+    applied: true,
+    projectId: 42,
+    pointsGranted: 100000,
+    creditedPoints: 85000,
+    reason: null,
+  });
+  const provider = createMockProvider(undefined, apply);
+
+  const result = await provider.createPayment({
+    ...BASE_INPUT,
+    intent: 'attack',
+    targetProjectId: 7,
+  });
+
+  assertEquals(result.status, 'confirmed');
+  assertEquals(result.pointsGranted, 100000, 'урон цели');
+  assertEquals(result.creditedPoints, 85000, 'своей ставке — за вычетом хейрката');
 });
 
 Deno.test('parseWebhook мока всегда отклоняется — у него нет внешней стороны', async () => {

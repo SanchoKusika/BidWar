@@ -3,7 +3,16 @@ import { getAdminClient } from '../db.ts';
 export interface ApplyResult {
   applied: boolean;
   projectId: number;
+  /** Очки платежа: для raise — прибавка к своей ставке, для attack — урон цели. */
   pointsGranted: number;
+  /** Что долетело до СВОЕЙ ставки. У raise равно pointsGranted, у attack — после хейрката. */
+  creditedPoints: number;
+  /**
+   * Почему платёж не применён; null при успехе. Раньше applied = false
+   * приходило по пяти разным причинам без способа их различить, и вызывающий
+   * не мог сказать человеку, что именно случилось.
+   */
+  reason: string | null;
 }
 
 /**
@@ -22,7 +31,13 @@ export async function applyPayment(
   });
 
   if (error) throw error;
-  type Row = { applied: boolean; project_id: number; points_granted: number };
+  type Row = {
+    applied: boolean;
+    project_id: number;
+    points_granted: number;
+    credited_points: number;
+    reason: string | null;
+  };
   const row = (data as Row[] | null)?.[0];
   if (!row) throw new Error('apply_payment ничего не вернул');
 
@@ -30,5 +45,7 @@ export async function applyPayment(
     applied: row.applied,
     projectId: row.project_id,
     pointsGranted: Number(row.points_granted),
+    creditedPoints: Number(row.credited_points),
+    reason: row.reason,
   };
 }
