@@ -47,6 +47,7 @@ export function createMockProvider(
           openUrl: null,
           projectId: input.projectId,
           pointsGranted: 0,
+          creditedPoints: 0,
         };
       }
 
@@ -68,6 +69,7 @@ export function createMockProvider(
         openUrl: null,
         projectId: first.projectId,
         pointsGranted: first.pointsGranted,
+        creditedPoints: first.creditedPoints,
       };
     },
 

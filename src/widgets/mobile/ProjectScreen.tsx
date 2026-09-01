@@ -173,8 +173,8 @@ export function ProjectScreen({
                   block
                   icon="chevrons-up"
                   // Свой платный проект поднять можно (Срез 1.5) — кнопка ведёт
-                  // на вкладку Paid, где живёт сам путь оплаты. Чужой перебить
-                  // пока нечем: это Attack, Срез 1.6.
+                  // на вкладку Paid, где живёт сам путь оплаты. Чужой не
+                  // перебивают довзносом: для этого рядом Attack.
                   disabled={!isOwn}
                   onClick={onRaise}
                 >
@@ -187,7 +187,9 @@ export function ProjectScreen({
                   size="lg"
                   block
                   icon="swords"
-                  disabled
+                  // Ведёт на вкладку Paid и открывает шторку атаки на этом
+                  // проекте (app/navigation.ts — Attack и оплата живут там,
+                  // а не на карточке).
                   onClick={onAttack}
                 >
                   {t.attack}

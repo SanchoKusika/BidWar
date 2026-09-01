@@ -26,6 +26,9 @@ serve('payment-webhook', async (req, ctx) => {
     paymentId: event.paymentId,
     eventId: event.eventId,
     applied: result.applied,
+    // Без причины отказа лог вебхука говорил только «не применилось», и
+    // разбирать, что именно отвергла хранимка, приходилось по данным в базе.
+    reason: result.reason,
   });
 
   return { applied: result.applied };

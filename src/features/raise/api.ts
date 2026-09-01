@@ -1,19 +1,10 @@
-import { getSupabase, functionErrorMessage, isPaymentOutcomeUnknown } from '@/shared/api';
+import {
+  getSupabase,
+  functionErrorMessage,
+  isPaymentOutcomeUnknown,
+  PaymentOutcomeUnknownError,
+} from '@/shared/api';
 import type { CreatePaymentParams, PaymentResult } from './types';
-
-/**
- * Соединение оборвалось до ответа create-payment — неизвестно, успел ли
- * сервер применить платёж (находка I6 финального ревью). Отдельный класс, а
- * не просто текст сообщения: вызывающий код (`PaidMobile.pay`) обязан
- * показать другую формулировку, а не «ничего не списано», и делать это по
- * `instanceof`, а не по совпадению строки.
- */
-export class PaymentOutcomeUnknownError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'PaymentOutcomeUnknownError';
-  }
-}
 
 /**
  * Начать платёж за позицию. Правила — минимум ставки, принадлежность проекта,

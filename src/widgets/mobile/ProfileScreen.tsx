@@ -52,6 +52,13 @@ export interface ProfileScreenProps {
     receipts: readonly Receipt[];
   };
   projects: readonly { project: ProjectListItem; rank: number | null }[];
+  /**
+   * Перечитать свои записи. Витрина обновляется сама после оплаты, но профиль
+   * открывают и просто так — а ставка и позиция к этому моменту могли уже
+   * измениться от чужого Raise или Attack.
+   */
+  onRefresh?: () => void;
+  refreshing?: boolean;
   referralLink: string;
   referralInvited: number;
   referralEarned: number;
@@ -80,6 +87,8 @@ export function ProfileScreen({
   voteBalance,
   spending,
   projects,
+  onRefresh,
+  refreshing = false,
   referralLink,
   referralInvited,
   referralEarned,
@@ -127,17 +136,31 @@ export function ProfileScreen({
         <Section>
           <SectionLabel
             right={
-              onAdd ? (
-                <button type="button" className={styles.addButton} onClick={onAdd}>
-                  <Icon name="plus" size={13} />
-                  {t.add}
-                </button>
-              ) : projects.length >= 2 ? (
-                // onAdd отсутствует по двум разным причинам: оба слота реально заняты
-                // (тогда это честно) или добавление ещё не подключено на этом экране
-                // (тогда данных для утверждения «оба слота заняты» просто нет — молчим).
-                <span className={styles.slotsNote}>{t.bothSlotsUsed}</span>
-              ) : null
+              <span className={styles.sectionActions}>
+                {onRefresh && (
+                  <button
+                    type="button"
+                    className={styles.addButton}
+                    onClick={onRefresh}
+                    disabled={refreshing}
+                    aria-label={t.refresh}
+                  >
+                    <Icon name="rotate-ccw" size={13} />
+                    {t.refresh}
+                  </button>
+                )}
+                {onAdd ? (
+                  <button type="button" className={styles.addButton} onClick={onAdd}>
+                    <Icon name="plus" size={13} />
+                    {t.add}
+                  </button>
+                ) : projects.length >= 2 ? (
+                  // onAdd отсутствует по двум разным причинам: оба слота реально заняты
+                  // (тогда это честно) или добавление ещё не подключено на этом экране
+                  // (тогда данных для утверждения «оба слота заняты» просто нет — молчим).
+                  <span className={styles.slotsNote}>{t.bothSlotsUsed}</span>
+                ) : null}
+              </span>
             }
           >
             {t.myProjects}

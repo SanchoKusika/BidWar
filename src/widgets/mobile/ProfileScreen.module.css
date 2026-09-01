@@ -59,6 +59,12 @@
   text-wrap: pretty;
 }
 
+.sectionActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .addButton {
   display: inline-flex;
   align-items: center;
@@ -68,6 +74,11 @@
   color: var(--paid-accent);
   font: var(--type-micro);
   cursor: pointer;
+}
+
+.addButton:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 .slotsNote {

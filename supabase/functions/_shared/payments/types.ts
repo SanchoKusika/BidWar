@@ -28,7 +28,10 @@ export interface CreatePaymentResult {
   /** Чем фронт откроет оплату. У мока нечего открывать — null. */
   openUrl: string | null;
   projectId: number;
+  /** Очки платежа: прибавка к своей ставке у raise, урон цели у attack. */
   pointsGranted: number;
+  /** Что долетело до своей ставки; у attack меньше pointsGranted на хейркат. */
+  creditedPoints: number;
 }
 
 export interface WebhookEvent {

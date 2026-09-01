@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Navigation } from '@/app/navigation';
+import type { AttackRequest, Navigation } from '@/app/navigation';
 import { useSession } from '@/entities/user';
 import { getPlatform } from '@/shared/platform';
 import {
@@ -13,12 +13,14 @@ import {
   PaymentOutcomeUnknownError,
   type PaymentResult,
 } from '@/features/raise';
+import { createAttackPayment, fetchAttackQuote, type AttackQuote } from '@/features/attack';
 import { CURRENCY_SUFFIX, formatMoney } from '@/shared/lib/format';
 import { useSettings } from '@/shared/settings';
 import { strings } from '@/shared/i18n/strings';
 import { ShowcaseScreen } from '@/widgets/mobile/ShowcaseScreen';
 import { AddProjectSheet } from '@/widgets/mobile/AddProjectSheet';
 import { RaiseSheet } from '@/widgets/mobile/RaiseSheet';
+import { AttackSheet } from '@/widgets/mobile/AttackSheet';
 import { PaySheet, type PayPayload } from '@/widgets/mobile/PaySheet';
 import { ResultSheet, type ActionResult } from '@/widgets/mobile/ResultSheet';
 import { SheetNote } from '@/widgets/mobile/SheetParts';
@@ -35,10 +37,12 @@ export interface PaidMobileProps {
   nav: Navigation;
 }
 
-/** Что оплачиваем: довзнос к своей ставке или открывающий вход новым проектом. */
+/** Что оплачиваем: довзнос, открывающий вход новым проектом или атаку. */
 type Pending =
   | { kind: 'raise'; amount: number; project: ProjectListItem }
-  | { kind: 'opening'; amount: number; url: string; categoryId: number };
+  | { kind: 'opening'; amount: number; url: string; categoryId: number }
+  /** `credited` — сколько долетит до своей ставки после хейрката, для квитанции. */
+  | { kind: 'attack'; amount: number; credited: number; target: ProjectListItem };
 
 /**
  * Путь «кнопка → шторка → оплата → новая позиция» на Paid Top (Срез 1.5).
@@ -71,6 +75,18 @@ export function PaidMobile({ nav }: PaidMobileProps) {
   const [addOpen, setAddOpen] = useState(false);
   /** Открывающая ставка, предзаполненная из «занять это место». */
   const [takeSpotBid, setTakeSpotBid] = useState<number | null>(null);
+  /** Цель открытой шторки Attack; null — шторка закрыта. */
+  const [attackTarget, setAttackTarget] = useState<ProjectListItem | null>(null);
+  const [attackRank, setAttackRank] = useState<number | null>(null);
+  const [attackQuote, setAttackQuote] = useState<AttackQuote | null>(null);
+  const [attackQuoteError, setAttackQuoteError] = useState<string | null>(null);
+  /**
+   * Последний забранный запрос атаки со страницы проекта — зеркало для
+   * сравнения в рендере (react-hooks/set-state-in-effect, CLAUDE.md), чтобы
+   * один и тот же nav.attackRequest не открывал шторку повторно на каждый
+   * ререндер.
+   */
+  const [handledAttackRequest, setHandledAttackRequest] = useState<AttackRequest | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
   const [result, setResult] = useState<ActionResult | null>(null);
   const [payError, setPayError] = useState<string | null>(null);
@@ -83,6 +99,43 @@ export function PaidMobile({ nav }: PaidMobileProps) {
   useEffect(() => {
     if (payError) payErrorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [payError]);
+
+  // Пол цели, коэффициент зачисления и остаток скользящих лимитов считает
+  // сервер: это правила баланса, и вторая их копия в клиенте разъехалась бы с
+  // той, по которой спишут деньги. Запрашиваем на открытии шторки — к моменту
+  // оплаты числа всё равно перепроверит apply_payment под блокировкой строк.
+  useEffect(() => {
+    const target = attackTarget;
+    if (!target) return;
+    let alive = true;
+    // Асинхронная обёртка обязательна: setState прямо в теле эффекта запрещён
+    // (react-hooks/set-state-in-effect, CLAUDE.md).
+    void (async () => {
+      const initData = getPlatform().getInitData();
+      if (!initData) {
+        if (alive) setAttackQuoteError(strings.raise.failed);
+        return;
+      }
+      try {
+        const quote = await fetchAttackQuote({ initData, targetProjectId: target.id });
+        if (!alive) return;
+        setAttackQuote(quote);
+        setAttackQuoteError(null);
+      } catch (error) {
+        if (!alive) return;
+        setAttackQuoteError(error instanceof Error ? error.message : strings.attack.quoteFailed);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [attackTarget]);
+
+  const closeAttack = () => {
+    setAttackTarget(null);
+    setAttackQuote(null);
+    setAttackQuoteError(null);
+  };
 
   const refresh = () => {
     showcase.retry();
@@ -108,13 +161,22 @@ export function PaidMobile({ nav }: PaidMobileProps) {
     setPayError(null);
     let outcome: PaymentResult;
     try {
-      outcome = await createRaisePayment({
-        initData,
-        amount: pending.amount,
-        ...(pending.kind === 'raise'
-          ? { projectId: pending.project.id }
-          : { categoryId: pending.categoryId, url: pending.url }),
-      });
+      outcome =
+        pending.kind === 'attack'
+          ? await createAttackPayment({
+              initData,
+              amount: pending.amount,
+              // Свою запись сервер находит по подписанному initData — передавать
+              // её нельзя, иначе можно было бы бить в чужую пользу.
+              targetProjectId: pending.target.id,
+            })
+          : await createRaisePayment({
+              initData,
+              amount: pending.amount,
+              ...(pending.kind === 'raise'
+                ? { projectId: pending.project.id }
+                : { categoryId: pending.categoryId, url: pending.url }),
+            });
     } catch (error) {
       // Сеть/функция могут упасть на любом шаге — обычный путь отказа, не
       // экзотика. Шторку закрываем по той же причине, что и в ветке выше.
@@ -152,6 +214,24 @@ export function PaidMobile({ nav }: PaidMobileProps) {
     // Квитанция открывается с прочерком, а свежий ранг подставляет сравнение
     // в рендере ниже, когда own.loading подтвердит, что пришли новые данные.
     refresh();
+
+    if (pending.kind === 'attack') {
+      // Числа берём из ответа сервера, а не из предпросмотра: урон и зачисление
+      // считает apply_payment, и если между расчётом и оплатой коэффициент
+      // успел измениться, показать надо то, что реально произошло.
+      setResult({
+        kind: 'attack',
+        title: strings.attack.resultTitle,
+        rank: null,
+        note: strings.attack.resultNote(
+          formatMoney(outcome.pointsGranted, { compact: false }),
+          formatMoney(outcome.creditedPoints, { compact: false }),
+          CURRENCY_SUFFIX.UZS,
+        ),
+      });
+      return;
+    }
+
     setResult({
       kind: 'raise',
       title:
@@ -171,6 +251,19 @@ export function PaidMobile({ nav }: PaidMobileProps) {
   // который useOwnPosition отдаёт до завершения перезапроса.
   if (result && result.rank === null && !own.loading && own.rank !== null) {
     setResult({ ...result, rank: own.rank });
+  }
+
+  // Запрос атаки со страницы проекта (nav.requestAttack) открывает шторку
+  // прямо здесь — сравнение в рендере, не в эффекте, по той же причине, что
+  // и выше: страница проекта — отдельный экран, и к моменту перехода на
+  // вкладку Paid этот компонент монтируется заново, так что useEffect от
+  // самого attackTarget тут не срабатывает первым.
+  if (nav.attackRequest && nav.attackRequest !== handledAttackRequest) {
+    setHandledAttackRequest(nav.attackRequest);
+    setAttackTarget(nav.attackRequest.target);
+    setAttackRank(nav.attackRequest.rank);
+    setAttackQuote(null);
+    setAttackQuoteError(null);
   }
 
   return (
@@ -213,6 +306,16 @@ export function PaidMobile({ nav }: PaidMobileProps) {
               }
             : undefined
         }
+        onAttack={
+          own.project
+            ? (item, rank) => {
+                setAttackTarget(item);
+                setAttackRank(rank);
+                setAttackQuote(null);
+                setAttackQuoteError(null);
+              }
+            : undefined
+        }
         onTakeSpot={(item) => {
           const target = item.paidAmount + minStep;
           if (own.project) {
@@ -246,6 +349,22 @@ export function PaidMobile({ nav }: PaidMobileProps) {
           if (!own.project) return;
           setRaiseOpen(false);
           setPending({ kind: 'raise', amount, project: own.project });
+        }}
+      />
+
+      <AttackSheet
+        open={attackTarget !== null}
+        target={attackTarget}
+        rank={attackRank}
+        quote={attackQuote}
+        quoteError={attackQuoteError}
+        currency={currency}
+        onClose={closeAttack}
+        onConfirm={(landed, credited) => {
+          if (!attackTarget) return;
+          const target = attackTarget;
+          closeAttack();
+          setPending({ kind: 'attack', amount: landed, credited, target });
         }}
       />
 
@@ -283,9 +402,20 @@ export function PaidMobile({ nav }: PaidMobileProps) {
         payload={
           pending
             ? ({
-                kind: pending.kind === 'raise' ? 'raise' : 'project',
+                kind:
+                  pending.kind === 'raise'
+                    ? 'raise'
+                    : pending.kind === 'attack'
+                      ? 'attack'
+                      : 'project',
                 amount: pending.amount,
-                subtitle: pending.kind === 'raise' ? pending.project.name : pending.url,
+                subtitle:
+                  pending.kind === 'raise'
+                    ? pending.project.name
+                    : pending.kind === 'attack'
+                      ? pending.target.name
+                      : pending.url,
+                ...(pending.kind === 'attack' ? { rival: pending.target.name } : {}),
               } satisfies PayPayload)
             : null
         }
