@@ -7,6 +7,12 @@ export interface AuthResult {
   displayName: string;
   avatarUrl: string | null;
   voteBalance: number;
+  /** Телеграм-хендл без «@». null — у аккаунта его просто нет, это допустимо. */
+  username: string | null;
+  /** Дата регистрации (users.created_at) — «joined ...» в шапке профиля. */
+  joinedAt: string;
+  /** Сколько человек пришло по реферальной ссылке. */
+  invitedCount: number;
 }
 
 /**

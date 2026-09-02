@@ -17,6 +17,10 @@ export interface ResolveResult {
   displayName: string;
   avatarUrl: string | null;
   voteBalance: number;
+  /** Телеграм-хендл без «@» — из initData, а не из сохранённой копии. */
+  username: string | null;
+  joinedAt: string;
+  invitedCount: number;
 }
 
 /**
@@ -52,6 +56,9 @@ export async function resolveTelegramUser(
     display_name: string;
     avatar_url: string | null;
     vote_balance: number;
+    username: string | null;
+    joined_at: string;
+    invited_count: number;
   };
   const row = (data as Row[] | null)?.[0];
   if (!row) throw new Error('resolve_telegram_identity ничего не вернул');
@@ -62,5 +69,8 @@ export async function resolveTelegramUser(
     displayName: row.display_name,
     avatarUrl: row.avatar_url,
     voteBalance: row.vote_balance,
+    username: row.username,
+    joinedAt: row.joined_at,
+    invitedCount: Number(row.invited_count),
   };
 }

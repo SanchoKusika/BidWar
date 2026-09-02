@@ -213,11 +213,12 @@ export const strings = {
 
   profile: {
     title: 'Profile',
-    meta: (handle: string, joined: string) => `${handle} · joined ${joined}`,
+    meta: (name: string, username: string | null, joined: string) =>
+      username ? `${name} · @${username} · joined ${joined}` : `${name} · joined ${joined}`,
     votesLabel: 'VOTES',
     votesUnit: 'votes',
     earn: 'Earn',
-    paidLabel: 'PAID, 30 DAYS',
+    paidLabel: 'PAID, ALL TIME',
     noWallet: 'No wallet — each bid is its own card payment.',
     refresh: 'Refresh',
     myProjects: 'My projects',
@@ -227,7 +228,12 @@ export const strings = {
     noProjectsNote: 'One link is enough — we read the name, description and preview from it.',
     addProject: 'Add a project',
     receipts: 'Payment receipts',
-    paidAllTime: 'Paid all time',
+    paidLast30: 'Paid in the last 30 days',
+    noReceipts: 'No payments yet. Raise, attack or an opening bid will show up here.',
+    receiptRaise: (project: string) => `Raise · ${project}`,
+    receiptEntry: (project: string) => `Opening bid · ${project}`,
+    receiptAttack: (target: string) => `Attack on ${target}`,
+    unknownProject: 'a removed project',
   },
 
   settings: {
@@ -268,6 +274,18 @@ export const strings = {
     terms: 'Terms & privacy',
     logOut: 'Log out',
     deleteAccount: 'Delete account',
+
+    removeProjects: 'Remove my projects',
+    removeProjectsNote: 'Frees both slots — you can add projects again',
+    removeTitle: 'Remove my projects?',
+    removeBody:
+      'Your entries leave both tops and the slots are freed, so you can add projects again. The paid bid is not refunded.',
+    removeConfirm: 'Remove',
+    removeCancel: 'Keep them',
+    removeFailed: 'Could not remove the projects — try again',
+    removeDone: (count: number) =>
+      count === 1 ? 'One project removed' : `${count} projects removed`,
+    removeNothing: 'Nothing to remove — you have no projects yet',
   },
 
   pay: {

@@ -3,6 +3,7 @@ import { Button } from '@/shared/ui/Button';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Icon } from '@/shared/ui/Icon';
 import { KeyRow } from '@/shared/ui/KeyRow';
+import { OgPreview } from '@/shared/ui/OgPreview';
 import { ProjectCard } from '@/shared/ui/ProjectCard';
 import { ReferralShareCard } from '@/shared/ui/ReferralShareCard';
 import { SectionLabel } from '@/shared/ui/SectionLabel';
@@ -32,19 +33,21 @@ export interface Receipt {
 }
 
 export interface ProfileScreenProps {
-  handle: string;
+  /** Имя из Telegram — оно же подпись аккаунта. */
+  name: string;
+  /** Телеграм-хендл без «@». null — у аккаунта его нет, строка тогда короче. */
+  username: string | null;
+  /** Полная дата регистрации, уже отформатированная вызывающим кодом. */
   joined: string;
+  avatarUrl: string | null;
   voteBalance: number | null;
   /**
-   * Траты: за 30 дней, за всё время и построчно. Баланса у продукта нет —
-   * карточка показывает не «сколько лежит», а «сколько заплачено».
+   * Траты: за 30 дней, за всё время и построчно — из функции `my-spending`
+   * (у payment_transactions нет политики на чтение, а auth.uid() у мини-аппа
+   * не существует, поэтому читать их можно только своей функцией).
    *
-   * Не передан ⇒ источника ещё нет, и блок трат вместе с карточкой «Paid»
-   * не рисуется вовсе. Ноль тут был бы неправдой: платежи в
-   * payment_transactions уже есть, просто клиент их не читает — политики на
-   * чтение у таблицы нет, а сессии Supabase (и значит auth.uid()) у мини-аппа
-   * нет вообще, личность живёт в initData и проверяется на сервере. Нужна своя
-   * edge-функция — Срез 1.8.
+   * Не передан ⇒ ответа ещё нет: блок трат и карточка «PAID» не рисуются.
+   * Ноль тут был бы неправдой — платежи в таблице есть, просто не прочитаны.
    */
   spending?: {
     month: number;
@@ -82,8 +85,10 @@ export interface ProfileScreenProps {
  * вкладки под них в мини-аппе нет.
  */
 export function ProfileScreen({
-  handle,
+  name,
+  username,
   joined,
+  avatarUrl,
   voteBalance,
   spending,
   projects,
@@ -105,7 +110,18 @@ export function ProfileScreen({
 
   return (
     <>
-      <PageHeader title={t.title} meta={t.meta(handle, joined)} />
+      <PageHeader
+        title={t.title}
+        meta={t.meta(name, username, joined)}
+        right={
+          <OgPreview
+            src={avatarUrl ?? undefined}
+            name={name}
+            size={46}
+            radius="var(--radius-pill)"
+          />
+        }
+      />
 
       <ScreenBody>
         <Gutter className={styles.balances}>
@@ -125,7 +141,7 @@ export function ProfileScreen({
           {spending && (
             <Balance
               label={t.paidLabel}
-              value={money(spending.month)}
+              value={money(spending.total)}
               unit={CURRENCY_SUFFIX[currency]}
               tone="paid"
               action={<span className={styles.balanceNote}>{t.noWallet}</span>}
@@ -220,20 +236,26 @@ export function ProfileScreen({
             <SectionLabel>{t.receipts}</SectionLabel>
             <Gutter>
               <RowsCard>
+                {/* Итог за всё время стоит плашкой наверху экрана, здесь —
+                    второе число, месячное: дублировать одно и то же незачем. */}
                 <KeyRow
-                  label={t.paidAllTime}
-                  value={`${money(spending.total)} ${CURRENCY_SUFFIX[currency]}`}
+                  label={t.paidLast30}
+                  value={`${money(spending.month)} ${CURRENCY_SUFFIX[currency]}`}
                   strong
                   tone="paid"
                 />
-                {spending.receipts.map((r) => (
-                  <KeyRow
-                    key={r.id}
-                    label={`${r.label} · ${r.when}${r.provider ? ` · ${r.provider}` : ''}`}
-                    value={`−${money(r.amount)}`}
-                    tone={r.kind === 'attack' ? 'attack' : undefined}
-                  />
-                ))}
+                {spending.receipts.length > 0 ? (
+                  spending.receipts.map((r) => (
+                    <KeyRow
+                      key={r.id}
+                      label={`${r.label} · ${r.when}${r.provider ? ` · ${r.provider}` : ''}`}
+                      value={`−${money(r.amount)}`}
+                      tone={r.kind === 'attack' ? 'attack' : undefined}
+                    />
+                  ))
+                ) : (
+                  <KeyRow label={t.noReceipts} value="" />
+                )}
               </RowsCard>
             </Gutter>
           </Section>

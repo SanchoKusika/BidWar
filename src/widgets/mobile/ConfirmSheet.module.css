@@ -1,0 +1,12 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-bottom: var(--space-6);
+}
+
+/* Отказ слева, подтверждение справа — как в остальных шторках кита. */
+.actions {
+  display: flex;
+  gap: var(--space-4);
+}

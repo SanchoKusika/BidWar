@@ -1,4 +1,8 @@
+import { useCallback } from 'react';
 import { useOwnPosition, type ProjectListItem } from '@/entities/project';
+import { fetchMySpending, type Spending } from '@/shared/api';
+import { getPlatform } from '@/shared/platform';
+import { useQuery } from '@/shared/lib/query';
 
 export interface MyProject {
   project: ProjectListItem;
@@ -9,6 +13,8 @@ export interface MyProject {
 export interface MyProjectsState {
   projects: MyProject[];
   loading: boolean;
+  /** Свежие данные ещё в пути, но показывать уже есть что (см. shared/lib/query). */
+  refreshing: boolean;
   retry: () => void;
 }
 
@@ -32,9 +38,37 @@ export function useMyProjects(userId: string | null): MyProjectsState {
   return {
     projects,
     loading: paid.loading || free.loading,
+    refreshing: paid.refreshing || free.refreshing,
     retry: () => {
       paid.retry();
       free.retry();
     },
   };
+}
+
+export interface SpendingState {
+  spending: Spending | null;
+  retry: () => void;
+}
+
+/**
+ * Свои траты для карточки «PAID» и списка чеков.
+ *
+ * Ключ кэша — userId, а не initData: initData обновляется Telegram'ом на
+ * каждый запуск, и ключ по нему промахивался бы мимо сохранённого ответа при
+ * каждом открытии мини-аппа.
+ *
+ * Отказ (нет initData в вебе, сеть, функция) оставляет `spending` пустым, и
+ * блок трат не рисуется вовсе — ноль поверх настоящих платежей был бы
+ * неправдой (паспорт пропа в ProfileScreen).
+ */
+export function useMySpending(userId: string | null): SpendingState {
+  const fetcher = useCallback(() => {
+    const initData = getPlatform().getInitData();
+    if (!initData) return Promise.reject(new Error('initData недоступен'));
+    return fetchMySpending(initData);
+  }, []);
+
+  const query = useQuery<Spending>(userId ? `spending:${userId}` : null, fetcher);
+  return { spending: query.data, retry: query.refresh };
 }
