@@ -31,6 +31,12 @@ export interface SettingsPanelProps {
   onChange: <K extends keyof SettingsState>(key: K, next: SettingsState[K]) => void;
   onRules: () => void;
   onDoc: (id: DocId) => void;
+  /**
+   * Убрать свои записи из обоих топов. Не передан ⇒ строки нет вовсе: без
+   * initData (веб-гость) действие невозможно, а неактивная строка врала бы про
+   * доступное действие (CLAUDE.md).
+   */
+  onRemoveProjects?: () => void;
 }
 
 const THEME_OPTIONS = [
@@ -48,7 +54,13 @@ const PROVIDERS = payments.map((p) => p.name).join(' · ');
  * Группа Demo из кита сюда не перенесена — это была витринная кнопка «пройди
  * продукт с нуля», у продукта такой функции нет.
  */
-export function SettingsPanel({ value, onChange, onRules, onDoc }: SettingsPanelProps) {
+export function SettingsPanel({
+  value,
+  onChange,
+  onRules,
+  onDoc,
+  onRemoveProjects,
+}: SettingsPanelProps) {
   return (
     <div className={styles.panel}>
       <SettingsGroup label={t.appearance} footnote={t.appearanceNote}>
@@ -184,6 +196,15 @@ export function SettingsPanel({ value, onChange, onRules, onDoc }: SettingsPanel
         <SettingsRow icon="send" title={t.bot} value={brand.bot} onPress={() => onDoc('bot')} />
         <SettingsRow icon="life-buoy" title={t.support} onPress={() => onDoc('support')} />
         <SettingsRow icon="file-text" title={t.terms} onPress={() => onDoc('terms')} />
+        {onRemoveProjects && (
+          <SettingsRow
+            icon="trash-2"
+            title={t.removeProjects}
+            description={t.removeProjectsNote}
+            danger
+            onPress={onRemoveProjects}
+          />
+        )}
         <SettingsRow icon="log-out" title={t.logOut} disabled />
         <SettingsRow icon="trash-2" title={t.deleteAccount} danger disabled />
       </SettingsGroup>

@@ -273,6 +273,21 @@ export async function createProject(params: CreateProjectParams): Promise<Projec
   return mapRow(data);
 }
 
+/**
+ * Убрать свои записи из обоих топов. Строки не удаляются, а скрываются
+ * (`status = 'hidden'`, 01 Механики) — на них ссылается леджер платежей.
+ * Слот топа и адрес освобождаются: оба уникальных индекса смотрят только на
+ * активные записи, так что тот же проект можно завести заново.
+ */
+export async function removeMyProjects(initData: string): Promise<number> {
+  const { data, error } = await getSupabase().functions.invoke<{ removed: number }>(
+    'remove-my-projects',
+    { method: 'POST', body: { initData } },
+  );
+  if (error) throw new Error(await functionErrorMessage(error, 'Не удалось убрать проекты'));
+  return data?.removed ?? 0;
+}
+
 export interface RegisterClickParams {
   initData: string;
   projectId: number;

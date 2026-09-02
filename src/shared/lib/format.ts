@@ -85,6 +85,28 @@ export function formatHeldDuration(sinceIso: string): string {
   return days > 0 ? `${days} дн ${restHours} ч` : `${hours} ч`;
 }
 
+/**
+ * Полная дата — «28 August 2026». Интерфейс английский (shared/i18n), поэтому
+ * локаль зафиксирована: en-GB даёт «день месяц год» без запятых, как в ките.
+ */
+export function formatFullDate(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+/** Короткая дата с временем для строки чека — «28 Aug, 14:05». */
+export function formatReceiptDate(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export type DeltaDirection = 'up' | 'down' | 'flat';
 
 export function formatDelta(n: number): { text: string; dir: DeltaDirection } {

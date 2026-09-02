@@ -5,7 +5,11 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'supabase/functions/**'] },
+  // .claude/worktrees — рабочие деревья других веток: это отдельные копии
+  // репозитория, и их файлы не должны попадать в линт основного (у них своя
+  // ветка и свой прогон). Без этого правила `npm run check` локально падал на
+  // коде уже слитого среза, а CI — нет: там worktree нет вовсе.
+  { ignores: ['dist', 'node_modules', 'supabase/functions/**', '.claude/**'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

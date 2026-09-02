@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   fetchMyProject,
   fetchNeighborAbove,
@@ -7,6 +7,7 @@ import {
   fetchTopProject,
 } from './api';
 import type { NeighborProject } from './api';
+import { useQuery } from '@/shared/lib/query';
 import type { ProjectCursor, ProjectListItem, ShowcaseType } from './types';
 
 export interface ShowcaseState {
@@ -21,18 +22,13 @@ export interface ShowcaseState {
   retry: () => void;
 }
 
-interface ShowcaseResult {
-  key: string;
+/** Страница витрины целиком — то, что кладётся в кэш под один ключ. */
+interface ShowcasePage {
   items: ProjectListItem[];
   cursor: ProjectCursor | null;
-  error: boolean;
 }
 
-const EMPTY_RESULT: ShowcaseResult = { key: '', items: [], cursor: null, error: false };
-
-function showcaseKey(type: ShowcaseType, categoryId: number | null, token: number): string {
-  return `${type}:${categoryId ?? 'all'}:${token}`;
-}
+const EMPTY_ITEMS: ProjectListItem[] = [];
 
 /**
  * Загрузка/пагинация/фильтр витрины — общая логика для Paid и Free (см.
@@ -40,70 +36,56 @@ function showcaseKey(type: ShowcaseType, categoryId: number | null, token: numbe
  * Paid и Free отличаются только фиксированным `type`, поэтому реализация
  * одна, а `pages/paid` и `pages/free` — тонкие обёртки над ней.
  *
- * `loading` — не отдельный стейт, а сравнение ключа последнего пришедшего
- * результата с ключом текущих параметров: эффект не дёргает setState
- * синхронно при смене фильтра, а просто ждёт, пока результат не устареет.
+ * Кэш и признак «нечего показать» живут в `useQuery`: возврат на вкладку и
+ * повторный заход в уже открытую категорию рисуются сразу, свежий ответ
+ * подменяет их в фоне.
  */
 export function useShowcase(type: ShowcaseType): ShowcaseState {
   const [categoryId, setCategoryId] = useState<number | null>(null);
-  const [reloadToken, setReloadToken] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [result, setResult] = useState<ShowcaseResult>(EMPTY_RESULT);
 
-  const currentKey = showcaseKey(type, categoryId, reloadToken);
-  const loading = result.key !== currentKey;
+  const key = `showcase:${type}:${categoryId ?? 'all'}`;
+  const fetcher = useCallback(
+    (): Promise<ShowcasePage> =>
+      fetchProjects({ type, categoryId }).then((page) => ({
+        items: page.items,
+        cursor: page.nextCursor,
+      })),
+    [type, categoryId],
+  );
 
-  useEffect(() => {
-    let cancelled = false;
-    const key = showcaseKey(type, categoryId, reloadToken);
-
-    fetchProjects({ type, categoryId })
-      .then((page) => {
-        if (!cancelled)
-          setResult({ key, items: page.items, cursor: page.nextCursor, error: false });
-      })
-      .catch(() => {
-        if (!cancelled) setResult({ key, items: [], cursor: null, error: true });
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [type, categoryId, reloadToken]);
+  const query = useQuery<ShowcasePage>(key, fetcher);
+  const { data, mutate } = query;
 
   const loadMore = useCallback(() => {
-    if (!result.cursor || loadingMore) return;
-
-    // Ключ фиксируется на момент вызова: если за время запроса сменился тип
-    // фильтра (или прошёл reload), результат другой страницы не подмешается
-    // в уже показанный список — просто тихо отбрасывается ниже.
-    const key = showcaseKey(type, categoryId, reloadToken);
+    if (!data?.cursor || loadingMore) return;
+    const cursor = data.cursor;
 
     setLoadingMore(true);
-    fetchProjects({ type, categoryId, cursor: result.cursor })
+    fetchProjects({ type, categoryId, cursor })
       .then((page) => {
-        setResult((prev) => {
-          if (prev.key !== key) return prev;
-          return { ...prev, items: [...prev.items, ...page.items], cursor: page.nextCursor };
-        });
+        // Ключ уже зафиксирован в mutate: если за время запроса сменился
+        // фильтр, дозагруженная страница уйдёт мимо показанного списка, а не
+        // подмешается в него.
+        mutate({ items: [...data.items, ...page.items], cursor: page.nextCursor });
       })
       .catch(() => {
         // Оставляем список и курсор как есть — кнопка «Показать ещё» никуда
         // не девается, повторный тап и есть retry, терять уже загруженное незачем.
       })
       .finally(() => setLoadingMore(false));
-  }, [type, categoryId, reloadToken, result.cursor, loadingMore]);
+  }, [type, categoryId, data, loadingMore, mutate]);
 
   return {
-    items: result.items,
+    items: data?.items ?? EMPTY_ITEMS,
     categoryId,
-    loading,
+    loading: query.loading,
     loadingMore,
-    hasMore: result.cursor !== null,
-    error: result.error,
+    hasMore: data?.cursor != null,
+    error: query.error,
     setCategoryId,
     loadMore,
-    retry: () => setReloadToken((n) => n + 1),
+    retry: query.refresh,
   };
 }
 
@@ -114,23 +96,21 @@ export interface OwnPositionState {
   rank: number | null;
   /** Строка прямо над своей — «сколько нужно, чтобы обойти». */
   neighborAbove: NeighborProject | null;
+  /** Показывать нечего — уместен скелетон. */
   loading: boolean;
+  /** На экране прошлый ответ, свежий ещё в пути (см. useQuery). */
+  refreshing: boolean;
   /** Пересчитать после события, которое меняет свою запись (например, Add Project). */
   retry: () => void;
 }
 
 interface OwnResult {
-  key: string;
   project: ProjectListItem | null;
   rank: number | null;
   neighborAbove: NeighborProject | null;
 }
 
-const EMPTY_OWN: OwnResult = { key: '', project: null, rank: null, neighborAbove: null };
-
-function ownKey(type: ShowcaseType, categoryId: number | null, userId: string): string {
-  return `${type}:${categoryId ?? 'all'}:${userId}`;
-}
+const EMPTY_OWN: OwnResult = { project: null, rank: null, neighborAbove: null };
 
 /**
  * Панель «твоя позиция» (07 Экраны.md). Позиция считается в том же разрезе,
@@ -142,57 +122,39 @@ export function useOwnPosition(
   categoryId: number | null,
   userId: string | null,
 ): OwnPositionState {
-  const [result, setResult] = useState<OwnResult>(EMPTY_OWN);
-  const [reloadToken, setReloadToken] = useState(0);
+  const key = userId ? `own:${type}:${categoryId ?? 'all'}:${userId}` : null;
 
-  const currentKey = userId ? `${ownKey(type, categoryId, userId)}:${reloadToken}` : null;
-  const loading = currentKey !== null && result.key !== currentKey;
+  const fetcher = useCallback(async (): Promise<OwnResult> => {
+    if (!userId) return EMPTY_OWN;
+    const mine = await fetchMyProject(userId, type);
+    if (!mine) return EMPTY_OWN;
 
-  useEffect(() => {
-    if (!userId) return;
-    let cancelled = false;
-    const key = `${ownKey(type, categoryId, userId)}:${reloadToken}`;
+    const metric = type === 'paid' ? mine.paidAmount : mine.votes;
+    // Разрез фильтра применяем, только если он и есть категория своего
+    // проекта — иначе «твоя позиция» считалась бы среди чужой категории,
+    // в которой проект вообще не участвует (см. код-ревью PR #9).
+    const scopeCategoryId = categoryId === mine.categoryId ? categoryId : null;
+    const rankArgs = { projectId: mine.id, type, metric, categoryId: scopeCategoryId };
+    // Отдельный catch на каждый запрос: сеть моргнула на одном из двух —
+    // не теряем то, что успешно пришло по другому (rank и neighborAbove
+    // независимы, обнулять оба из-за отказа одного не за что).
+    const [rank, neighborAbove] = await Promise.all([
+      fetchProjectRank(rankArgs).catch(() => null),
+      fetchNeighborAbove(rankArgs).catch(() => null),
+    ]);
+    return { project: mine, rank, neighborAbove };
+  }, [type, categoryId, userId]);
 
-    fetchMyProject(userId, type)
-      .then((mine) => {
-        if (cancelled) return undefined;
-        if (!mine) {
-          setResult({ key, project: null, rank: null, neighborAbove: null });
-          return undefined;
-        }
-        const metric = type === 'paid' ? mine.paidAmount : mine.votes;
-        // Разрез фильтра применяем, только если он и есть категория своего
-        // проекта — иначе «твоя позиция» считалась бы среди чужой категории,
-        // в которой проект вообще не участвует (см. код-ревью PR #9).
-        const scopeCategoryId = categoryId === mine.categoryId ? categoryId : null;
-        const rankArgs = { projectId: mine.id, type, metric, categoryId: scopeCategoryId };
-        // Отдельный catch на каждый запрос: сеть моргнула на одном из двух —
-        // не теряем то, что успешно пришло по другому (rank и neighborAbove
-        // независимы, обнулять оба из-за отказа одного не за что).
-        return Promise.all([
-          fetchProjectRank(rankArgs).catch(() => null),
-          fetchNeighborAbove(rankArgs).catch(() => null),
-        ]).then(([rank, neighborAbove]) => {
-          if (!cancelled) setResult({ key, project: mine, rank, neighborAbove });
-        });
-      })
-      .catch(() => {
-        if (!cancelled) setResult({ key, project: null, rank: null, neighborAbove: null });
-      });
+  const query = useQuery<OwnResult>(key, fetcher);
+  const result = query.data ?? EMPTY_OWN;
 
-    return () => {
-      cancelled = true;
-    };
-  }, [type, categoryId, userId, reloadToken]);
-
-  // Гость/сессия ещё не готова — не показываем данные предыдущего userId,
-  // даже если result их ещё хранит (эффект тут ничего не чистит синхронно).
   return {
-    project: userId ? result.project : null,
-    rank: userId ? result.rank : null,
-    neighborAbove: userId ? result.neighborAbove : null,
-    loading,
-    retry: () => setReloadToken((n) => n + 1),
+    project: result.project,
+    rank: result.rank,
+    neighborAbove: result.neighborAbove,
+    loading: query.loading,
+    refreshing: query.refreshing,
+    retry: query.refresh,
   };
 }
 
@@ -204,22 +166,15 @@ export interface TopProjectState {
 }
 
 export function useTopProject(type: ShowcaseType): TopProjectState {
-  const [name, setName] = useState<string | null>(null);
-  const [reloadToken, setReloadToken] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchTopProject(type)
-      .then((top) => {
-        if (!cancelled) setName(top?.name ?? null);
-      })
-      .catch(() => {
+  const fetcher = useCallback(
+    () =>
+      fetchTopProject(type)
+        .then((top) => top?.name ?? null)
         // Имя лидера на плитке «All» — украшение, не критичный путь.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [type, reloadToken]);
+        .catch(() => null),
+    [type],
+  );
 
-  return { name, retry: () => setReloadToken((n) => n + 1) };
+  const query = useQuery<string | null>(`top:${type}`, fetcher);
+  return { name: query.data ?? null, retry: query.refresh };
 }
