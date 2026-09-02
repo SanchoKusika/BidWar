@@ -41,11 +41,21 @@ export const strings = {
 
   raise: {
     title: 'Raise',
+    // Чужой проект: заголовок обязан говорить, чья ставка вырастет, — иначе
+    // «Raise» на чужой карточке читается как повышение своей.
+    boostTitle: 'Raise this project',
     subtitle: (name: string, rank: number) => `${name} · now #${rank}`,
     amountLabel: 'Raise amount',
     amountError: (min: string) => `Minimum raise is ${min}`,
     bidNow: 'Your bid now',
     bidAfter: 'Your bid after',
+    boostBidNow: 'Its bid now',
+    boostBidAfter: 'Its bid after',
+    boostNote:
+      'You are paying for someone else’s position: the money goes to the platform, never to the owner, and the project climbs by the amount you pay. Your own bid does not change.',
+    boostResultTitle: 'Project raised',
+    boostResultNote: (name: string, amount: string, unit: string) =>
+      `${amount} ${unit} went to ${name}. Its position updates for everyone right away.`,
     projectedPosition: 'Projected position',
     note: 'One charge on the next screen. The raise applies when the provider confirms the payment — no balance is kept for you.',
     resultTitle: 'Bid raised',
@@ -132,6 +142,8 @@ export const strings = {
     today: 'Today',
     todayNote: (segment: 'paid' | 'free') =>
       `Only the last 24 hours count here. Every ${segment === 'paid' ? 'bid' : 'vote'} also stays in the all-time top — nothing is lost, the day just resets.`,
+    todayEmptyTitle: 'Nothing moved today',
+    todayEmptyNote: 'No bid in this top changed in the last 24 hours.',
     justHappened: 'Just happened',
     raiseMine: 'Raise my bid',
     voteMine: 'Give votes to my project',
@@ -197,10 +209,15 @@ export const strings = {
     no: 'No',
     open: (url: string) => `Open ${url}`,
     raiseMine: 'Raise my bid',
-    outbid: 'Outbid this project',
+    // Чужой проект поднимают донатом, а не перебивают: своя ставка при этом не
+    // меняется вовсе, и «Outbid» обещал бы не то действие.
+    raiseThis: 'Raise this project',
     attack: 'Attack',
     giveVotes: 'Give votes',
     bidActivity: 'Bid activity',
+    activityRaise: 'Raise',
+    activityAttackIn: (target: string) => `Attack on ${target}`,
+    activityAttackOut: 'Attacked',
     voteActivity: 'Vote activity',
     sameAccountFree: 'Same account in the Free Top',
     sameAccountPaid: 'Same account in the Paid Top',
@@ -234,6 +251,8 @@ export const strings = {
     receiptEntry: (project: string) => `Opening bid · ${project}`,
     receiptAttack: (target: string) => `Attack on ${target}`,
     unknownProject: 'a removed project',
+    referralShareText:
+      'Add your project to BidWar — the top where position is bought and votes are earned.',
   },
 
   settings: {

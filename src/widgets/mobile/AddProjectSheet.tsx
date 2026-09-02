@@ -5,6 +5,7 @@ import { Icon } from '@/shared/ui/Icon';
 import { strings } from '@/shared/i18n/strings';
 import { CATEGORY_ICON, detectCategoryIdByUrl, type CategoryStat } from '@/entities/category';
 import { normalizeUrlInput, tryParseUrl } from '@/shared/lib/url';
+import { CURRENCY_SUFFIX, formatEditable, type DisplayCurrency } from '@/shared/lib/format';
 import type { ShowcaseType } from '@/entities/project';
 import { Sheet } from './Sheet';
 import { SheetHeader } from './SheetHeader';
@@ -28,6 +29,8 @@ export interface AddProjectSheetProps {
    * выбрать его нельзя.
    */
   minPaidAmount?: number;
+  /** Валюта показа: суммы рисуются в ней, платёж всё равно идёт в очках. */
+  currency?: DisplayCurrency;
   /**
    * Топ, с которого открыли шторку — им и должен предзаполняться segment.
    * Без него сегмент по умолчанию решался только по занятости Free-слота
@@ -70,6 +73,7 @@ export function AddProjectSheet({
   categories,
   taken = {},
   minPaidAmount,
+  currency = 'UZS',
   preferredSegment,
   bidPreset,
   onSubmit,
@@ -203,12 +207,18 @@ export function AddProjectSheet({
           segment="paid"
           value={bid}
           onChange={setBid}
-          currency="UZS"
+          currency={currency}
           step={minPaidAmount}
           min={minPaidAmount}
           presets={[minPaidAmount, minPaidAmount * 2, minPaidAmount * 10]}
           label={t.openingBidLabel}
-          error={bidTooLow ? t.openingBidError(String(minPaidAmount)) : undefined}
+          error={
+            bidTooLow
+              ? t.openingBidError(
+                  `${formatEditable(minPaidAmount, currency)} ${CURRENCY_SUFFIX[currency]}`,
+                )
+              : undefined
+          }
           disabled={submitting}
         />
       )}

@@ -3,7 +3,12 @@ import { AmountInput } from '@/shared/ui/AmountInput';
 import { Button } from '@/shared/ui/Button';
 import { KeyRow } from '@/shared/ui/KeyRow';
 import { OgPreview } from '@/shared/ui/OgPreview';
-import { CURRENCY_SUFFIX, formatMoney, type DisplayCurrency } from '@/shared/lib/format';
+import {
+  CURRENCY_SUFFIX,
+  formatEditable,
+  formatMoney,
+  type DisplayCurrency,
+} from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
 import type { ProjectListItem } from '@/entities/project';
 import { Sheet } from './Sheet';
@@ -14,8 +19,14 @@ const t = strings.raise;
 
 export interface RaiseSheetProps {
   open: boolean;
-  /** Своя строка в платном топе — та, чью ставку поднимают. */
+  /** Строка платного топа, чью ставку поднимают: своя или чужая. */
   project: ProjectListItem | null;
+  /**
+   * `own` — своя ставка, `boost` — чужая (01 Механики, «Raise чужого
+   * проекта»). Отличаются подписи: на чужой карточке «твоя ставка после»
+   * была бы прямой неправдой — своя не меняется вовсе.
+   */
+  mode?: 'own' | 'boost';
   rank: number | null;
   /** Предзаполненная сумма: приходит из «занять это место». */
   preset?: number | null;
@@ -34,6 +45,7 @@ export interface RaiseSheetProps {
 export function RaiseSheet({
   open,
   project,
+  mode = 'own',
   rank,
   preset,
   minAmount,
@@ -56,12 +68,13 @@ export function RaiseSheet({
   const unit = CURRENCY_SUFFIX[currency];
   const money = (v: number) => formatMoney(v, { currency, compact: false });
   const low = amount < minAmount;
+  const boost = mode === 'boost';
 
   return (
     <Sheet open={open} onClose={onClose}>
       <SheetHeader
         media={<OgPreview src={project.ogImageUrl ?? undefined} name={project.name} size={44} />}
-        title={t.title}
+        title={boost ? t.boostTitle : t.title}
         subtitle={rank !== null ? t.subtitle(project.name, rank) : project.name}
       />
 
@@ -74,18 +87,26 @@ export function RaiseSheet({
         min={minAmount}
         presets={[minAmount, minAmount * 2, minAmount * 10]}
         label={t.amountLabel}
-        error={low ? t.amountError(`${money(minAmount)} ${unit}`) : undefined}
+        // Минимум печатается тем же форматом, что и само поле: `formatMoney`
+        // округляет для читаемости, и на долларах «4.1» рядом с «4.13» в поле
+        // выглядело бы как два разных минимума.
+        error={low ? t.amountError(`${formatEditable(minAmount, currency)} ${unit}`) : undefined}
       />
 
       <SheetRows>
-        <KeyRow label={t.bidNow} value={money(project.paidAmount)} />
-        <KeyRow label={t.bidAfter} value={money(project.paidAmount + amount)} strong tone="paid" />
+        <KeyRow label={boost ? t.boostBidNow : t.bidNow} value={money(project.paidAmount)} />
+        <KeyRow
+          label={boost ? t.boostBidAfter : t.bidAfter}
+          value={money(project.paidAmount + amount)}
+          strong
+          tone="paid"
+        />
         {rank !== null && (
           <KeyRow label={t.projectedPosition} value={`#${Math.max(1, rank - 1)}`} />
         )}
       </SheetRows>
 
-      <SheetFootnote tone="muted">{t.note}</SheetFootnote>
+      <SheetFootnote tone="muted">{boost ? t.boostNote : t.note}</SheetFootnote>
 
       <SheetActions onSecondary={onClose}>
         <Button

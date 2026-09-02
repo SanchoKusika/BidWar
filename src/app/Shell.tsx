@@ -61,6 +61,7 @@ export function Shell() {
               onRules={openRules}
               onGoPaid={() => nav.setTab('paid')}
               onAttack={(target, rank) => nav.requestAttack(target, rank)}
+              onBoost={(target, rank) => nav.requestBoost(target, rank)}
             />
           )}
           {nav.current?.name === 'rules' && (

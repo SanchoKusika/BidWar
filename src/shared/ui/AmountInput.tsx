@@ -1,12 +1,23 @@
 import type { CSSProperties } from 'react';
 import { Icon, type IconName } from './Icon';
-import { CURRENCY_SUFFIX, group, type DisplayCurrency } from '@/shared/lib/format';
+import {
+  CURRENCY_SUFFIX,
+  formatEditable,
+  fromDisplay,
+  group,
+  type DisplayCurrency,
+} from '@/shared/lib/format';
 import { cx } from '@/shared/lib/cx';
 import styles from './AmountInput.module.css';
 
 export type AmountSegment = 'paid' | 'free' | 'attack';
 
 export interface AmountInputProps {
+  /**
+   * Сумма в ОЧКАХ — в них считает сервер, и наружу поле отдаёт их же. Человеку
+   * она показывается в валюте показа (04 Платежи и валюты: «очки,
+   * отрендеренные в валюте зрителя»), пересчёт живёт целиком внутри поля.
+   */
   value: number;
   onChange?: (value: number) => void;
   segment?: AmountSegment;
@@ -45,10 +56,29 @@ export function AmountInput({
   style,
 }: AmountInputProps) {
   const suffix = unit ?? (segment === 'free' ? 'votes' : CURRENCY_SUFFIX[currency]);
+  /**
+   * Голоса и звёзды — не деньги и не конвертируются: у голосов своя экономика,
+   * а свою единицу вызывающий задаёт `unit`, и пересчитывать её по курсу сумов
+   * было бы прямой ошибкой.
+   */
+  const converts = segment !== 'free' && unit === undefined;
 
   const clamp = (n: number) => Math.max(min, max !== undefined ? Math.min(max, n) : n);
   const set = (n: number) => {
     if (!disabled) onChange?.(clamp(Math.round(n)));
+  };
+
+  const show = (points: number) => (converts ? formatEditable(points, currency) : group(points));
+
+  /**
+   * Разбор набранного. Шаг, минимум и пресеты приходят в очках и остаются
+   * точными, поэтому доля, потерянная на округлении копеек, не может увести
+   * сумму ниже минимума: `clamp` поднимет её обратно.
+   */
+  const parse = (raw: string): number => {
+    if (!converts) return Number(raw.replace(/\D/g, '')) || 0;
+    const cleaned = raw.replace(/[^\d.,]/g, '').replace(',', '.');
+    return fromDisplay(Number.parseFloat(cleaned) || 0, currency);
   };
 
   const atMin = value <= min;
@@ -66,7 +96,7 @@ export function AmountInput({
         <span className={styles.label}>{label}</span>
         {balance !== undefined && (
           <span className={styles.balance}>
-            {balanceLabel} <span className={styles.balanceValue}>{group(balance)}</span> {suffix}
+            {balanceLabel} <span className={styles.balanceValue}>{show(balance)}</span> {suffix}
           </span>
         )}
       </div>
@@ -76,11 +106,11 @@ export function AmountInput({
 
         <div className={styles.value}>
           <input
-            inputMode="numeric"
+            inputMode={converts && currency !== 'UZS' ? 'decimal' : 'numeric'}
             className={styles.input}
-            value={group(value ?? 0)}
+            value={show(value ?? 0)}
             disabled={disabled}
-            onChange={(e) => set(Number(e.target.value.replace(/\D/g, '')) || 0)}
+            onChange={(e) => set(parse(e.target.value))}
           />
           <span className={styles.suffix}>{suffix}</span>
         </div>
@@ -103,7 +133,7 @@ export function AmountInput({
               disabled={disabled}
               onClick={() => set((value || 0) + preset)}
             >
-              +{group(preset)}
+              +{show(preset)}
             </button>
           ))}
           {max !== undefined && (
