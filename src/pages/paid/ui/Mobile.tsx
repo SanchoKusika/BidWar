@@ -245,11 +245,13 @@ export function PaidMobile({ nav }: PaidMobileProps) {
   };
 
   // Квитанция открыта и ждёт подтверждённый ранг — как только own.rank
-  // перечитался (own.loading снова false), разово подставляем его. Сравнение
-  // в рендере, не в эффекте (react-hooks/set-state-in-effect); own.loading —
-  // обязательное условие, иначе сюда сразу же попал бы старый own.rank,
-  // который useOwnPosition отдаёт до завершения перезапроса.
-  if (result && result.rank === null && !own.loading && own.rank !== null) {
+  // перечитался, разово подставляем его. Сравнение в рендере, не в эффекте
+  // (react-hooks/set-state-in-effect).
+  //
+  // Ждать нужно ИМЕННО own.refreshing, а не own.loading: витрина кэшируется
+  // (shared/lib/query), и сразу после оплаты на экране лежит прошлый ответ —
+  // `loading` при нём false, и в квитанцию попал бы ранг ДО платежа.
+  if (result && result.rank === null && !own.loading && !own.refreshing && own.rank !== null) {
     setResult({ ...result, rank: own.rank });
   }
 

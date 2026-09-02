@@ -7,6 +7,7 @@ export {
   fetchTopProject,
   createProject,
   registerClick,
+  removeMyProjects,
 } from './api';
 export { useShowcase, useOwnPosition, useTopProject } from './model';
 export type { ShowcaseType, ProjectListItem, ProjectCursor, ProjectPage } from './types';

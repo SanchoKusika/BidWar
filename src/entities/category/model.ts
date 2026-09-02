@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { fetchCategoryStats } from './api';
+import { useQuery } from '@/shared/lib/query';
 import type { CategoryStat } from './types';
 import type { ShowcaseType } from '@/entities/project';
 
@@ -10,39 +11,20 @@ export interface CategoryStatsState {
   retry: () => void;
 }
 
-interface Result {
-  key: string;
-  categories: CategoryStat[];
-}
+const EMPTY: CategoryStat[] = [];
 
-const EMPTY: Result = { key: '', categories: [] };
-
-/** Плитки категорий для текущей витрины — грузятся один раз на тип. */
+/** Плитки категорий для текущей витрины — один запрос на тип, дальше из кэша. */
 export function useCategoryStats(type: ShowcaseType): CategoryStatsState {
-  const [reloadToken, setReloadToken] = useState(0);
-  const [result, setResult] = useState<Result>(EMPTY);
-
-  const currentKey = `${type}:${reloadToken}`;
-  const loading = result.key !== currentKey;
-
-  useEffect(() => {
-    let cancelled = false;
-    const key = `${type}:${reloadToken}`;
-
-    fetchCategoryStats(type)
-      .then((stats) => {
-        if (!cancelled) setResult({ key, categories: stats });
-      })
-      .catch(() => {
+  const fetcher = useCallback(
+    () =>
+      fetchCategoryStats(type).catch(() => {
         // Плитки категорий — вспомогательная навигация, не критичный путь:
         // тихо остаёмся с пустым списком, витрина всё равно работает без него.
-        if (!cancelled) setResult({ key, categories: [] });
-      });
+        return EMPTY;
+      }),
+    [type],
+  );
 
-    return () => {
-      cancelled = true;
-    };
-  }, [type, reloadToken]);
-
-  return { categories: result.categories, loading, retry: () => setReloadToken((n) => n + 1) };
+  const query = useQuery<CategoryStat[]>(`categories:${type}`, fetcher);
+  return { categories: query.data ?? EMPTY, loading: query.loading, retry: query.refresh };
 }

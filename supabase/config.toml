@@ -411,3 +411,40 @@ enabled = true
 # declarative_schema_path = "./schemas"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# Проверка JWT у каждой функции задаётся здесь, а не флагом в командной строке:
+# массовый `functions deploy` без этих строк выставил бы verify_jwt = true всем
+# подряд и молча сломал бы два вебхука, которые Telegram и платёжный провайдер
+# зовут вообще без заголовка Authorization.
+[functions.health]
+verify_jwt = true
+
+[functions.auth]
+verify_jwt = true
+
+# Вебхук Telegram: приходит от Bot API, своей авторизации Supabase у него нет —
+# подлинность доказывает секретный путь и проверка внутри функции.
+[functions.bot]
+verify_jwt = false
+
+[functions.add-project]
+verify_jwt = true
+
+[functions.click]
+verify_jwt = true
+
+[functions.create-payment]
+verify_jwt = true
+
+# Вебхук платёжного провайдера — та же причина, что и у бота.
+[functions.payment-webhook]
+verify_jwt = false
+
+[functions.attack-quote]
+verify_jwt = true
+
+[functions.my-spending]
+verify_jwt = true
+
+[functions.remove-my-projects]
+verify_jwt = true
