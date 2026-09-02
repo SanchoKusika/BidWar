@@ -18,6 +18,11 @@ const stop = (fn: () => void) => (e: MouseEvent) => {
 export interface ProjectCardProps {
   segment?: Segment;
   rank?: number;
+  /**
+   * Изменение позиции. Источника пока нет — истории рангов в схеме не
+   * существует, — поэтому не передаётся ниоткуда, и строка под бейджем не
+   * рисуется (см. паспорт RankBadge.delta).
+   */
   rankDelta?: number;
   name: string;
   /** Автоописание с сайта. Если его нет, показывается ссылка. */
@@ -58,7 +63,7 @@ export interface ProjectCardProps {
 export function ProjectCard({
   segment = 'paid',
   rank,
-  rankDelta = 0,
+  rankDelta,
   name,
   description,
   ogImage,

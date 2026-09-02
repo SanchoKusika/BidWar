@@ -126,6 +126,18 @@ export function ProfilePage({ nav }: ProfilePageProps) {
         // Формат ссылки — t.me/<bot>?start=<users.id> (01 Механики): раньше
         // здесь стоял общий для всех BW-9F2K, ни к какому аккаунту не привязанный.
         referralLink={userId ? `${brand.botLink}?start=${userId}` : brand.botLink}
+        // Кнопка «поделиться» до 02.09.2026 не имела обработчика вовсе.
+        // t.me/share — штатный способ: platform.openLink уводит его в
+        // openTelegramLink, и мини-апп при этом не закрывается.
+        onShareReferral={
+          userId
+            ? () =>
+                getPlatform().openLink(
+                  `https://t.me/share/url?url=${encodeURIComponent(`${brand.botLink}?start=${userId}`)}` +
+                    `&text=${encodeURIComponent(strings.profile.referralShareText)}`,
+                )
+            : undefined
+        }
         referralInvited={invitedCount}
         // Ноль здесь — факт, а не заглушка: наград за приглашённых пока не
         // начисляет никто (vote_transactions пустая до среза 1.7), значит

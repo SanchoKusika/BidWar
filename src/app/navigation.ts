@@ -22,6 +22,16 @@ export interface AttackRequest {
   rank: number | null;
 }
 
+/**
+ * Проект, чью ставку просят поднять донатом со страницы проекта. Отдельно от
+ * `AttackRequest` по той же причине, по какой они разные кнопки: путь один
+ * (вкладка Paid), а действие и деньги — разные.
+ */
+export interface BoostRequest {
+  target: ProjectListItem;
+  rank: number | null;
+}
+
 export interface Navigation {
   tab: TabId;
   /** Верхний экран стека или null, когда видна сама вкладка. */
@@ -29,11 +39,15 @@ export interface Navigation {
   depth: number;
   /** Незабранный запрос атаки — вкладка Paid читает и отмечает его своим. */
   attackRequest: AttackRequest | null;
+  /** Незабранный запрос доната — читается там же и так же. */
+  boostRequest: BoostRequest | null;
   setTab: (tab: TabId) => void;
   push: (route: Route) => void;
   back: () => void;
   /** Переключает на Paid и просит открыть шторку атаки на этой цели. */
   requestAttack: (target: ProjectListItem, rank: number | null) => void;
+  /** Переключает на Paid и просит открыть шторку Raise для чужого проекта. */
+  requestBoost: (target: ProjectListItem, rank: number | null) => void;
 }
 
 /**
@@ -51,6 +65,7 @@ export function useNavigation(platform: Platform): Navigation {
   const [tab, setTabState] = useState<TabId>('paid');
   const [stack, setStack] = useState<Route[]>([]);
   const [attackRequest, setAttackRequest] = useState<AttackRequest | null>(null);
+  const [boostRequest, setBoostRequest] = useState<BoostRequest | null>(null);
 
   const back = useCallback(() => {
     setStack((s) => s.slice(0, -1));
@@ -71,6 +86,12 @@ export function useNavigation(platform: Platform): Navigation {
     setAttackRequest({ target, rank });
   }, []);
 
+  const requestBoost = useCallback((target: ProjectListItem, rank: number | null) => {
+    setStack([]);
+    setTabState('paid');
+    setBoostRequest({ target, rank });
+  }, []);
+
   // Системная кнопка Telegram — единственный способ выйти назад на телефоне,
   // где жеста «свайп от края» у мини-аппа нет.
   useEffect(() => {
@@ -88,11 +109,13 @@ export function useNavigation(platform: Platform): Navigation {
       current: stack.at(-1) ?? null,
       depth: stack.length,
       attackRequest,
+      boostRequest,
       setTab,
       push,
       back,
       requestAttack,
+      requestBoost,
     }),
-    [tab, stack, attackRequest, setTab, push, back, requestAttack],
+    [tab, stack, attackRequest, boostRequest, setTab, push, back, requestAttack, requestBoost],
   );
 }

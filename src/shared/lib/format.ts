@@ -59,6 +59,31 @@ export function formatMoney(
   return group(Math.round(n));
 }
 
+/**
+ * Очки → точное значение в валюте показа и обратно. Нужны там, где сумму не
+ * только показывают, но и правят: поле ввода держит ОЧКИ (по ним считает
+ * сервер), а человек видит и набирает свою валюту.
+ *
+ * `formatMoney` для этого не годится: он сокращает и округляет для читаемости,
+ * а из его вывода нельзя вернуться к исходному числу.
+ */
+export function fromDisplay(amount: number, currency: DisplayCurrency): number {
+  return Math.round((Number(amount) || 0) / rates[currency]);
+}
+
+/**
+ * Сумма в поле ввода. Сумы целыми — очко к суму привязано один к одному
+ * (04 Платежи и валюты), поэтому дробей там не бывает; остальные валюты с
+ * копейками, иначе минимальную ставку в 50 000 сум нельзя было бы ни показать,
+ * ни набрать: доллара четыре с небольшим.
+ */
+export function formatEditable(points: number, currency: DisplayCurrency): string {
+  const n = convert(points, currency);
+  if (currency === 'UZS') return group(Math.round(n));
+  const [whole = '0', cents = '00'] = n.toFixed(2).split('.');
+  return `${group(Number(whole))}.${cents}`;
+}
+
 export function formatVotes(value: number, { compact = true }: { compact?: boolean } = {}): string {
   const n = Number(value) || 0;
   if (compact && n >= 10_000) return `${(n / 1000).toFixed(n >= 100_000 ? 0 : 1)}K`;
@@ -93,6 +118,25 @@ export function formatFullDate(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '—';
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+/**
+ * «Сколько назад» одной короткой строкой — подпись события в ленте.
+ * Минуты до часа, часы до суток, дальше дни: точнее в ленте не нужно, а
+ * секунды создавали бы иллюзию точности, которой у выборки нет.
+ */
+export function formatAgo(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms)) return '—';
+  if (ms < 60_000) return 'just now';
+
+  const minutes = Math.floor(ms / 60_000);
+  if (minutes < 60) return `${minutes} min`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} h`;
+
+  return `${Math.floor(hours / 24)} d`;
 }
 
 /** Короткая дата с временем для строки чека — «28 Aug, 14:05». */

@@ -7,9 +7,19 @@ const MEDAL_NAMES: Record<number, string> = { 1: 'Золото', 2: 'Сереб�
 
 export interface RankBadgeProps {
   rank: number;
-  /** Изменение позиции с прошлого просмотра. */
+  /**
+   * Изменение позиции: положительное — поднялся, отрицательное — упал, 0 —
+   * «сравнили и не изменилось». Не передан ⇒ сравнивать не с чем, и строки под
+   * бейджем нет вовсе.
+   *
+   * Сегодня его не передаёт никто: истории рангов в схеме нет ни в каком виде
+   * (нужен снапшот позиций, отдельная таблица — см. [[12 Состояние
+   * реализации]]). До неё прочерк под КАЖДЫМ бейджем врал, что изменение
+   * посчитано и равно нулю, хотя не считалось вообще.
+   */
   delta?: number;
   size?: 'sm' | 'md' | 'lg';
+  /** Явно скрыть изменение, даже когда оно известно. */
   showDelta?: boolean;
   className?: string;
   style?: CSSProperties;
@@ -21,15 +31,15 @@ export interface RankBadgeProps {
  */
 export function RankBadge({
   rank,
-  delta = 0,
+  delta,
   size = 'md',
   showDelta = true,
   className,
   style,
 }: RankBadgeProps) {
   const medal = rank >= 1 && rank <= 3 ? rank : undefined;
-  const d = Number(delta) || 0;
-  const dir = d > 0 ? 'up' : d < 0 ? 'down' : 'flat';
+  const d = delta === undefined ? null : Number(delta) || 0;
+  const dir = d === null ? 'flat' : d > 0 ? 'up' : d < 0 ? 'down' : 'flat';
 
   return (
     <div data-size={size} className={cx(styles.badge, className)} style={style}>
@@ -48,7 +58,7 @@ export function RankBadge({
         <span className={styles.digit}>{rank}</span>
       </div>
 
-      {showDelta && (
+      {showDelta && d !== null && (
         <span data-dir={dir} className={styles.delta}>
           {d !== 0 && <Icon name={d > 0 ? 'arrow-up' : 'arrow-down'} size={9} />}
           {d === 0 ? '—' : Math.abs(d)}

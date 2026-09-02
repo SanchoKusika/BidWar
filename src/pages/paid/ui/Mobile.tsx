@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { AttackRequest, Navigation } from '@/app/navigation';
+import type { AttackRequest, BoostRequest, Navigation } from '@/app/navigation';
 import { useSession } from '@/entities/user';
 import { getPlatform } from '@/shared/platform';
 import {
@@ -14,6 +14,7 @@ import {
   type PaymentResult,
 } from '@/features/raise';
 import { createAttackPayment, fetchAttackQuote, type AttackQuote } from '@/features/attack';
+import { toActivityItems, useRecentActivity } from '@/entities/activity';
 import { CURRENCY_SUFFIX, formatMoney } from '@/shared/lib/format';
 import { useSettings } from '@/shared/settings';
 import { strings } from '@/shared/i18n/strings';
@@ -24,10 +25,13 @@ import { AttackSheet } from '@/widgets/mobile/AttackSheet';
 import { PaySheet, type PayPayload } from '@/widgets/mobile/PaySheet';
 import { ResultSheet, type ActionResult } from '@/widgets/mobile/ResultSheet';
 import { SheetNote } from '@/widgets/mobile/SheetParts';
+import type { Scope } from '@/widgets/mobile/ScopeToggle';
 import {
   usePaidCategories,
   usePaidOwnPosition,
+  usePaidMovement,
   usePaidShowcase,
+  usePaidTodayBoard,
   usePaidTopProject,
   useMinPaidAmount,
 } from '../model';
@@ -40,6 +44,8 @@ export interface PaidMobileProps {
 /** Что оплачиваем: довзнос, открывающий вход новым проектом или атаку. */
 type Pending =
   | { kind: 'raise'; amount: number; project: ProjectListItem }
+  /** Донат в чужую ставку: своя запись не участвует вовсе (01 Механики). */
+  | { kind: 'boost'; amount: number; project: ProjectListItem }
   | { kind: 'opening'; amount: number; url: string; categoryId: number }
   /** `credited` — сколько долетит до своей ставки после хейрката, для квитанции. */
   | { kind: 'attack'; amount: number; credited: number; target: ProjectListItem };
@@ -63,8 +69,19 @@ export function PaidMobile({ nav }: PaidMobileProps) {
   const ownFree = useOwnPosition('free', null, userId);
   const topProject = usePaidTopProject();
   const minStep = useMinPaidAmount();
+  const [scope, setScope] = useState<Scope>('all');
+  const today = usePaidTodayBoard(scope === 'today', showcase.categoryId);
+  const activity = useRecentActivity(true);
+  const movement = usePaidMovement();
 
   const [raiseOpen, setRaiseOpen] = useState(false);
+  /**
+   * Чужая строка, чью ставку поднимают донатом; null — поднимаем свою. Хранится
+   * отдельно от `raiseOpen`, потому что шторка одна на оба случая и должна
+   * знать, чьё имя и чью ставку показывать.
+   */
+  const [boostTarget, setBoostTarget] = useState<ProjectListItem | null>(null);
+  const [boostRank, setBoostRank] = useState<number | null>(null);
   /**
    * Сумма, предзаполненная из «занять это место». Это доплата, а не итоговая
    * ставка: цена на карточке — абсолютная («столько будет стоить позиция»), а
@@ -87,6 +104,8 @@ export function PaidMobile({ nav }: PaidMobileProps) {
    * ререндер.
    */
   const [handledAttackRequest, setHandledAttackRequest] = useState<AttackRequest | null>(null);
+  /** То же зеркало для запроса доната со страницы проекта. */
+  const [handledBoostRequest, setHandledBoostRequest] = useState<BoostRequest | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);
   const [result, setResult] = useState<ActionResult | null>(null);
   const [payError, setPayError] = useState<string | null>(null);
@@ -143,6 +162,11 @@ export function PaidMobile({ nav }: PaidMobileProps) {
     topProject.retry();
     own.retry();
     ownFree.retry();
+    // Платёж — как раз то событие, которое двигает суточный борд и ленту:
+    // не перечитать их значило бы показать витрину, где ставка уже выросла, а
+    // «только что» об этом ещё не знает.
+    today.retry();
+    activity.retry();
   };
 
   const pay = async () => {
@@ -173,7 +197,9 @@ export function PaidMobile({ nav }: PaidMobileProps) {
           : await createRaisePayment({
               initData,
               amount: pending.amount,
-              ...(pending.kind === 'raise'
+              // Донат отличается от своего Raise только тем, ЧЕЙ это projectId:
+              // сервер не спрашивает, твой ли проект (01 Механики).
+              ...(pending.kind === 'raise' || pending.kind === 'boost'
                 ? { projectId: pending.project.id }
                 : { categoryId: pending.categoryId, url: pending.url }),
             });
@@ -232,6 +258,22 @@ export function PaidMobile({ nav }: PaidMobileProps) {
       return;
     }
 
+    if (pending.kind === 'boost') {
+      // Своя позиция от доната не меняется, поэтому строки ранга в квитанции
+      // нет вовсе: показать свой ранг здесь значило бы приписать чужому
+      // платежу свой результат, а чужой мы не пересчитывали.
+      setResult({
+        kind: 'raise',
+        title: strings.raise.boostResultTitle,
+        note: strings.raise.boostResultNote(
+          pending.project.name,
+          formatMoney(pending.amount, { compact: false }),
+          CURRENCY_SUFFIX.UZS,
+        ),
+      });
+      return;
+    }
+
     setResult({
       kind: 'raise',
       title:
@@ -268,6 +310,15 @@ export function PaidMobile({ nav }: PaidMobileProps) {
     setAttackQuoteError(null);
   }
 
+  // Донат со страницы проекта — тем же паттерном сравнения в рендере.
+  if (nav.boostRequest && nav.boostRequest !== handledBoostRequest) {
+    setHandledBoostRequest(nav.boostRequest);
+    setBoostTarget(nav.boostRequest.target);
+    setBoostRank(nav.boostRequest.rank);
+    setRaisePreset(null);
+    setRaiseOpen(true);
+  }
+
   return (
     <>
       <ShowcaseScreen
@@ -295,6 +346,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
         onLoadMore={showcase.loadMore}
         onRetry={showcase.retry}
         onOpenRules={() => nav.push({ name: 'rules', anchor: 'bidding' })}
+        onOpenDetails={(item) => nav.push({ name: 'project', id: item.id, segment: 'paid' })}
         onOpenProject={(item) => {
           const initData = getPlatform().getInitData();
           if (initData) registerClick({ initData, projectId: item.id }).catch(() => {});
@@ -303,6 +355,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
         onAction={
           own.project
             ? () => {
+                setBoostTarget(null);
                 setRaisePreset(null);
                 setRaiseOpen(true);
               }
@@ -318,9 +371,26 @@ export function PaidMobile({ nav }: PaidMobileProps) {
               }
             : undefined
         }
+        // Raise на чужой карточке — донат в её ставку. Своей записи для этого
+        // не нужно: платит человек, растёт чужая позиция (01 Механики).
+        onBoost={(item, rank) => {
+          setBoostTarget(item);
+          setBoostRank(rank);
+          setRaisePreset(null);
+          setRaiseOpen(true);
+        }}
+        today={{
+          scope,
+          onScopeChange: setScope,
+          items: today.items,
+          loading: today.loading,
+        }}
+        movement={movement}
+        activity={toActivityItems(activity.events, { currency, compact: compactAmounts })}
         onTakeSpot={(item) => {
           const target = item.paidAmount + minStep;
           if (own.project) {
+            setBoostTarget(null);
             setRaisePreset(Math.max(minStep, target - own.project.paidAmount));
             setRaiseOpen(true);
             return;
@@ -342,15 +412,24 @@ export function PaidMobile({ nav }: PaidMobileProps) {
 
       <RaiseSheet
         open={raiseOpen}
-        project={own.project}
-        rank={own.rank}
+        // Одна шторка на два случая: своя ставка и донат в чужую. Различает их
+        // boostTarget — он же решает, чьё имя и чью ставку показывать.
+        project={boostTarget ?? own.project}
+        mode={boostTarget ? 'boost' : 'own'}
+        rank={boostTarget ? boostRank : own.rank}
         preset={raisePreset}
         minAmount={minStep}
-        onClose={() => setRaiseOpen(false)}
-        onConfirm={(amount) => {
-          if (!own.project) return;
+        currency={currency}
+        onClose={() => {
           setRaiseOpen(false);
-          setPending({ kind: 'raise', amount, project: own.project });
+          setBoostTarget(null);
+        }}
+        onConfirm={(amount) => {
+          const project = boostTarget ?? own.project;
+          if (!project) return;
+          setRaiseOpen(false);
+          setPending({ kind: boostTarget ? 'boost' : 'raise', amount, project });
+          setBoostTarget(null);
         }}
       />
 
@@ -372,6 +451,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
 
       <AddProjectSheet
         open={addOpen}
+        currency={currency}
         onClose={() => {
           setAddOpen(false);
           setTakeSpotBid(null);
@@ -405,14 +485,14 @@ export function PaidMobile({ nav }: PaidMobileProps) {
           pending
             ? ({
                 kind:
-                  pending.kind === 'raise'
+                  pending.kind === 'raise' || pending.kind === 'boost'
                     ? 'raise'
                     : pending.kind === 'attack'
                       ? 'attack'
                       : 'project',
                 amount: pending.amount,
                 subtitle:
-                  pending.kind === 'raise'
+                  pending.kind === 'raise' || pending.kind === 'boost'
                     ? pending.project.name
                     : pending.kind === 'attack'
                       ? pending.target.name

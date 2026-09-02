@@ -5,12 +5,20 @@ export {
   fetchProject,
   fetchNeighborAbove,
   fetchTopProject,
+  fetchTodayBoard,
+  fetchMovement24h,
   createProject,
   registerClick,
   removeMyProjects,
 } from './api';
-export { useShowcase, useOwnPosition, useTopProject } from './model';
-export type { ShowcaseType, ProjectListItem, ProjectCursor, ProjectPage } from './types';
+export { useShowcase, useOwnPosition, useTopProject, useTodayBoard, useMovement24h } from './model';
+export type {
+  ShowcaseType,
+  ProjectListItem,
+  ProjectCursor,
+  ProjectPage,
+  Movement24h,
+} from './types';
 export type {
   FetchProjectsParams,
   FetchProjectRankParams,
@@ -19,4 +27,4 @@ export type {
   CreateProjectParams,
   RegisterClickParams,
 } from './api';
-export type { ShowcaseState, OwnPositionState, TopProjectState } from './model';
+export type { ShowcaseState, OwnPositionState, TopProjectState, TodayBoardState } from './model';

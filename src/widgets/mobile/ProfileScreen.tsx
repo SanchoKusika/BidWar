@@ -65,6 +65,11 @@ export interface ProfileScreenProps {
   referralLink: string;
   referralInvited: number;
   referralEarned: number;
+  /**
+   * Поделиться ссылкой. Не передан ⇒ кнопки в карточке нет: она и так до
+   * 02.09.2026 висела без обработчика и просто ничего не делала.
+   */
+  onShareReferral?: () => void;
   currency?: DisplayCurrency;
   /** «12.5 mln» вместо «12 500 000» — настройка профиля (shared/settings). */
   compactAmounts?: boolean;
@@ -97,6 +102,7 @@ export function ProfileScreen({
   referralLink,
   referralInvited,
   referralEarned,
+  onShareReferral,
   currency = 'UZS',
   compactAmounts = false,
   settings,
@@ -224,6 +230,7 @@ export function ProfileScreen({
             link={referralLink}
             invited={referralInvited}
             earned={referralEarned}
+            onShare={onShareReferral}
           />
         </Gutter>
 

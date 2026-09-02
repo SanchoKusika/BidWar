@@ -2,13 +2,15 @@ import { useCallback, useState } from 'react';
 import {
   fetchMyProject,
   fetchNeighborAbove,
+  fetchMovement24h,
   fetchProjectRank,
   fetchProjects,
+  fetchTodayBoard,
   fetchTopProject,
 } from './api';
 import type { NeighborProject } from './api';
 import { useQuery } from '@/shared/lib/query';
-import type { ProjectCursor, ProjectListItem, ShowcaseType } from './types';
+import type { Movement24h, ProjectCursor, ProjectListItem, ShowcaseType } from './types';
 
 export interface ShowcaseState {
   items: ProjectListItem[];
@@ -156,6 +158,57 @@ export function useOwnPosition(
     refreshing: query.refreshing,
     retry: query.refresh,
   };
+}
+
+export interface TodayBoardState {
+  items: ProjectListItem[];
+  loading: boolean;
+  retry: () => void;
+}
+
+/**
+ * Платный топ за сутки — вторая вкладка переключателя в шапке витрины.
+ * Грузится только когда её открыли: на всё-время-борде эти строки не нужны.
+ */
+export function useTodayBoard(enabled: boolean, categoryId: number | null): TodayBoardState {
+  const fetcher = useCallback(() => fetchTodayBoard(categoryId), [categoryId]);
+  const query = useQuery<ProjectListItem[]>(
+    enabled ? `today:paid:${categoryId ?? 'all'}` : null,
+    fetcher,
+  );
+
+  return { items: query.data ?? EMPTY_ITEMS, loading: query.loading, retry: query.refresh };
+}
+
+const EMPTY_MOVEMENT: ReadonlyMap<number, Movement24h> = new Map();
+
+/**
+ * Изменения за сутки для стрелок на карточках. Один запрос на весь платный
+ * топ: строк столько же, сколько платных проектов, и раздавать их по
+ * карточкам дешевле, чем спрашивать про каждую.
+ *
+ * После платежа перечитывать не нужно, и это следует из самой реконструкции:
+ * вьюха вычитает из текущей ставки движение за сутки, поэтому свежий Raise
+ * увеличивает оба слагаемых и прошлую ставку не меняет. Стрелка позиции при
+ * этом оживает сразу — меняется ТЕКУЩИЙ ранг, а он приходит с обновлённой
+ * витриной. Стрелка денег ждёт ближайшей ревалидации: соврать она не может,
+ * просто отстанет на один заход.
+ */
+export function useMovement24h(enabled: boolean): ReadonlyMap<number, Movement24h> {
+  const fetcher = useCallback(
+    () =>
+      fetchMovement24h().catch(
+        // Стрелки — украшение поверх позиции и ставки, а не они сами: отказ не
+        // должен ронять витрину, карточки просто останутся без изменений.
+        () => EMPTY_MOVEMENT as Map<number, Movement24h>,
+      ),
+    [],
+  );
+
+  return (
+    useQuery<Map<number, Movement24h>>(enabled ? 'movement:paid' : null, fetcher).data ??
+    EMPTY_MOVEMENT
+  );
 }
 
 /** Имя глобального лидера — для плитки «All» (не зависит от текущего фильтра). */
