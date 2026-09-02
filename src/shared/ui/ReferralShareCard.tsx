@@ -59,9 +59,20 @@ export function ReferralShareCard({
       </div>
 
       <div className={styles.actions}>
-        <Button variant="free" size="lg" icon="share-2" className={styles.share} onClick={onShare}>
-          Поделиться в Telegram
-        </Button>
+        {/* Без обработчика кнопку не рисуем: неработающая врёт сильнее
+            отсутствующей (CLAUDE.md). Копирование ссылки работает всегда — оно
+            целиком внутри карточки. */}
+        {onShare && (
+          <Button
+            variant="free"
+            size="lg"
+            icon="share-2"
+            className={styles.share}
+            onClick={onShare}
+          >
+            Поделиться в Telegram
+          </Button>
+        )}
 
         <button
           type="button"

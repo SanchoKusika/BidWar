@@ -17,6 +17,7 @@ export const rules: readonly RuleSection[] = [
     points: [
       'There is no balance in the product. Every raise is its own card payment, charged once and applied straight to your bid — nothing of yours is ever held by the platform.',
       'A raise adds to your existing bid — bids are cumulative and do not expire.',
+      'You can raise someone else’s bid too. It is not a transfer to the owner: the money goes to the platform exactly as it does for your own raise, and the project climbs by the amount paid. Anyone with an audience can be pushed up by it.',
       'Equal bids are ordered by who reached the amount first.',
       'Clicks on your card are public but do not affect position.',
       'No position is ever stored — the list is computed from current bids, so a raise moves you the second the payment clears. The one exception is the leader’s tenure: how long the current #1 has held the top is kept and shown on their card.',

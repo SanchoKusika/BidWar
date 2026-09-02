@@ -1,9 +1,21 @@
 import { useCallback } from 'react';
-import { useShowcase, useOwnPosition, useTopProject } from '@/entities/project';
+import {
+  useShowcase,
+  useOwnPosition,
+  useTopProject,
+  useTodayBoard,
+  useMovement24h,
+} from '@/entities/project';
 import { useCategoryStats } from '@/entities/category';
 import { fetchPaidLimits } from '@/shared/api';
 import { useQuery } from '@/shared/lib/query';
-import type { ShowcaseState, OwnPositionState, TopProjectState } from '@/entities/project';
+import type {
+  ShowcaseState,
+  OwnPositionState,
+  TopProjectState,
+  TodayBoardState,
+  Movement24h,
+} from '@/entities/project';
 import type { CategoryStatsState } from '@/entities/category';
 
 export function usePaidShowcase(): ShowcaseState {
@@ -23,6 +35,16 @@ export function usePaidCategories(): CategoryStatsState {
 
 export function usePaidTopProject(): TopProjectState {
   return useTopProject('paid');
+}
+
+/** Платный топ за скользящие сутки — грузится, только когда вкладку открыли. */
+export function usePaidTodayBoard(enabled: boolean, categoryId: number | null): TodayBoardState {
+  return useTodayBoard(enabled, categoryId);
+}
+
+/** Изменения позиции и ставки за сутки — обе стрелки на карточках. */
+export function usePaidMovement(): ReadonlyMap<number, Movement24h> {
+  return useMovement24h(true);
 }
 
 /**

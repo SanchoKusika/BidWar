@@ -13,8 +13,11 @@ export interface ActionResult {
    * действия. Показывать старое (дораисовое) или угаданное число нельзя —
    * это конкретная неправда тому, кто только что заплатил (код-ревью
    * раунд 1) — прочерк честнее и того же начертания, что и в OwnPositionPanel.
+   *
+   * Поля нет вовсе ⇒ у действия своей позиции не появляется: так у доната в
+   * чужую ставку, где меняется ранг ЧУЖОГО проекта, а не платившего.
    */
-  rank: number | null;
+  rank?: number | null;
   note: string;
 }
 
@@ -38,7 +41,9 @@ export function ResultSheet({ open, result, onClose }: ResultSheetProps) {
           <Icon name="check" size={26} />
         </span>
         <span className={styles.title}>{result.title}</span>
-        <span className={styles.rank}>{result.rank !== null ? `#${result.rank}` : '—'}</span>
+        {result.rank !== undefined && (
+          <span className={styles.rank}>{result.rank !== null ? `#${result.rank}` : '—'}</span>
+        )}
         <span className={styles.note}>{result.note}</span>
       </div>
 

@@ -1,6 +1,12 @@
 import { getSupabase, functionErrorMessage } from '@/shared/api';
 import type { Tables } from '@/shared/api';
-import type { ProjectCursor, ProjectListItem, ProjectPage, ShowcaseType } from './types';
+import type {
+  Movement24h,
+  ProjectCursor,
+  ProjectListItem,
+  ProjectPage,
+  ShowcaseType,
+} from './types';
 
 const PAGE_SIZE = 20;
 
@@ -110,6 +116,94 @@ export async function fetchProjects({
       : null;
 
   return { items, nextCursor };
+}
+
+/**
+ * Платный топ за скользящие сутки — вкладка «Today» в шапке витрины.
+ *
+ * Сортировка по движению ставки за сутки, а не по самой ставке: вопрос этой
+ * вкладки — «кто вырос сегодня». Отрицательные движения (проект получил
+ * атаку) в список не попадают — строка «вырос на −40 000» была бы
+ * бессмыслицей, а не честностью.
+ *
+ * Пагинации нет намеренно: за сутки движется десяток строк, а курсор по
+ * агрегату потребовал бы второй, ни на что не похожей выборки.
+ */
+export async function fetchTodayBoard(categoryId?: number | null): Promise<ProjectListItem[]> {
+  let query = getSupabase()
+    .from('paid_today_top')
+    .select(
+      'id, user_id, category_id, type, name, url, og_image_url, og_description, paid_amount, votes, clicks, rank1_since, today_amount',
+    )
+    .gt('today_amount', 0)
+    .order('today_amount', { ascending: false })
+    .order('id', { ascending: true })
+    .limit(50);
+
+  if (categoryId != null) query = query.eq('category_id', categoryId);
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  // Колонки вьюхи генератор типов помечает nullable — сквозь представление
+  // планировщик NOT NULL не доказывает. Строки без id тут быть не может, но
+  // разбирать её как обязательную значило бы соврать типом, а не проверить.
+  const rows = data ?? [];
+  const items: ProjectListItem[] = [];
+  for (const row of rows) {
+    if (row.id === null || row.type === null) continue;
+    items.push({
+      id: row.id,
+      userId: row.user_id ?? '',
+      categoryId: row.category_id ?? 0,
+      type: row.type as ShowcaseType,
+      name: row.name ?? '',
+      url: row.url ?? '',
+      ogImageUrl: row.og_image_url,
+      ogDescription: row.og_description,
+      paidAmount: row.paid_amount ?? 0,
+      votes: row.votes ?? 0,
+      clicks: row.clicks ?? 0,
+      rank1Since: row.rank1_since,
+      todayAmount: row.today_amount ?? 0,
+    });
+  }
+  return items;
+}
+
+/**
+ * Изменения платных карточек за скользящие сутки — обе стрелки: позиции и
+ * ставки. Позиция считается на лету и здесь тоже: вьюха восстанавливает
+ * прошлую ставку из леджера, снапшотов мы не держим (миграция
+ * `20260902140000_movement_24h.sql`).
+ *
+ * Отдельный лёгкий запрос, а не колонка в выдаче витрины: витрина листается
+ * курсором по `projects`, и join сюда заставил бы переписать пагинацию ради
+ * украшения. Строк тут столько же, сколько платных проектов.
+ *
+ * Проекта, которого сутки назад не было, в ответе нет вовсе — «изменение»
+ * требует того, что менялось, и стрелок у него не рисуется ни одной.
+ */
+export async function fetchMovement24h(): Promise<Map<number, Movement24h>> {
+  const { data, error } = await getSupabase()
+    .from('paid_movement_24h')
+    .select('project_id, past_rank, past_category_rank, amount_delta')
+    .limit(500);
+
+  if (error) throw error;
+
+  const map = new Map<number, Movement24h>();
+  for (const row of data ?? []) {
+    // Колонки вьюхи генератор типов помечает nullable — NOT NULL сквозь
+    // представление планировщик не доказывает.
+    if (row.project_id === null || row.past_rank === null) continue;
+    map.set(row.project_id, {
+      rank: Number(row.past_rank),
+      categoryRank: Number(row.past_category_rank ?? row.past_rank),
+      amountDelta: Number(row.amount_delta ?? 0),
+    });
+  }
+  return map;
 }
 
 /** Своя активная запись в этой витрине, если есть — их не больше одной на тип. */

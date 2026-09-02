@@ -2,7 +2,12 @@ import { useState } from 'react';
 import { AmountInput } from '@/shared/ui/AmountInput';
 import { Button } from '@/shared/ui/Button';
 import { KeyRow } from '@/shared/ui/KeyRow';
-import { CURRENCY_SUFFIX, formatMoney, type DisplayCurrency } from '@/shared/lib/format';
+import {
+  CURRENCY_SUFFIX,
+  formatEditable,
+  formatMoney,
+  type DisplayCurrency,
+} from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
 import { creditedFromBp, type AttackQuote } from '@/features/attack';
 import type { ProjectListItem } from '@/entities/project';
@@ -123,7 +128,7 @@ export function AttackSheet({
       : daySpent
         ? t.dayLimitError(quote.maxAttacksToday)
         : landed < quote.minAttackAmount
-          ? t.amountError(`${money(quote.minAttackAmount)} ${unit}`)
+          ? t.amountError(`${formatEditable(quote.minAttackAmount, currency)} ${unit}`)
           : undefined;
 
   return (

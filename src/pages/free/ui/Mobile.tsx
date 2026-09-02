@@ -65,6 +65,7 @@ export function FreeMobile({ nav }: FreeMobileProps) {
         onLoadMore={showcase.loadMore}
         onRetry={showcase.retry}
         onOpenRules={() => nav.push({ name: 'rules', anchor: 'votes' })}
+        onOpenDetails={(item) => nav.push({ name: 'project', id: item.id, segment: 'free' })}
         onOpenProject={(item) => {
           const initData = getPlatform().getInitData();
           // Fire-and-forget: счётчик не должен задерживать переход по ссылке.
@@ -78,6 +79,7 @@ export function FreeMobile({ nav }: FreeMobileProps) {
 
       <AddProjectSheet
         open={addOpen}
+        currency={currency}
         onClose={() => setAddOpen(false)}
         categories={categories.categories}
         taken={{ free: Boolean(own.project) }}

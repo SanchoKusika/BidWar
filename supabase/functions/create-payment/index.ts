@@ -86,9 +86,13 @@ serve('create-payment', async (req, ctx) => {
       .maybeSingle();
     if (error) throw error;
     if (!project) throw notFound('Проект не найден');
-    if (project.user_id !== userId) throw badRequest('Это не твой проект');
     if (project.type !== 'paid') throw badRequest('Ставка есть только у платных проектов');
     if (project.status !== 'active') throw badRequest('Проект неактивен');
+    // Проверки «это твой проект» здесь намеренно нет: поднять ставку можно
+    // любому платному проекту (01 Механики, «Raise чужого проекта»). Это не
+    // перевод владельцу — деньги, как и всегда, идут площадке, а очки
+    // достаются позиции проекта. Своя запись при этом не трогается: у
+    // платежа один project_id, и он же получает всю сумму.
     projectId = project.id;
   } else {
     await assertPaidMinimum(db, parsed.amount);

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { CategoryTile } from '@/shared/ui/CategoryTile';
 import { ProjectCard } from '@/shared/ui/ProjectCard';
 import { TierDivider } from '@/shared/ui/TierDivider';
@@ -14,10 +13,14 @@ import {
   type DisplayCurrency,
 } from '@/shared/lib/format';
 import { CATEGORY_ICON, type CategoryStat } from '@/entities/category';
-import type { NeighborProject, ProjectListItem, ShowcaseType } from '@/entities/project';
+import type {
+  Movement24h,
+  NeighborProject,
+  ProjectListItem,
+  ShowcaseType,
+} from '@/entities/project';
 import type { SessionStatus } from '@/entities/user';
 import { ActivityFeed, type ActivityItem } from '@/shared/ui/ActivityFeed';
-import { PREVIEW } from '@/shared/config/preview';
 import { strings } from '@/shared/i18n/strings';
 import { PageHeader } from './PageHeader';
 import { HeaderAction } from './HeaderAction';
@@ -176,6 +179,12 @@ export interface ShowcaseScreenProps {
   onRetry: () => void;
   onOpenProject: (item: ProjectListItem) => void;
   /**
+   * Открыть страницу проекта. Отдельно от `onOpenProject`: тап по телу
+   * карточки уводит на сам сайт проекта (это и есть обещанный трафик), а
+   * страница со ставкой, кликами и историей — по своей кнопке, как в профиле.
+   */
+  onOpenDetails?: (item: ProjectListItem) => void;
+  /**
    * «Занять это место» на чужой карточке. Не передан ⇒ блок остаётся ценником
    * без нажатия: показать цену позиции честно и без него.
    */
@@ -186,12 +195,43 @@ export interface ShowcaseScreenProps {
    * кнопка врала бы про доступное действие сильнее, чем её отсутствие.
    */
   onAttack?: (item: ProjectListItem, rank: number) => void;
+  /**
+   * Raise чужой строки — донат в её ставку (01 Механики). Своей записи для
+   * этого не нужно: платит человек, растёт чужая позиция.
+   */
+  onBoost?: (item: ProjectListItem, rank: number) => void;
+  /**
+   * Изменения за скользящие сутки: позиция и ставка. Проекта, которого сутки
+   * назад не существовало, в карте нет, и стрелок у него не рисуется вовсе —
+   * «изменение» требует того, что менялось.
+   */
+  movement?: ReadonlyMap<number, Movement24h>;
+  /**
+   * Суточный борд под переключателем «All time / Today». Не передан ⇒
+   * переключателя нет вовсе: у бесплатного топа источника для него не
+   * существует (vote_transactions пустая до среза 1.7), и вкладка, которая
+   * ничего не покажет, врала бы про наличие данных.
+   *
+   * Разрез держит вызывающая страница, а не экран: от него зависит, какой
+   * запрос вообще уходит, а решать это внутри вёрстки — значит грузить
+   * суточный борд тем, кто его не открывал.
+   */
+  today?: {
+    scope: Scope;
+    onScopeChange: (scope: Scope) => void;
+    items: ProjectListItem[];
+    loading: boolean;
+  };
   /** Есть только на Free Top — на Paid Top вход требует оплаты (Срез 1.5), кнопка неактивна. */
   onAddProject?: () => void;
   /** Raise своей ставки — приходит с Paid Top начиная со Среза 1.5. */
   onAction?: () => void;
   onOpenRules: () => void;
-  /** Лента «только что» — нет источника, см. PREVIEW.activityFeed. */
+  /**
+   * Лента «только что» — события ставок из вьюхи `stake_activity`. Пустой
+   * список ⇒ блок не рисуется: у бесплатного топа своих событий пока нет
+   * вовсе (vote_transactions пустая до среза 1.7).
+   */
   activity?: readonly ActivityItem[];
 }
 
@@ -200,17 +240,15 @@ export interface ShowcaseScreenProps {
  * design/ui_kits/mini_app/TopFeed.jsx: шапка → «твоя позиция» → плитки
  * категорий (All + по одной на категорию) → сводка топа → лента с ярусами.
  *
- * Переключатель «Today/All-time» и лента «Just happened» перенесены, но
- * скрыты за PREVIEW.todayScope/PREVIEW.activityFeed: в оригинале они читают
- * историю транзакций последних 24ч, а stake_transactions/vote_transactions
- * пока не пишутся вообще (Raise/Attack/Vote — Срезы 1.5–1.7). Переключатель
- * ничего не фильтрует — в отличие от disabled-кнопок ниже, он выглядел бы
- * рабочим, поэтому спрятан флагом, а не просто задизейблен.
+ * Переключатель «Today/All-time» и лента «Just happened» читают настоящие
+ * события ставок (вьюхи `paid_today_top` и `stake_activity`). Флагов у них
+ * больше нет: источник либо передан вызывающей страницей, либо блока нет
+ * вовсе — у бесплатного топа своих событий не будет до среза 1.7.
  *
- * Raise подключён (Срез 1.5, onAction приходит с Paid Top); Attack/Vote ещё
- * нет — их кнопки видны (пиксель в пиксель как в ките), но неактивны до
- * своих срезов. Add project — рабочая на обоих топах (onAddProject приходит
- * от вызывающей страницы), на Paid Top вход требует оплаты (Срез 1.5).
+ * Raise и Attack подключены (Срезы 1.5–1.6): Raise на своей карточке
+ * поднимает свою ставку, на чужой — донатит в чужую (01 Механики), Attack
+ * доступен только при своей платной записи. Give votes ждёт среза 1.7 и до
+ * него остаётся неактивной.
  */
 export function ShowcaseScreen({
   segment,
@@ -237,14 +275,27 @@ export function ShowcaseScreen({
   onLoadMore,
   onRetry,
   onOpenProject,
+  onOpenDetails,
   onTakeSpot,
   onAttack,
+  onBoost,
+  movement,
+  today,
   onAddProject,
   onAction,
   onOpenRules,
   activity,
 }: ShowcaseScreenProps) {
-  const [scope, setScope] = useState<Scope>('all');
+  // Витрина без суточного борда всегда показывает всё время: иначе оставшийся
+  // от прошлой вкладки разрез нарисовал бы пустой список без переключателя.
+  const todayScope = today?.scope === 'today';
+  const rows = todayScope && today ? today.items : items;
+  const feedLoading = todayScope && today ? today.loading : loading;
+  const todayPool = todayScope
+    ? rows.reduce((sum, item) => sum + (item.todayAmount ?? 0), 0)
+    : null;
+  /** Своя ставка/голоса — по ней решается, есть ли смысл занимать чужое место. */
+  const ownMetric = ownProject ? metricOf(ownProject) : null;
   const money: MoneyFormat = { currency, compact: compactAmounts };
   // Цена «занять это место» и «сколько нужно, чтобы обойти» — числа, по
   // которым человек платит: сокращение здесь заставит недоплатить.
@@ -366,25 +417,25 @@ export function ShowcaseScreen({
         <div className={styles.rankingHead}>
           <span className={styles.rankingLines}>
             <span className={styles.rankingTitle}>
-              {scopeLabel} · {scopedTotals.count}
+              {scopeLabel} · {todayScope ? rows.length : scopedTotals.count}
             </span>
             <span className={styles.rankingSub}>
-              {s.inPlay(formatMetric(scopedTotals.pool, segment, money), unit)}
+              {/* За сутки «в игре» — не весь пул категории, а то, что за них
+                  реально сдвинулось: пул тут был бы числом не про этот список. */}
+              {s.inPlay(formatMetric(todayPool ?? scopedTotals.pool, segment, money), unit)}
             </span>
           </span>
-          {PREVIEW.todayScope && (
-            <ScopeToggle value={scope} onChange={setScope} segment={segment} />
+          {today && (
+            <ScopeToggle value={today.scope} onChange={today.onScopeChange} segment={segment} />
           )}
         </div>
 
-        {PREVIEW.todayScope && scope === 'today' && (
-          <span className={styles.todayNote}>{s.todayNote(segment)}</span>
-        )}
+        {todayScope && <span className={styles.todayNote}>{s.todayNote(segment)}</span>}
 
         <section className={styles.feed}>
-          {loading ? (
+          {feedLoading ? (
             <SkeletonFeed rows={6} />
-          ) : error ? (
+          ) : error && !todayScope ? (
             <EmptyState
               icon="triangle-alert"
               title={s.errorTitle}
@@ -392,26 +443,63 @@ export function ShowcaseScreen({
               actionLabel={s.retry}
               onAction={onRetry}
             />
-          ) : items.length === 0 ? (
-            <EmptyState
-              segment={segment}
-              icon={segment === 'paid' ? 'coins' : 'vote'}
-              title={segment === 'paid' ? s.emptyPaidTitle : s.emptyFreeTitle}
-              description={segment === 'paid' ? s.emptyPaidNote : s.emptyFreeNote}
-              actionLabel={onAddProject ? strings.profile.addProject : undefined}
-              onAction={onAddProject}
-              compact
-            />
+          ) : rows.length === 0 ? (
+            todayScope ? (
+              <EmptyState
+                segment={segment}
+                icon="clock"
+                title={s.todayEmptyTitle}
+                description={s.todayEmptyNote}
+                compact
+              />
+            ) : (
+              <EmptyState
+                segment={segment}
+                icon={segment === 'paid' ? 'coins' : 'vote'}
+                title={segment === 'paid' ? s.emptyPaidTitle : s.emptyFreeTitle}
+                description={segment === 'paid' ? s.emptyPaidNote : s.emptyFreeNote}
+                actionLabel={onAddProject ? strings.profile.addProject : undefined}
+                onAction={onAddProject}
+                compact
+              />
+            )
           ) : (
             <>
-              {items.map((item, index) => {
+              {rows.map((item, index) => {
                 const rank = index + 1;
-                // Ярусы имеют смысл только в общем разрезе — внутри категории
-                // позиции уже пересчитаны как 1..N её собственного списка.
+                // Ярусы имеют смысл только в общем разрезе всего времени:
+                // внутри категории позиции уже пересчитаны как 1..N её
+                // списка, а за сутки «Top 10» назвал бы ярусом суточное
+                // движение — совсем другое число.
                 const tier =
-                  categoryId === null ? tierFor(rank, items, segment, money, unit) : null;
+                  categoryId === null && !todayScope
+                    ? tierFor(rank, items, segment, money, unit)
+                    : null;
                 const isOwn = userId !== null && item.userId === userId;
-                const spot = !isOwn ? spotFor(item, segment, exact, minStep, unit) : null;
+                // «Занять это место» и корона держателя #1 привязаны к ставке,
+                // а не к суточному движению: в разрезе суток обе строки
+                // называли бы цену позиции, которой в этом списке нет.
+                //
+                // Строка ниже своей — предложение, которое ничего не даёт:
+                // держатель #1 видел «займи это место» на КАЖДОЙ карточке
+                // топа, хотя он уже выше их всех. Сравниваем по ставке, а не
+                // по рангу: ранги внутри фильтра свои (1..N категории), а
+                // ставка одна и та же в любом разрезе.
+                const worthTaking = ownMetric === null || ownMetric < metricOf(item);
+                // Стрелка изменения позиции: где строка стояла сутки назад
+                // минус где стоит сейчас, поэтому подъём положителен. В
+                // разрезе категории обе позиции берутся категорийные — на
+                // карточке при фильтре стоит 1..N этой категории.
+                //
+                // Обе стрелки молчат в суточном разрезе: там и ранг, и число
+                // на карточке уже про движение за сутки, а «изменение за сутки
+                // этого изменения» не значит ничего.
+                const moved = todayScope ? undefined : movement?.get(item.id);
+                const pastRank = moved && (categoryId === null ? moved.rank : moved.categoryRank);
+                const spot =
+                  !isOwn && !todayScope && worthTaking
+                    ? spotFor(item, segment, exact, minStep, unit)
+                    : null;
 
                 return (
                   <div key={item.id} className={styles.row}>
@@ -425,25 +513,36 @@ export function ShowcaseScreen({
                     <ProjectCard
                       segment={segment}
                       rank={rank}
+                      rankDelta={pastRank === undefined ? undefined : pastRank - rank}
                       name={item.name}
                       url={item.url}
                       description={item.ogDescription ?? undefined}
                       ogImage={item.ogImageUrl ?? undefined}
-                      value={metricOf(item)}
+                      value={todayScope ? (item.todayAmount ?? 0) : metricOf(item)}
+                      // Сколько прибавилось или убавилось за сутки: полученная
+                      // атака делает число отрицательным, свой Raise и чужой
+                      // донат — положительным. Ноль StatBlock не рисует сам.
+                      valueDelta={moved?.amountDelta}
                       currency={currency}
                       compactAmounts={compactAmounts}
                       clicks={item.clicks}
                       heldFor={
-                        rank === 1 && item.rank1Since
+                        !todayScope && rank === 1 && item.rank1Since
                           ? formatHeldDuration(item.rank1Since)
                           : undefined
                       }
-                      catLeader={catLeaderOf(item, categoryById)}
+                      catLeader={todayScope ? undefined : catLeaderOf(item, categoryById)}
                       spotPrice={spot?.price}
                       spotUnit={spot?.unit}
                       isOwn={isOwn}
                       onPress={() => onOpenProject(item)}
+                      onDetails={onOpenDetails ? () => onOpenDetails(item) : undefined}
                       onTakeSpot={spot && onTakeSpot ? () => onTakeSpot(item) : undefined}
+                      onRaise={
+                        !isOwn && onBoost && segment === 'paid'
+                          ? () => onBoost(item, rank)
+                          : undefined
+                      }
                       onAttack={
                         !isOwn && onAttack && segment === 'paid'
                           ? () => onAttack(item, rank)
@@ -454,7 +553,7 @@ export function ShowcaseScreen({
                 );
               })}
 
-              {hasMore && (
+              {hasMore && !todayScope && (
                 <Button
                   variant="secondary"
                   onClick={onLoadMore}
@@ -469,7 +568,7 @@ export function ShowcaseScreen({
           )}
         </section>
 
-        {PREVIEW.activityFeed && activity && activity.length > 0 && (
+        {activity && activity.length > 0 && (
           <Section>
             <Gutter>
               <ActivityFeed dense max={5} title={s.justHappened} items={[...activity]} />

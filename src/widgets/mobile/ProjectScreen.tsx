@@ -44,7 +44,7 @@ export interface ProjectScreenProps {
   compactAmounts?: boolean;
   /** Кто держит позицию и с какого месяца. Нет источника — см. PREVIEW.ownerHandle. */
   owner?: { buyer: string; since: string };
-  /** Лента изменений ставки. Нет источника — см. PREVIEW.activityFeed. */
+  /** Лента изменений ставки — события из вьюхи `stake_activity`. */
   activity?: readonly ActivityEntry[];
   /** Запись того же аккаунта в другом топе: больше одной быть не может. */
   otherEntry?: ProjectListItem | null;
@@ -172,13 +172,12 @@ export function ProjectScreen({
                   size="lg"
                   block
                   icon="chevrons-up"
-                  // Свой платный проект поднять можно (Срез 1.5) — кнопка ведёт
-                  // на вкладку Paid, где живёт сам путь оплаты. Чужой не
-                  // перебивают довзносом: для этого рядом Attack.
-                  disabled={!isOwn}
+                  // Обе кнопки ведут на вкладку Paid, где живёт путь оплаты:
+                  // на своём проекте это Raise своей ставки, на чужом — донат
+                  // в его ставку (01 Механики). Своя при этом не меняется.
                   onClick={onRaise}
                 >
-                  {isOwn ? t.raiseMine : t.outbid}
+                  {isOwn ? t.raiseMine : t.raiseThis}
                 </Button>
               )}
               {paid && !isOwn && (
@@ -204,7 +203,7 @@ export function ProjectScreen({
           </Card>
         </Gutter>
 
-        {PREVIEW.activityFeed && activity && activity.length > 0 && (
+        {activity && activity.length > 0 && (
           <Section>
             <SectionLabel>{paid ? t.bidActivity : t.voteActivity}</SectionLabel>
             <Gutter>
