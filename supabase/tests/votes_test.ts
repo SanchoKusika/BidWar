@@ -344,3 +344,58 @@ Deno.test('голос в бесплатном топе не сбивает от�
     assertEquals(after.rank1_since !== null, true, 'два топа держат отметку независимо');
   });
 });
+
+// ---------------------------------------------------------------------------
+// balance_after: экран не должен складывать баланс сам
+// ---------------------------------------------------------------------------
+
+Deno.test('засчитанное задание возвращает получившийся баланс', async () => {
+  await inRollback(async (tx) => {
+    const owner = await addUser(tx, 'owner');
+    const visitor = await addUser(tx, 'visitor');
+    const project = await addProject(tx, owner, 'paid', 100000);
+    const reward = await rewardFor(tx, 'visit');
+    await tx`update users set vote_balance = 7 where id = ${visitor}`;
+
+    const [result] = await tx`select * from apply_task_completion(${visitor}, 'visit', ${project})`;
+
+    assertEquals(Number(result.balance_after), 7 + reward);
+    assertEquals(await balanceOf(tx, visitor), 7 + reward, 'то же число, что и в базе');
+  });
+});
+
+// Повтор ничего не платит, но обязан сказать правду: вызывающий мог держать у
+// себя устаревшее число и ровно его и показал бы обратно.
+Deno.test('повтор ничего не платит и возвращает текущий баланс', async () => {
+  await inRollback(async (tx) => {
+    const owner = await addUser(tx, 'owner');
+    const visitor = await addUser(tx, 'visitor');
+    const project = await addProject(tx, owner, 'paid', 100000);
+    const reward = await rewardFor(tx, 'visit');
+
+    await tx`select * from apply_task_completion(${visitor}, 'visit', ${project})`;
+    const [again] = await tx`select * from apply_task_completion(${visitor}, 'visit', ${project})`;
+
+    assertEquals(Number(again.granted), 0);
+    assertEquals(Number(again.balance_after), reward);
+  });
+});
+
+// Доплата пригласившему падает на другую строку и другой экран. Вписать её в
+// это число значило бы солгать ровно так же, как лгало сложение на клиенте.
+Deno.test('баланс в ответе — свой, без доплаты пригласившему', async () => {
+  await inRollback(async (tx) => {
+    const owner = await addUser(tx, 'owner');
+    const referrer = await addUser(tx, 'referrer');
+    const invited = await addUser(tx, 'invited', referrer);
+    const project = await addProject(tx, owner, 'paid', 100000);
+    const visitReward = await rewardFor(tx, 'visit');
+    const referralReward = await rewardFor(tx, 'referral');
+
+    const [result] = await tx`select * from apply_task_completion(${invited}, 'visit', ${project})`;
+
+    assertEquals(Number(result.referral_granted), referralReward);
+    assertEquals(Number(result.balance_after), visitReward, 'свой баланс, не сумма двоих');
+    assertEquals(await balanceOf(tx, referrer), referralReward);
+  });
+});

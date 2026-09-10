@@ -70,5 +70,14 @@ serve('check-subscription', async (req, ctx) => {
 
   ctx.log('subscription counted', { userId, projectId: project.id, granted, referralGranted });
 
-  return { subscribed: true, granted, referralGranted };
+  // balanceAfter приходит из хранимки, которая его и изменила. Складывать
+  // `granted` с балансом, который держит экран, запрещает комментарий у самой
+  // `applyVoteBalance`, и он прав дважды: тот баланс может отставать от голоса,
+  // отданного на другой вкладке, а доплаты за приглашённого в `granted` нет.
+  return {
+    subscribed: true,
+    granted,
+    referralGranted,
+    balanceAfter: Number(result?.balance_after ?? 0),
+  };
 });

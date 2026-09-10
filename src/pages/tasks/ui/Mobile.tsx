@@ -45,7 +45,10 @@ export function TasksPage({ nav }: TasksPageProps) {
     try {
       const result = await checkSubscription({ initData, projectId: task.targetProjectId });
       if (result.subscribed) {
-        session.applyVoteBalance((board.data?.voteBalance ?? 0) + result.granted);
+        // Число приходит из хранимки, которая его и изменила. Складывать
+        // `granted` с балансом, который держит экран, неверно дважды: тот может
+        // отставать от голоса с вкладки Free, а доплаты за друга в нём нет.
+        session.applyVoteBalance(result.balanceAfter);
         board.refresh();
         return;
       }

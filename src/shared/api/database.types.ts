@@ -1032,6 +1032,7 @@ export type Database = {
       apply_task_completion: {
         Args: { p_project_id?: number; p_task_type: string; p_user_id: string }
         Returns: {
+          balance_after: number
           granted: number
           referral_granted: number
         }[]
