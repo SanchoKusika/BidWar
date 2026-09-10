@@ -535,10 +535,17 @@ Deno.test(
       const base = Number(top.v) + 1_000_000;
 
       // A вставляется первым — гарантированно меньший id, чем у B.
+      //
+      // Ставка выставляется здесь же, прямым UPDATE: второй аргумент `seed` —
+      // это сумма ПЛАТЕЖА, а не ставка проекта, и до `apply_payment` она на
+      // `paid_amount` никак не влияет. Без этого A и B оставались на нуле, а
+      // «реальным максимумом» A становился только потому, что ниже ему
+      // дописывали ровно миллион, — и тест был зелёным ровно до тех пор, пока
+      // топ живой базы не перевалил за миллион.
       const a = await seed(tx, base + 100);
-      await tx`update projects set status = 'active' where id = ${a.projectId}`;
+      await tx`update projects set status = 'active', paid_amount = ${base + 100} where id = ${a.projectId}`;
       const b = await seed(tx, base + 200);
-      await tx`update projects set status = 'active' where id = ${b.projectId}`;
+      await tx`update projects set status = 'active', paid_amount = ${base + 200} where id = ${b.projectId}`;
 
       // B — держатель rank1_since (был лидером до гипотетической атаки).
       await tx`update projects set rank1_since = now() where id = ${b.projectId}`;
@@ -549,7 +556,7 @@ Deno.test(
       // на момент, когда получал rank1_since) — здесь это сделано прямым
       // UPDATE, чтобы получить нужную для теста комбинацию id/paid_amount,
       // не дожидаясь Attack из 1.6.
-      await tx`update projects set paid_amount = paid_amount + 1000000 where id = ${a.projectId}`;
+      await tx`update projects set paid_amount = ${base + 300} where id = ${a.projectId}`;
 
       assertEquals(a.projectId < b.projectId, true, 'A обязан иметь меньший id, чем B');
 
