@@ -6,25 +6,24 @@ import type { AppSettings, ThemeChoice } from '@/shared/settings';
 import { PREVIEW } from '@/shared/config/preview';
 import { brand, payments, type DocId } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
+import { LOCALES, type Locale } from '@/shared/i18n/locale';
 import styles from './SettingsPanel.module.css';
 
 const t = strings.settings;
 
-export type Language = 'RU' | 'UZ' | 'EN';
 export type { ThemeChoice };
 
 /**
  * Работающие настройки приходят из `shared/settings`, остальные поля — вёрстка
  * кита под механики, которых ещё нет, и живут за `PREVIEW.settingsStubs`.
  *
- * Здесь остались ровно те, что будут написаны: язык (нужен настоящий i18n,
- * сейчас словарь один) и три уведомления (их рассылает бот, срез 1.9). Строки
- * кита, которых в продукте не будет вовсе — «подтверждать каждый платёж»,
- * «выйти» и «удалить аккаунт», — убраны, а не спрятаны: флаг показывает, что
- * придёт, и держать в нём то, что не придёт, значит врать самим себе.
+ * Осталось здесь только одно — три уведомления: их рассылает бот, срез 1.9.
+ * Язык уехал отсюда в `shared/settings` 10.09.2026 вместе с настоящими
+ * словарями. Строки кита, которых в продукте не будет вовсе («подтверждать
+ * каждый платёж», «выйти», «удалить аккаунт»), убраны, а не спрятаны: флаг
+ * показывает, что придёт, и держать в нём то, что не придёт, — врать самим себе.
  */
 export interface SettingsState extends AppSettings {
-  language: Language;
   alertAttacked: boolean;
   alertLostPosition: boolean;
   alertNewTasks: boolean;
@@ -48,7 +47,10 @@ export interface SettingsPanelProps {
   onPaymentHistory?: () => void;
 }
 
-const THEME_OPTIONS = [
+// Функция, а не константа: словарь читает язык в момент обращения, и массив,
+// собранный один раз при импорте, оставил бы подписи темы на языке первого
+// запуска — прямо в той панели, где язык и переключают.
+const themeOptions = () => [
   { value: 'auto', label: t.themeAuto },
   { value: 'light', label: t.themeLight },
   { value: 'dark', label: t.themeDark },
@@ -74,27 +76,25 @@ export function SettingsPanel({
   return (
     <div className={styles.panel}>
       <SettingsGroup label={t.appearance} footnote={t.appearanceNote}>
-        {PREVIEW.settingsStubs && (
-          <SettingsRow
-            icon="languages"
-            title={t.language}
-            control={
-              <Segmented
-                options={['RU', 'UZ', 'EN']}
-                value={value.language}
-                onChange={(v) => onChange('language', v as Language)}
-                size="sm"
-              />
-            }
-          />
-        )}
+        <SettingsRow
+          icon="languages"
+          title={t.language}
+          control={
+            <Segmented
+              options={[...LOCALES]}
+              value={value.language}
+              onChange={(v) => onChange('language', v as Locale)}
+              size="sm"
+            />
+          }
+        />
         <SettingsRow
           icon="sun-moon"
           title={t.theme}
           description={t.themeNote}
           control={
             <Segmented
-              options={THEME_OPTIONS}
+              options={themeOptions()}
               value={value.theme}
               onChange={(v) => onChange('theme', v as ThemeChoice)}
               size="sm"

@@ -8,6 +8,7 @@ import {
   type DisplayCurrency,
 } from '@/shared/lib/format';
 import { cx } from '@/shared/lib/cx';
+import { strings } from '@/shared/i18n/strings';
 import styles from './AmountInput.module.css';
 
 export type AmountSegment = 'paid' | 'free' | 'attack';
@@ -48,8 +49,8 @@ export function AmountInput({
   max,
   presets = [],
   balance,
-  balanceLabel = 'Баланс',
-  label = 'Сумма',
+  balanceLabel = strings.card.balance,
+  label = strings.card.amount,
   error,
   disabled = false,
   className,

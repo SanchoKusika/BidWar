@@ -1,9 +1,19 @@
 import type { CSSProperties } from 'react';
 import { Icon } from './Icon';
 import { cx } from '@/shared/lib/cx';
+import { strings } from '@/shared/i18n/strings';
 import styles from './RankBadge.module.css';
 
-const MEDAL_NAMES: Record<number, string> = { 1: 'Золото', 2: 'Серебро', 3: 'Бронза' };
+const t = strings.card;
+
+// Подпись медали видна во всплывающей подсказке и читается программами чтения
+// с экрана — значит переводится, а не остаётся русской константой.
+function medalName(medal: number): string | undefined {
+  if (medal === 1) return t.medalGold;
+  if (medal === 2) return t.medalSilver;
+  if (medal === 3) return t.medalBronze;
+  return undefined;
+}
 
 export interface RankBadgeProps {
   rank: number;
@@ -46,7 +56,7 @@ export function RankBadge({
       <div
         data-medal={medal}
         className={styles.chip}
-        title={medal ? `${MEDAL_NAMES[medal]} — место ${rank}` : undefined}
+        title={medal ? `${medalName(medal)} · #${rank}` : undefined}
       >
         {medal !== undefined && (
           <>

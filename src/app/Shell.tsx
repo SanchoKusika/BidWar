@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { getPlatform } from '@/shared/platform';
 import { fetchFxRates } from '@/shared/api';
 import { setRates } from '@/shared/lib/format';
+import { useSettings } from '@/shared/settings';
+import type { Locale } from '@/shared/i18n/locale';
 import { SessionProvider } from '@/entities/user';
 import { TabBar } from '@/shared/ui/TabBar';
 import { PaidMobile } from '@/pages/paid/ui/Mobile';
@@ -15,6 +17,9 @@ import { useNavigation } from './navigation';
 import { bindTheme } from './theme';
 import styles from './Shell.module.css';
 
+/** Наш код языка → значение атрибута `lang` по BCP-47. */
+const HTML_LANG: Record<Locale, string> = { RU: 'ru', UZ: 'uz', EN: 'en' };
+
 /**
  * Каркас мини-аппа: TabBar снизу переключает вкладки, поверх любой из них
  * ложится стек экранов (проект, правила, документ) — см. app/navigation.ts.
@@ -23,11 +28,21 @@ export function Shell() {
   const [platform] = useState(getPlatform);
   const nav = useNavigation(platform);
   const scroller = useRef<HTMLElement>(null);
+  // Каркас подписан на язык ради одного: словарь читает его в момент
+  // обращения к строке, но сам по себе перерисовку не запускает. Подписка
+  // здесь, а не перемонтирование по `key`, потому что перемонтирование сбросило
+  // бы вкладку и прокрутку — человек менял язык, а не уходил с экрана.
+  const { language } = useSettings();
 
   useEffect(() => {
     platform.ready();
     return bindTheme(platform);
   }, [platform]);
+
+  // Тот же язык — и для программ чтения с экрана, и для переносов слов.
+  useEffect(() => {
+    document.documentElement.lang = HTML_LANG[language];
+  }, [language]);
 
   // Курсы валюты показа — с сервера, одним запросом на старте. Отказ не
   // страшен: у formatMoney остаются свои значения, просто без обновления.

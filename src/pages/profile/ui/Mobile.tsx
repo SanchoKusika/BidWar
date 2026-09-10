@@ -8,6 +8,7 @@ import { formatFullDate, formatReceiptDate, type DisplayCurrency } from '@/share
 import { dropQueryCache } from '@/shared/lib/query';
 import { strings } from '@/shared/i18n/strings';
 import { setSetting, useSettings, type AppSettings, type ThemeChoice } from '@/shared/settings';
+import type { Locale } from '@/shared/i18n/locale';
 import { ProfileScreen, type Receipt } from '@/widgets/mobile/ProfileScreen';
 import { ConfirmSheet } from '@/widgets/mobile/ConfirmSheet';
 import type { SettingsState } from '@/widgets/mobile/SettingsPanel';
@@ -29,7 +30,6 @@ export interface ProfilePageProps {
 type StubSettings = Omit<SettingsState, keyof AppSettings>;
 
 const STUB_DEFAULTS: StubSettings = {
-  language: 'RU',
   alertAttacked: true,
   alertLostPosition: true,
   alertNewTasks: false,
@@ -174,6 +174,7 @@ export function ProfilePage({ nav }: ProfilePageProps) {
             else if (key === 'currency') setSetting('currency', next as DisplayCurrency);
             else if (key === 'compactAmounts') setSetting('compactAmounts', next as boolean);
             else if (key === 'haptics') setSetting('haptics', next as boolean);
+            else if (key === 'language') setSetting('language', next as Locale);
             else setStubs((prev) => ({ ...prev, [key]: next }));
           },
           onRules: () => nav.push({ name: 'rules', anchor: 'bidding' }),

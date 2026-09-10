@@ -44,6 +44,10 @@ export function createWebPlatform(): Platform {
 
     haptic: () => {},
 
+    // `navigator.language` говорит про браузер, а не про человека, и на общей
+    // машине уводит в чужой язык. Лучше честно не знать.
+    getLanguageCode: () => null,
+
     backButton: noopBackButton,
     mainButton: noopButton,
 

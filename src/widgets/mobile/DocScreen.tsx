@@ -19,11 +19,15 @@ export interface DocScreenProps {
 /** Порядок вкладок задан в ките и держит смысловую последовательность. */
 const ORDER: readonly DocId[] = ['about', 'support', 'terms', 'privacy', 'bot'];
 
-const CHIPS = ORDER.map((id) => ({
-  id,
-  label: t.tabs[id],
-  icon: docs[id].icon as IconName,
-}));
+// Функция, а не константа: подписи вкладок берутся из словаря, а он читает язык
+// в момент обращения. Массив, собранный один раз при импорте, застыл бы на
+// языке первого запуска — иконки и порядок при этом от языка не зависят.
+const chips = () =>
+  ORDER.map((id) => ({
+    id,
+    label: t.tabs[id],
+    icon: docs[id].icon as IconName,
+  }));
 
 /**
  * Служебные страницы: о проекте, поддержка, условия, приватность, бот
@@ -38,7 +42,7 @@ export function DocScreen({ id, onBack, onDoc }: DocScreenProps) {
       <PageHeader title={doc.title} meta={doc.lead} onBack={onBack} />
 
       <ScreenBody>
-        <ChipRow items={CHIPS} value={id} onChange={onDoc} />
+        <ChipRow items={chips()} value={id} onChange={onDoc} />
 
         <Gutter>
           <RowsCard>

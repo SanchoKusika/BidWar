@@ -7,7 +7,10 @@ import { Icon } from './Icon';
 import { formatCount, type DisplayCurrency } from '@/shared/lib/format';
 import { cx } from '@/shared/lib/cx';
 import { displayUrl } from '@/shared/lib/url';
+import { strings } from '@/shared/i18n/strings';
 import styles from './ProjectCard.module.css';
+
+const t = strings.card;
 
 /** Действие внутри карточки не должно открывать саму карточку. */
 const stop = (fn: () => void) => (e: MouseEvent) => {
@@ -116,7 +119,7 @@ export function ProjectCard({
             <span className={styles.name}>{name}</span>
 
             {verified && (
-              <Icon name="shield-check" size={13} color="var(--info-500)" title="Проверен" />
+              <Icon name="shield-check" size={13} color="var(--info-500)" title={t.verified} />
             )}
 
             {/* Лидерство в категории — то самое дешёвое первое место. Скрыто у
@@ -163,7 +166,7 @@ export function ProjectCard({
             )}
             {clicks !== undefined && (
               <Counter
-                title="Переходов на проект"
+                title={t.clicks}
                 icon={<Icon name="mouse-pointer-click" size={13} />}
                 tabular
               >
@@ -193,7 +196,7 @@ export function ProjectCard({
           }
         >
           <Icon name="chevrons-up" size={14} color="var(--card-accent)" />
-          <span className={styles.spotLabel}>Занять это место</span>
+          <span className={styles.spotLabel}>{t.takeSpot}</span>
           <span className={styles.spotPrice}>
             {spotPrice}
             {spotUnit && <span className={styles.spotUnit}>{spotUnit}</span>}
@@ -244,12 +247,12 @@ export function ProjectCard({
               type="button"
               data-compact={actions > 0}
               className={styles.details}
-              title="Подробнее"
-              aria-label="Подробнее"
+              title={t.details}
+              aria-label={t.details}
               onClick={stop(onDetails)}
             >
               <Icon name="list" size={15} />
-              {actions ? null : 'Подробнее'}
+              {actions ? null : t.details}
             </button>
           )}
         </div>
