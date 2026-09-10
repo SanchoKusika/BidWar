@@ -281,7 +281,7 @@ export const strings = {
     themeLight: 'Light',
     themeDark: 'Dark',
     vibration: 'Vibration',
-    vibrationNote: 'Haptic feedback on bids and attacks',
+    vibrationNote: 'A short buzz when a bid, attack or vote goes through',
     currency: 'Currency',
     currencyNote: 'Display only — every charge is made in UZS',
     compact: 'Compact amounts',
