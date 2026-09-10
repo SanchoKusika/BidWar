@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Icon } from '@/shared/ui/Icon';
@@ -116,6 +116,7 @@ export function ProfileScreen({
   onVote,
 }: ProfileScreenProps) {
   const money = (v: number) => formatMoney(v, { currency, compact: compactAmounts });
+  const receiptsRef = useRef<HTMLDivElement>(null);
 
   return (
     <>
@@ -210,9 +211,8 @@ export function ProfileScreen({
                   onDetails={() => onOpenProject(project)}
                   onRaise={project.type === 'paid' ? () => onRaise(project) : undefined}
                   onVote={project.type === 'free' ? () => onVote(project) : undefined}
-                  // Raise работает с 1.5 и ведёт на вкладку Paid; Give votes
-                  // ждёт Среза 1.7 и потому остаётся выключенным.
-                  actionsDisabled={project.type === 'free'}
+                  // Обе кнопки ведут на свою вкладку, где живут шторка и
+                  // баланс: Raise на Paid (с 1.5), Give votes на Free (с 1.7).
                 />
               ))
             ) : (
@@ -239,37 +239,50 @@ export function ProfileScreen({
         </Gutter>
 
         <Gutter>
-          <SettingsPanel {...settings} />
+          {/* Строка «история платежей» ведёт не на отдельный экран, а к чекам
+              ниже по этой же странице: они уже здесь, и заводить ради них
+              второй экран значило бы показать то же самое дважды. Нет ответа
+              `my-spending` — нет и строки. */}
+          <SettingsPanel
+            {...settings}
+            onPaymentHistory={
+              spending
+                ? () => receiptsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                : undefined
+            }
+          />
         </Gutter>
 
         {spending && (
-          <Section>
-            <SectionLabel>{t.receipts}</SectionLabel>
-            <Gutter>
-              <RowsCard>
-                {/* Итог за всё время стоит плашкой наверху экрана, здесь —
+          <div ref={receiptsRef}>
+            <Section>
+              <SectionLabel>{t.receipts}</SectionLabel>
+              <Gutter>
+                <RowsCard>
+                  {/* Итог за всё время стоит плашкой наверху экрана, здесь —
                     второе число, месячное: дублировать одно и то же незачем. */}
-                <KeyRow
-                  label={t.paidLast30}
-                  value={`${money(spending.month)} ${CURRENCY_SUFFIX[currency]}`}
-                  strong
-                  tone="paid"
-                />
-                {spending.receipts.length > 0 ? (
-                  spending.receipts.map((r) => (
-                    <KeyRow
-                      key={r.id}
-                      label={`${r.label} · ${r.when}${r.provider ? ` · ${r.provider}` : ''}`}
-                      value={`−${money(r.amount)}`}
-                      tone={r.kind === 'attack' ? 'attack' : undefined}
-                    />
-                  ))
-                ) : (
-                  <KeyRow label={t.noReceipts} value="" />
-                )}
-              </RowsCard>
-            </Gutter>
-          </Section>
+                  <KeyRow
+                    label={t.paidLast30}
+                    value={`${money(spending.month)} ${CURRENCY_SUFFIX[currency]}`}
+                    strong
+                    tone="paid"
+                  />
+                  {spending.receipts.length > 0 ? (
+                    spending.receipts.map((r) => (
+                      <KeyRow
+                        key={r.id}
+                        label={`${r.label} · ${r.when}${r.provider ? ` · ${r.provider}` : ''}`}
+                        value={`−${money(r.amount)}`}
+                        tone={r.kind === 'attack' ? 'attack' : undefined}
+                      />
+                    ))
+                  ) : (
+                    <KeyRow label={t.noReceipts} value="" />
+                  )}
+                </RowsCard>
+              </Gutter>
+            </Section>
+          </div>
         )}
       </ScreenBody>
     </>

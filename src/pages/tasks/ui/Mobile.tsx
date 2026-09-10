@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSession } from '@/entities/user';
 import { checkSubscription } from '@/features/subscribe';
 import { getPlatform } from '@/shared/platform';
+import { haptic } from '@/shared/lib/haptic';
 import { strings } from '@/shared/i18n/strings';
 import { TasksScreen } from '@/widgets/mobile/TasksScreen';
 import type { TaskItem } from '@/entities/task';
@@ -49,6 +50,9 @@ export function TasksPage({ nav }: TasksPageProps) {
         // `granted` с балансом, который держит экран, неверно дважды: тот может
         // отставать от голоса с вкладки Free, а доплаты за друга в нём нет.
         session.applyVoteBalance(result.balanceAfter);
+        // Отклик только когда задание действительно засчиталось: на «проверил и
+        // не подписан» его нет — там ничего не произошло.
+        if (result.granted > 0) haptic('success');
         board.refresh();
         return;
       }

@@ -27,12 +27,19 @@ export interface AppSettings {
    * недоплатит.
    */
   compactAmounts: boolean;
+  /**
+   * Отклик на действия, которые двигают деньги и очки: ставка, атака, голос.
+   * Живёт здесь, а не среди заглушек: `platform.haptic()` в слое платформы был
+   * всё это время, не хватало только настройки и вызовов.
+   */
+  haptics: boolean;
 }
 
 const DEFAULTS: AppSettings = {
   theme: 'auto',
   currency: 'UZS',
   compactAmounts: true,
+  haptics: true,
 };
 
 const STORAGE_KEY = 'bidwar.settings.v1';
@@ -60,6 +67,7 @@ function parse(raw: string | null): AppSettings {
         typeof stored.compactAmounts === 'boolean'
           ? stored.compactAmounts
           : DEFAULTS.compactAmounts,
+      haptics: typeof stored.haptics === 'boolean' ? stored.haptics : DEFAULTS.haptics,
     };
   } catch {
     return DEFAULTS;
