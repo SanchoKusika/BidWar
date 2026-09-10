@@ -6,6 +6,7 @@ import {
   fetchProjectRank,
   fetchProjects,
   fetchTodayBoard,
+  fetchFreeTodayBoard,
   fetchTopProject,
 } from './api';
 import type { NeighborProject } from './api';
@@ -230,4 +231,18 @@ export function useTopProject(type: ShowcaseType): TopProjectState {
 
   const query = useQuery<string | null>(`top:${type}`, fetcher);
   return { name: query.data ?? null, retry: query.refresh };
+}
+
+/**
+ * Бесплатный топ за сутки. Отдельно от платного и ключом, и запросом: разрезы
+ * лежат в одном кэше, и общий ключ показал бы на одной витрине строки другой.
+ */
+export function useFreeTodayBoard(enabled: boolean, categoryId: number | null): TodayBoardState {
+  const fetcher = useCallback(() => fetchFreeTodayBoard(categoryId), [categoryId]);
+  const query = useQuery<ProjectListItem[]>(
+    enabled ? `today:free:${categoryId ?? 'all'}` : null,
+    fetcher,
+  );
+
+  return { items: query.data ?? EMPTY_ITEMS, loading: query.loading, retry: query.refresh };
 }

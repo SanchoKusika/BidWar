@@ -16,6 +16,8 @@ export interface TaskRow {
   description: string | null;
   reward_votes: number;
   target_project_id: number | null;
+  /** Ссылка целевого проекта — по ней открывается канал у subscribe. */
+  target_url?: string | null;
 }
 
 /** Выполненное задание — ровно те поля, по которым считается состояние. */
@@ -31,6 +33,7 @@ export interface TaskPayload {
   description: string | null;
   rewardVotes: number;
   targetProjectId: number | null;
+  targetUrl: string | null;
   state: TaskState;
   progress?: { current: number; total: number };
 }
@@ -58,6 +61,7 @@ export function buildTaskBoard(
       description: task.description,
       rewardVotes: Number(task.reward_votes),
       targetProjectId: task.target_project_id,
+      targetUrl: task.target_url ?? null,
     };
 
     if (task.type === 'visit') {

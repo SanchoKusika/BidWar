@@ -76,6 +76,7 @@ Deno.test('subscribe: засчитывается навсегда', () => {
   assertEquals(before.state, 'available');
   assertEquals(after.state, 'done');
   assertEquals(after.targetProjectId, 42);
+  assertEquals(after.targetUrl, null, 'ссылки в строке нет — значит и в ответе null');
 });
 
 Deno.test('чужие выполненные задания состояние не двигают', () => {

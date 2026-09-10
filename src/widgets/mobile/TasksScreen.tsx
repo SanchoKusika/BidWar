@@ -20,6 +20,8 @@ export interface TasksScreenProps {
   /** Запрос не удался, и показать при этом тоже нечего. */
   error?: boolean;
   onRetry?: () => void;
+  /** Ответ на проверку задания: «ещё не подписан» или отказ функции. */
+  notice?: string | null;
   onTask: (task: TaskItem) => void;
   onRules: () => void;
 }
@@ -35,6 +37,7 @@ export function TasksScreen({
   loading = false,
   error = false,
   onRetry,
+  notice,
   onTask,
   onRules,
 }: TasksScreenProps) {
@@ -55,6 +58,12 @@ export function TasksScreen({
       />
 
       <ScreenBody>
+        {notice && (
+          <Gutter>
+            <p className={styles.notice}>{notice}</p>
+          </Gutter>
+        )}
+
         {daily.length > 0 && <Group label={t.daily} items={daily} onTask={onTask} />}
         {oneTime.length > 0 && <Group label={t.oneTime} items={oneTime} onTask={onTask} />}
 

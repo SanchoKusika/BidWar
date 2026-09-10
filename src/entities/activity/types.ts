@@ -20,3 +20,18 @@ export interface StakeEvent {
   amount: number;
   createdAt: string;
 }
+
+/**
+ * Событие голосования из вьюхи `vote_activity`.
+ *
+ * Кто отдал голос, вьюха не показывает — по той же причине, по какой
+ * `stake_activity` не показывает, кто ударил: публично известно, кому
+ * прибавилось. Отрицательных сумм здесь не бывает, отнять голоса нечем.
+ */
+export interface VoteEvent {
+  id: number;
+  projectId: number;
+  projectName: string;
+  amount: number;
+  createdAt: string;
+}

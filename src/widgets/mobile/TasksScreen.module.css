@@ -3,3 +3,15 @@
   flex-direction: column;
   gap: var(--stack-gap);
 }
+
+/* Ответ на «Проверить» у subscribe-задания: подписки ещё нет либо проверка не
+   удалась. Плашка, а не всплывающее окно, — уходит со следующей проверкой. */
+.notice {
+  padding: var(--space-5);
+  border: var(--border-w) solid var(--attack-200);
+  border-radius: var(--radius-md);
+  background: var(--attack-50);
+  color: var(--attack-700);
+  font: var(--type-caption);
+  text-wrap: pretty;
+}

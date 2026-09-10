@@ -1,9 +1,10 @@
 import { useCallback } from 'react';
 import { useQuery } from '@/shared/lib/query';
-import { fetchProjectActivity, fetchRecentActivity } from './api';
-import type { StakeEvent } from './types';
+import { fetchProjectActivity, fetchRecentActivity, fetchRecentVotes } from './api';
+import type { StakeEvent, VoteEvent } from './types';
 
 const EMPTY: StakeEvent[] = [];
+const EMPTY_VOTES: VoteEvent[] = [];
 
 /**
  * Лента событий платного топа. У бесплатного своих событий пока нет вовсе —
@@ -32,4 +33,16 @@ export function useProjectActivity(projectId: number | null): StakeEvent[] {
     fetcher,
   );
   return query.data ?? EMPTY;
+}
+
+/** Лента голосов бесплатного топа — та же схема, другой источник. */
+export function useRecentVotes(enabled: boolean): VoteActivityState {
+  const fetcher = useCallback(() => fetchRecentVotes(), []);
+  const query = useQuery<VoteEvent[]>(enabled ? 'activity:free' : null, fetcher);
+  return { events: query.data ?? EMPTY_VOTES, retry: query.refresh };
+}
+
+export interface VoteActivityState {
+  events: VoteEvent[];
+  retry: () => void;
 }

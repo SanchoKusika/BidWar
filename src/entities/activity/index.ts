@@ -1,6 +1,6 @@
-export { fetchRecentActivity, fetchProjectActivity } from './api';
-export { useRecentActivity, useProjectActivity } from './model';
-export { toActivityItems } from './present';
+export { fetchRecentActivity, fetchProjectActivity, fetchRecentVotes } from './api';
+export { useRecentActivity, useProjectActivity, useRecentVotes } from './model';
+export { toActivityItems, toVoteActivityItems } from './present';
 export type { ActivityFormat } from './present';
-export type { ActivityState } from './model';
-export type { StakeEvent, StakeEventType } from './types';
+export type { ActivityState, VoteActivityState } from './model';
+export type { StakeEvent, StakeEventType, VoteEvent } from './types';
