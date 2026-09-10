@@ -65,6 +65,8 @@ export interface ProfileScreenProps {
   referralLink: string;
   referralInvited: number;
   referralEarned: number;
+  /** Награда за друга из app_config.task_rewards — своего числа у карточки нет. */
+  referralReward: number;
   /**
    * Поделиться ссылкой. Не передан ⇒ кнопки в карточке нет: она и так до
    * 02.09.2026 висела без обработчика и просто ничего не делала.
@@ -102,6 +104,7 @@ export function ProfileScreen({
   referralLink,
   referralInvited,
   referralEarned,
+  referralReward,
   onShareReferral,
   currency = 'UZS',
   compactAmounts = false,
@@ -230,6 +233,7 @@ export function ProfileScreen({
             link={referralLink}
             invited={referralInvited}
             earned={referralEarned}
+            rewardPerInvite={referralReward}
             onShare={onShareReferral}
           />
         </Gutter>

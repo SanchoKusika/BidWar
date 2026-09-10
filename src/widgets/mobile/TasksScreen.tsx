@@ -1,4 +1,5 @@
 import { EmptyState } from '@/shared/ui/EmptyState';
+import { SkeletonFeed } from '@/shared/ui/Skeleton';
 import { SectionLabel } from '@/shared/ui/SectionLabel';
 import { StatBlock } from '@/shared/ui/StatBlock';
 import { TaskListItem } from '@/shared/ui/TaskListItem';
@@ -14,6 +15,11 @@ const t = strings.tasks;
 export interface TasksScreenProps {
   tasks: readonly TaskItem[];
   voteBalance: number | null;
+  /** Показывать нечего и ответ в пути. Поверх прошлого списка не поднимается. */
+  loading?: boolean;
+  /** Запрос не удался, и показать при этом тоже нечего. */
+  error?: boolean;
+  onRetry?: () => void;
   onTask: (task: TaskItem) => void;
   onRules: () => void;
 }
@@ -23,7 +29,15 @@ export interface TasksScreenProps {
  * валюта здесь: ни одной денежной строки на экране быть не должно, иначе
  * бесплатный топ перестаёт читаться как бесплатный.
  */
-export function TasksScreen({ tasks, voteBalance, onTask, onRules }: TasksScreenProps) {
+export function TasksScreen({
+  tasks,
+  voteBalance,
+  loading = false,
+  error = false,
+  onRetry,
+  onTask,
+  onRules,
+}: TasksScreenProps) {
   const { daily, oneTime } = splitTasks(tasks);
 
   return (
@@ -46,13 +60,30 @@ export function TasksScreen({ tasks, voteBalance, onTask, onRules }: TasksScreen
 
         {tasks.length === 0 && (
           <Gutter>
-            <EmptyState
-              icon="clock"
-              segment="free"
-              title={t.emptyTitle}
-              description={t.emptyNote}
-              compact
-            />
+            {/* Три разных пустых экрана, а не один: «ещё грузится», «не
+                загрузилось» и «всё сделано» — разные новости, и подменять
+                одну другой значит врать про состояние. */}
+            {loading ? (
+              <SkeletonFeed rows={4} />
+            ) : error ? (
+              <EmptyState
+                icon="triangle-alert"
+                segment="free"
+                title={t.errorTitle}
+                description={t.errorNote}
+                actionLabel={onRetry ? t.retry : undefined}
+                onAction={onRetry}
+                compact
+              />
+            ) : (
+              <EmptyState
+                icon="clock"
+                segment="free"
+                title={t.emptyTitle}
+                description={t.emptyNote}
+                compact
+              />
+            )}
           </Gutter>
         )}
       </ScreenBody>

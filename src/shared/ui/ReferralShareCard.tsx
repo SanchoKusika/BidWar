@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Icon } from './Icon';
 import { Button } from './Button';
 import { group } from '@/shared/lib/format';
+import { strings } from '@/shared/i18n/strings';
 import { cx } from '@/shared/lib/cx';
 import styles from './ReferralShareCard.module.css';
 
@@ -10,18 +11,25 @@ export interface ReferralShareCardProps {
   link: string;
   invited?: number;
   earned?: number;
-  rewardPerInvite?: number;
+  /**
+   * Награда за друга — из `app_config.task_rewards`, не из константы.
+   * Дефолта здесь нет намеренно: раньше стояло 50, и карточка обещала число,
+   * которого механика не знает (01 Механики называет 3).
+   */
+  rewardPerInvite: number;
   onCopy?: () => void;
   onShare?: () => void;
   className?: string;
   style?: CSSProperties;
 }
 
+const t = strings.referral;
+
 export function ReferralShareCard({
   link,
   invited = 0,
   earned = 0,
-  rewardPerInvite = 50,
+  rewardPerInvite,
   onCopy,
   onShare,
   className,
@@ -44,8 +52,8 @@ export function ReferralShareCard({
     <section className={cx(styles.card, className)} style={style}>
       <div className={styles.head}>
         <div className={styles.headText}>
-          <span className={styles.kicker}>Приглашай и получай голоса</span>
-          <span className={styles.reward}>+{group(rewardPerInvite)} голосов за друга</span>
+          <span className={styles.kicker}>{t.kicker}</span>
+          <span className={styles.reward}>{t.reward(group(rewardPerInvite))}</span>
         </div>
         <span className={styles.gift}>
           <Icon name="gift" size={20} />
@@ -53,9 +61,9 @@ export function ReferralShareCard({
       </div>
 
       <div className={styles.metrics}>
-        <Metric label="Приглашено" value={group(invited)} />
+        <Metric label={t.invited} value={group(invited)} />
         <span className={styles.divider} />
-        <Metric label="Голосов получено" value={group(earned)} accent />
+        <Metric label={t.earned} value={group(earned)} accent />
       </div>
 
       <div className={styles.actions}>
@@ -70,7 +78,7 @@ export function ReferralShareCard({
             className={styles.share}
             onClick={onShare}
           >
-            Поделиться в Telegram
+            {t.share}
           </Button>
         )}
 
@@ -78,13 +86,13 @@ export function ReferralShareCard({
           type="button"
           data-copied={copied}
           className={styles.copy}
-          aria-label="Скопировать ссылку"
+          aria-label={t.copyAria}
           onClick={copy}
         >
           <Icon name={copied ? 'check' : 'link'} size={20} />
           <span className={styles.copyLabels}>
-            <span className={styles.copyIdle}>Скопировать</span>
-            <span className={styles.copyDone}>Скопировано</span>
+            <span className={styles.copyIdle}>{t.copy}</span>
+            <span className={styles.copyDone}>{t.copied}</span>
           </span>
         </button>
       </div>

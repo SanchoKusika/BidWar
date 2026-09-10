@@ -1,7 +1,7 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { authenticate } from '@/shared/api';
 import { getPlatform } from '@/shared/platform';
-import { SessionContext, EMPTY_SESSION, type Session } from './context';
+import { SessionContext, EMPTY_SESSION, type SessionData } from './context';
 
 /**
  * Один заход в auth на весь мини-апп, а не на каждую страницу. Своей сессии
@@ -9,10 +9,16 @@ import { SessionContext, EMPTY_SESSION, type Session } from './context';
  * (userId, баланс голосов) под рукой для тех мест, которым он нужен.
  */
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session>(() => ({
+  const [session, setSession] = useState<SessionData>(() => ({
     ...EMPTY_SESSION,
     status: getPlatform().getInitData() ? 'loading' : 'guest',
   }));
+
+  const applyVoteBalance = useCallback((voteBalance: number) => {
+    setSession((prev) => (prev.voteBalance === voteBalance ? prev : { ...prev, voteBalance }));
+  }, []);
+
+  const value = useMemo(() => ({ ...session, applyVoteBalance }), [session, applyVoteBalance]);
 
   useEffect(() => {
     const initData = getPlatform().getInitData();
@@ -50,5 +56,5 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  return <SessionContext.Provider value={session}>{children}</SessionContext.Provider>;
+  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
