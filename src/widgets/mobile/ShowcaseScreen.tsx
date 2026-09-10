@@ -201,6 +201,12 @@ export interface ShowcaseScreenProps {
    */
   onBoost?: (item: ProjectListItem, rank: number) => void;
   /**
+   * Give votes по чужой строке бесплатного топа (Срез 1.7). Своей записи для
+   * этого не нужно и владение не проверяется: голоса можно отдавать кому
+   * угодно, в этом и смысл механики (01 Механики).
+   */
+  onVote?: (item: ProjectListItem, rank: number) => void;
+  /**
    * Изменения за скользящие сутки: позиция и ставка. Проекта, которого сутки
    * назад не существовало, в карте нет, и стрелок у него не рисуется вовсе —
    * «изменение» требует того, что менялось.
@@ -208,9 +214,10 @@ export interface ShowcaseScreenProps {
   movement?: ReadonlyMap<number, Movement24h>;
   /**
    * Суточный борд под переключателем «All time / Today». Не передан ⇒
-   * переключателя нет вовсе: у бесплатного топа источника для него не
-   * существует (vote_transactions пустая до среза 1.7), и вкладка, которая
-   * ничего не покажет, врала бы про наличие данных.
+   * переключателя нет вовсе: у бесплатного топа источника для него пока нет —
+   * `vote_transactions` наполняется с 1.7, но своей вьюхи вроде
+   * `paid_today_top` под голоса ещё не написано, — и вкладка, которая ничего
+   * не покажет, врала бы про наличие данных.
    *
    * Разрез держит вызывающая страница, а не экран: от него зависит, какой
    * запрос вообще уходит, а решать это внутри вёрстки — значит грузить
@@ -247,8 +254,8 @@ export interface ShowcaseScreenProps {
  *
  * Raise и Attack подключены (Срезы 1.5–1.6): Raise на своей карточке
  * поднимает свою ставку, на чужой — донатит в чужую (01 Механики), Attack
- * доступен только при своей платной записи. Give votes ждёт среза 1.7 и до
- * него остаётся неактивной.
+ * доступен только при своей платной записи. Give votes подключён в 1.7 и
+ * устроен как Raise чужой строки: своей записи не требует.
  */
 export function ShowcaseScreen({
   segment,
@@ -279,6 +286,7 @@ export function ShowcaseScreen({
   onTakeSpot,
   onAttack,
   onBoost,
+  onVote,
   movement,
   today,
   onAddProject,
@@ -370,7 +378,7 @@ export function ShowcaseScreen({
                 }
                 entryHint={entryHint}
                 actionLabel={segment === 'paid' ? s.raiseMine : s.voteMine}
-                // На Free Top кнопка ждёт Vote (Срез 1.7) — неактивна без onAction.
+                // Без обработчика действия нет — кнопка неактивна, а не врёт.
                 actionDisabled={!onAction}
                 onAction={onAction}
                 addDisabled={!onAddProject}
@@ -546,6 +554,11 @@ export function ShowcaseScreen({
                       onAttack={
                         !isOwn && onAttack && segment === 'paid'
                           ? () => onAttack(item, rank)
+                          : undefined
+                      }
+                      onVote={
+                        !isOwn && onVote && segment === 'free'
+                          ? () => onVote(item, rank)
                           : undefined
                       }
                     />

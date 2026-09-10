@@ -448,3 +448,9 @@ verify_jwt = true
 
 [functions.remove-my-projects]
 verify_jwt = true
+
+[functions.tasks]
+verify_jwt = true
+
+[functions.cast-votes]
+verify_jwt = true

@@ -187,6 +187,17 @@ export const strings = {
     openBot: (handle: string) => `Open ${handle}`,
   },
 
+  referral: {
+    kicker: 'Invite friends, get votes',
+    reward: (votes: string) => `+${votes} votes per friend`,
+    invited: 'Invited',
+    earned: 'Votes earned',
+    share: 'Share in Telegram',
+    copy: 'Copy',
+    copied: 'Copied',
+    copyAria: 'Copy the link',
+  },
+
   tasks: {
     title: 'Tasks',
     meta: 'Complete tasks, get votes. Votes are not money.',
@@ -195,6 +206,9 @@ export const strings = {
     oneTime: 'One-time',
     emptyTitle: "That's everything for today",
     emptyNote: 'New tasks appear every day at 09:00.',
+    errorTitle: 'Tasks did not load',
+    errorNote: 'The list is on the server, and it did not answer. Try again.',
+    retry: 'Try again',
   },
 
   project: {

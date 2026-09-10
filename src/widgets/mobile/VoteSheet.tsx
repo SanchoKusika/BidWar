@@ -8,7 +8,7 @@ import { strings } from '@/shared/i18n/strings';
 import type { ProjectListItem } from '@/entities/project';
 import { Sheet } from './Sheet';
 import { SheetHeader } from './SheetHeader';
-import { SheetActions, SheetRows } from './SheetParts';
+import { SheetActions, SheetNote, SheetRows } from './SheetParts';
 
 const t = strings.vote;
 
@@ -19,8 +19,10 @@ export interface VoteSheetProps {
   /** Баланс голосов аккаунта — потолок для суммы. */
   balance: number;
   preset?: number | null;
+  /** Отказ сервера — текст показывается как есть, причин ровно четыре. */
+  error?: string | null;
   onClose: () => void;
-  onConfirm: (amount: number) => void;
+  onConfirm: (amount: number) => void | Promise<void>;
 }
 
 /**
@@ -34,16 +36,32 @@ export function VoteSheet({
   rank,
   balance,
   preset,
+  error,
   onClose,
   onConfirm,
 }: VoteSheetProps) {
   const [amount, setAmount] = useState(preset ?? 10);
+  const [busy, setBusy] = useState(false);
 
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
     setPrevOpen(open);
-    if (open) setAmount(preset ?? 10);
+    if (open) {
+      setAmount(preset ?? 10);
+      setBusy(false);
+    }
   }
+
+  const submit = async () => {
+    // Пока сервер не ответил, кнопка занята: второй тап — это второе списание,
+    // а не повтор того же. Идемпотентности у голосов нет и быть не может.
+    setBusy(true);
+    try {
+      await onConfirm(amount);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   if (!project) return null;
 
@@ -85,13 +103,20 @@ export function VoteSheet({
         <KeyRow label={t.youKeep} value={t.keepValue(votes(Math.max(0, balance - amount)))} />
       </SheetRows>
 
-      <SheetActions onSecondary={onClose}>
+      {error && (
+        <SheetNote tone="attack" icon="triangle-alert">
+          {error}
+        </SheetNote>
+      )}
+
+      <SheetActions onSecondary={onClose} secondaryDisabled={busy}>
         <Button
           variant="free"
           size="lg"
           icon="vote"
-          disabled={over}
-          onClick={() => onConfirm(amount)}
+          disabled={over || busy}
+          loading={busy}
+          onClick={submit}
         >
           {t.submit(votes(amount))}
         </Button>

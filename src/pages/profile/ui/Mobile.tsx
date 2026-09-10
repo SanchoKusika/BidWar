@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSession } from '@/entities/user';
 import { removeMyProjects } from '@/entities/project';
+import { useTaskBoard } from '@/entities/task';
 import { brand } from '@/shared/content';
 import { getPlatform } from '@/shared/platform';
 import { formatFullDate, formatReceiptDate, type DisplayCurrency } from '@/shared/lib/format';
@@ -58,6 +59,22 @@ function toReceipt(row: {
 }
 
 /**
+ * Числа реферальной карточки берутся из того же ответа, что и экран заданий:
+ * награда — из строки задания (а она засеяна из `app_config.task_rewards`),
+ * а «сколько друзей дошли до первого задания» — из его прогресса. Считать
+ * награду константой в клиенте нельзя: карточка ровно так и обещала «+50
+ * голосов за друга» при трёх по механике.
+ *
+ * Пока ответа нет, показывается ноль наград — это факт, а не заглушка: без
+ * ответа неизвестно ни одной выданной.
+ */
+function useReferralNumbers(): { reward: number; rewarded: number } {
+  const board = useTaskBoard();
+  const task = board.data?.tasks.find((item) => item.type === 'referral');
+  return { reward: task?.rewardVotes ?? 0, rewarded: task?.progress?.current ?? 0 };
+}
+
+/**
  * Профиль. Всё, что здесь показано, — настоящее: хендл, дата регистрации,
  * аватар и число приглашённых из сессии, свои записи в обоих топах, траты и
  * чеки из `my-spending`. Заглушек в профиле не осталось; поля настроек без
@@ -70,6 +87,7 @@ export function ProfilePage({ nav }: ProfilePageProps) {
   const [stubs, setStubs] = useState(STUB_DEFAULTS);
   const mine = useMyProjects(userId);
   const { spending, retry: retrySpending } = useMySpending(userId);
+  const referral = useReferralNumbers();
 
   const [removeOpen, setRemoveOpen] = useState(false);
   const [removing, setRemoving] = useState(false);
@@ -139,10 +157,11 @@ export function ProfilePage({ nav }: ProfilePageProps) {
             : undefined
         }
         referralInvited={invitedCount}
-        // Ноль здесь — факт, а не заглушка: наград за приглашённых пока не
-        // начисляет никто (vote_transactions пустая до среза 1.7), значит
-        // получено ровно ноль. Раньше на этом месте стояло выдуманное 350.
-        referralEarned={0}
+        // Приглашённый и приглашённый, дошедший до первого задания, — разные
+        // числа (01 Механики): награда идёт за второе. Разрыв между ними виден
+        // прямо в карточке и объясняет, почему «приглашено 5, получено 9».
+        referralEarned={referral.rewarded * referral.reward}
+        referralReward={referral.reward}
         currency={settings.currency}
         compactAmounts={settings.compactAmounts}
         settings={{
