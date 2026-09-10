@@ -12,6 +12,8 @@
  * <html>, вне дерева компонентов, и подписка ему нужна такая же, как экранам.
  */
 import { useSyncExternalStore } from 'react';
+import { getPlatform } from '@/shared/platform';
+import { LOCALES, localeFromLanguageCode, type Locale } from '@/shared/i18n/locale';
 import type { DisplayCurrency } from '@/shared/lib/format';
 
 export type ThemeChoice = 'auto' | 'light' | 'dark';
@@ -34,13 +36,26 @@ export interface AppSettings {
    * всё это время, не хватало только настройки и вызовов.
    */
   haptics: boolean;
+  /**
+   * Язык интерфейса. Значение по умолчанию — язык оболочки Telegram, но только
+   * до первого выбора: дальше человек решает сам, и его выбор переживает
+   * перезапуск. Пункта «авто», как у темы, здесь нет намеренно — язык меняют
+   * раз в жизни аккаунта, и следить за оболочкой ему незачем.
+   */
+  language: Locale;
 }
 
+/**
+ * Язык по умолчанию спрашивается у оболочки один раз, при первом чтении
+ * настроек: незнакомый язык Telegram даёт английский. Всё остальное —
+ * константы, потому что подсказки на них у оболочки нет.
+ */
 const DEFAULTS: AppSettings = {
   theme: 'auto',
   currency: 'UZS',
   compactAmounts: true,
   haptics: true,
+  language: localeFromLanguageCode(getPlatform().getLanguageCode()),
 };
 
 const STORAGE_KEY = 'bidwar.settings.v1';
@@ -69,6 +84,9 @@ function parse(raw: string | null): AppSettings {
           ? stored.compactAmounts
           : DEFAULTS.compactAmounts,
       haptics: typeof stored.haptics === 'boolean' ? stored.haptics : DEFAULTS.haptics,
+      language: LOCALES.includes(stored.language as Locale)
+        ? (stored.language as Locale)
+        : DEFAULTS.language,
     };
   } catch {
     return DEFAULTS;

@@ -2,16 +2,25 @@ import type { CSSProperties } from 'react';
 import { Icon, type IconName } from './Icon';
 import { group } from '@/shared/lib/format';
 import { cx } from '@/shared/lib/cx';
+import { strings } from '@/shared/i18n/strings';
 import styles from './TaskListItem.module.css';
 
 export type TaskState = 'available' | 'pending' | 'done' | 'locked';
 
-/** Подпись справа. У доступного задания её нет — там шеврон. */
-const STATUS_LABEL: Partial<Record<TaskState, string>> = {
-  pending: 'Проверяем',
-  done: 'Готово',
-  locked: 'Закрыто',
-};
+const t = strings.card;
+
+/**
+ * Подпись справа. У доступного задания её нет — там шеврон.
+ *
+ * Функция, а не константа-объект: словарь читает язык в момент обращения, и
+ * объект, собранный один раз при импорте, застыл бы на языке первого запуска.
+ */
+function statusLabel(state: TaskState): string | undefined {
+  if (state === 'pending') return t.taskPending;
+  if (state === 'done') return t.taskDone;
+  if (state === 'locked') return t.taskLocked;
+  return undefined;
+}
 
 export interface TaskListItemProps {
   title: string;
@@ -38,7 +47,7 @@ export function TaskListItem({
   style,
 }: TaskListItemProps) {
   const interactive = state === 'available' && Boolean(onPress);
-  const status = STATUS_LABEL[state];
+  const status = statusLabel(state);
 
   return (
     <div

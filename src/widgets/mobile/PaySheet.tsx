@@ -37,11 +37,13 @@ export interface PaySheetProps {
   onConfirm: (providerId: string) => void | Promise<void>;
 }
 
-const TITLE: Record<PayPayload['kind'], string> = {
-  attack: t.titleAttack,
-  project: t.titleProject,
-  raise: t.titleRaise,
-};
+// Функция, а не объект: словарь читает язык в момент обращения, и таблица,
+// собранная один раз при импорте, застыла бы на языке первого запуска.
+function title(kind: PayPayload['kind']): string {
+  if (kind === 'attack') return t.titleAttack;
+  if (kind === 'project') return t.titleProject;
+  return t.titleRaise;
+}
 
 /**
  * Единственное платёжное окно на все платные действия — рейз, атака,
@@ -96,7 +98,7 @@ export function PaySheet({ open, payload, currency = 'UZS', onClose, onConfirm }
         icon={attack ? 'swords' : 'credit-card'}
         tone={tone}
         singleLine
-        title={TITLE[payload.kind]}
+        title={title(payload.kind)}
         subtitle={payload.subtitle}
       />
 

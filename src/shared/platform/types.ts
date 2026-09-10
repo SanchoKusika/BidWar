@@ -40,6 +40,12 @@ export interface Platform {
    */
   getInitData(): string | null;
 
+  /**
+   * Язык оболочки в формате Telegram (`ru`, `uz`, `en-US`). Это подсказка для
+   * первого запуска, а не настройка: null — подсказки нет.
+   */
+  getLanguageCode(): string | null;
+
   getColorScheme(): ColorScheme;
   onColorSchemeChange(handler: (scheme: ColorScheme) => void): () => void;
 

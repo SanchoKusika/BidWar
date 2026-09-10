@@ -18,6 +18,8 @@ interface TgMainButton extends TgBackButton {
 
 interface TgWebApp {
   initData: string;
+  /** Неподписанная копия initData. Читаем из неё только язык — см. ниже. */
+  initDataUnsafe?: { user?: { language_code?: string } };
   colorScheme: ColorScheme;
   themeParams: Record<string, string>;
   BackButton: TgBackButton;
@@ -136,6 +138,12 @@ export function createTelegramPlatform(tg: TgWebApp): Platform {
     name: 'telegram',
 
     getInitData: () => tg.initData || null,
+
+    // Из неподписанной копии намеренно: языком ничего не решается, подделка
+    // даёт человеку разве что чужой язык интерфейса у него же на экране. Всё,
+    // что решает деньги и личность, по-прежнему идёт через подписанный
+    // initData и проверяется на сервере.
+    getLanguageCode: () => tg.initDataUnsafe?.user?.language_code ?? null,
 
     getColorScheme: () => tg.colorScheme,
 

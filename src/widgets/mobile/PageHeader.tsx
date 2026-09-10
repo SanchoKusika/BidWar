@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Icon } from '@/shared/ui/Icon';
 import type { ShowcaseType } from '@/entities/project';
+import { strings } from '@/shared/i18n/strings';
 import styles from './PageHeader.module.css';
 
 export interface PageHeaderProps {
@@ -17,7 +18,12 @@ export function PageHeader({ segment, title, meta, right, action, onBack }: Page
   return (
     <header data-segment={segment} className={styles.header}>
       {onBack && (
-        <button type="button" onClick={onBack} aria-label="Назад" className={styles.back}>
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label={strings.common.back}
+          className={styles.back}
+        >
           <Icon name="arrow-left" size={16} />
         </button>
       )}
