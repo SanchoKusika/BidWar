@@ -1,5 +1,5 @@
 import { getSupabase } from '@/shared/api';
-import type { StakeEvent, StakeEventType } from './types';
+import type { StakeEvent, StakeEventType, VoteEvent } from './types';
 
 /**
  * Колонки вьюхи приходят из генератора типов как nullable: планировщик не
@@ -69,4 +69,40 @@ export async function fetchProjectActivity(projectId: number, limit = 6): Promis
 
   if (error) throw error;
   return mapRows(data ?? []);
+}
+
+type VoteRow = {
+  id: number | null;
+  project_id: number | null;
+  project_name: string | null;
+  amount: number | null;
+  created_at: string | null;
+};
+
+/**
+ * Лента «только что» бесплатного топа. Своя, а не общая с платной: в одном
+ * списке очки и голоса не смешиваются — та же граница, по которой деньги
+ * никогда не превращаются в голоса (01 Механики).
+ */
+export async function fetchRecentVotes(limit = 8): Promise<VoteEvent[]> {
+  const { data, error } = await getSupabase()
+    .from('vote_activity')
+    .select('id, project_id, project_name, amount, created_at')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+
+  const events: VoteEvent[] = [];
+  for (const row of (data ?? []) as VoteRow[]) {
+    if (row.id === null || row.project_id === null || row.created_at === null) continue;
+    events.push({
+      id: row.id,
+      projectId: row.project_id,
+      projectName: row.project_name ?? '',
+      amount: row.amount ?? 0,
+      createdAt: row.created_at,
+    });
+  }
+  return events;
 }

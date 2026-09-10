@@ -454,3 +454,9 @@ verify_jwt = true
 
 [functions.cast-votes]
 verify_jwt = true
+
+[functions.verify-channel]
+verify_jwt = true
+
+[functions.check-subscription]
+verify_jwt = true

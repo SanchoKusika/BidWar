@@ -1,4 +1,8 @@
+import { useState } from 'react';
 import { useSession } from '@/entities/user';
+import { checkSubscription } from '@/features/subscribe';
+import { getPlatform } from '@/shared/platform';
+import { strings } from '@/shared/i18n/strings';
 import { TasksScreen } from '@/widgets/mobile/TasksScreen';
 import type { TaskItem } from '@/entities/task';
 import type { Navigation } from '@/app/navigation';
@@ -17,13 +21,47 @@ export interface TasksPageProps {
  * ответа нет, показывается балансом сессии: он устаревший, но настоящий, а
  * ноль поверх заработанных голосов был бы неправдой.
  *
- * Тап по заданию никуда не «засчитывает»: `visit` закрывается самим переходом
- * по ссылке проекта (его считает `click`), поэтому кнопка ведёт туда, где
- * такие ссылки есть, а не имитирует выполнение.
+ * Тап по заданию сам ничего не «засчитывает»:
+ *
+ * - `visit` закрывается переходом по ссылке проекта, его считает `click`, —
+ *   поэтому кнопка ведёт туда, где такие ссылки есть;
+ * - `referral` закрывается действием приглашённого, а не своим, — поэтому
+ *   кнопка ведёт к ссылке в профиле;
+ * - `subscribe` проверяется на сервере (`getChatMember` доступен боту, а не
+ *   мини-аппу): не подписан — открываем канал, подписан — задание закрывается.
  */
 export function TasksPage({ nav }: TasksPageProps) {
   const session = useSession();
   const board = useTaskBoard();
+  const [notice, setNotice] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  const verifySubscription = async (task: TaskItem) => {
+    const initData = getPlatform().getInitData();
+    if (initData === null || task.targetProjectId === null || checking) return;
+
+    setChecking(true);
+    setNotice(null);
+    try {
+      const result = await checkSubscription({ initData, projectId: task.targetProjectId });
+      if (result.subscribed) {
+        // Число приходит из хранимки, которая его и изменила. Складывать
+        // `granted` с балансом, который держит экран, неверно дважды: тот может
+        // отставать от голоса с вкладки Free, а доплаты за друга в нём нет.
+        session.applyVoteBalance(result.balanceAfter);
+        board.refresh();
+        return;
+      }
+      // Не подписан — открываем канал, а не отчитываем: человек нажал именно
+      // затем, чтобы задание выполнить.
+      setNotice(strings.tasks.notSubscribed);
+      if (task.targetUrl) getPlatform().openLink(task.targetUrl);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : String(error));
+    } finally {
+      setChecking(false);
+    }
+  };
 
   const onTask = (task: TaskItem) => {
     if (task.type === 'visit') {
@@ -34,10 +72,7 @@ export function TasksPage({ nav }: TasksPageProps) {
       nav.setTab('profile');
       return;
     }
-    // subscribe привязан к каналу, а канал в системе — это платная запись.
-    if (task.targetProjectId !== null) {
-      nav.push({ name: 'project', id: task.targetProjectId, segment: 'paid' });
-    }
+    void verifySubscription(task);
   };
 
   return (
@@ -46,6 +81,7 @@ export function TasksPage({ nav }: TasksPageProps) {
       voteBalance={board.data?.voteBalance ?? session.voteBalance}
       loading={board.loading}
       error={board.error}
+      notice={notice}
       onRetry={board.refresh}
       onTask={onTask}
       onRules={() => nav.push({ name: 'rules', anchor: 'votes' })}

@@ -206,6 +206,8 @@ export const strings = {
     oneTime: 'One-time',
     emptyTitle: "That's everything for today",
     emptyNote: 'New tasks appear every day at 09:00.',
+    notSubscribed:
+      'Looks like you are not subscribed yet. We opened the channel — subscribe and tap again.',
     errorTitle: 'Tasks did not load',
     errorNote: 'The list is on the server, and it did not answer. Try again.',
     retry: 'Try again',

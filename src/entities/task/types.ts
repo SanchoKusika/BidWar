@@ -12,6 +12,8 @@ export interface TaskItem {
   rewardVotes: number;
   /** Проект, на который ведёт задание: зайти, подписаться. */
   targetProjectId: number | null;
+  /** Ссылка целевого проекта — по ней открывается канал, если не подписан. */
+  targetUrl: string | null;
   state: TaskState;
   /** Многошаговые задания — приглашения друзей. */
   progress?: { current: number; total: number };

@@ -3,15 +3,18 @@ import { useSession } from '@/entities/user';
 import { getPlatform } from '@/shared/platform';
 import { useSettings } from '@/shared/settings';
 import { createProject, registerClick, type ProjectListItem } from '@/entities/project';
+import { toVoteActivityItems, useRecentVotes } from '@/entities/activity';
 import { castVotes } from '@/features/vote';
 import { ShowcaseScreen } from '@/widgets/mobile/ShowcaseScreen';
 import { AddProjectSheet } from '@/widgets/mobile/AddProjectSheet';
 import { VoteSheet } from '@/widgets/mobile/VoteSheet';
+import type { Scope } from '@/widgets/mobile/ScopeToggle';
 import type { Navigation } from '@/app/navigation';
 import {
   useFreeCategories,
   useFreeOwnPosition,
   useFreeShowcase,
+  useFreeToday,
   useFreeTopProject,
 } from '../model';
 
@@ -37,6 +40,9 @@ export function FreeMobile({ nav }: FreeMobileProps) {
   const categories = useFreeCategories();
   const own = useFreeOwnPosition(showcase.categoryId, userId);
   const topProject = useFreeTopProject();
+  const [scope, setScope] = useState<Scope>('all');
+  const today = useFreeToday(scope === 'today', showcase.categoryId);
+  const activity = useRecentVotes(true);
   const [addOpen, setAddOpen] = useState(false);
   const [voteTarget, setVoteTarget] = useState<VoteTarget | null>(null);
   const [voteError, setVoteError] = useState<string | null>(null);
@@ -46,6 +52,8 @@ export function FreeMobile({ nav }: FreeMobileProps) {
     categories.retry();
     topProject.retry();
     own.retry();
+    today.retry();
+    activity.retry();
   };
 
   // Голосовать можно только зная, чей голос: баланс приходит из сессии, а её
@@ -116,6 +124,10 @@ export function FreeMobile({ nav }: FreeMobileProps) {
         // Своя запись уже есть — предлагать вторую бессмысленно, она всё
         // равно упадёт в 23505 (код-ревью PR #12).
         onAddProject={userId && !own.project ? () => setAddOpen(true) : undefined}
+        today={{ scope, onScopeChange: setScope, items: today.items, loading: today.loading }}
+        // Голоса не пересчитываются в валюту и не сжимаются: своя единица, и
+        // числа в бесплатном топе такие, что «1,2K» читается хуже точного.
+        activity={toVoteActivityItems(activity.events)}
         onVote={canVote ? (item, rank) => openVote(item, rank) : undefined}
         onAction={ownVoteTarget ? () => openVote(ownVoteTarget, own.rank ?? null) : undefined}
       />

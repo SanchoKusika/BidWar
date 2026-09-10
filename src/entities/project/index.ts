@@ -6,12 +6,20 @@ export {
   fetchNeighborAbove,
   fetchTopProject,
   fetchTodayBoard,
+  fetchFreeTodayBoard,
   fetchMovement24h,
   createProject,
   registerClick,
   removeMyProjects,
 } from './api';
-export { useShowcase, useOwnPosition, useTopProject, useTodayBoard, useMovement24h } from './model';
+export {
+  useShowcase,
+  useOwnPosition,
+  useTopProject,
+  useTodayBoard,
+  useFreeTodayBoard,
+  useMovement24h,
+} from './model';
 export type {
   ShowcaseType,
   ProjectListItem,

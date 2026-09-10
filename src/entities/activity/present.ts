@@ -1,6 +1,12 @@
-import { CURRENCY_SUFFIX, formatAgo, formatMoney, type DisplayCurrency } from '@/shared/lib/format';
+import {
+  CURRENCY_SUFFIX,
+  formatAgo,
+  formatMoney,
+  formatVotes,
+  type DisplayCurrency,
+} from '@/shared/lib/format';
 import type { ActivityItem } from '@/shared/ui/ActivityFeed';
-import type { StakeEvent } from './types';
+import type { StakeEvent, VoteEvent } from './types';
 
 export interface ActivityFormat {
   currency?: DisplayCurrency;
@@ -24,6 +30,22 @@ export function toActivityItems(
     name: event.projectName,
     amount: formatMoney(event.amount, { currency, compact }),
     unit: CURRENCY_SUFFIX[currency],
+    ago: formatAgo(event.createdAt),
+  }));
+}
+
+/**
+ * Событие голосования → строка ленты. Голоса не форматируются валютой и не
+ * сжимаются по умолчанию: они и так небольшие, а «1,2K голосов» на ленте из
+ * трёх строк читается хуже точного числа.
+ */
+export function toVoteActivityItems(events: readonly VoteEvent[]): ActivityItem[] {
+  return events.map((event) => ({
+    id: String(event.id),
+    kind: 'votes' as const,
+    name: event.projectName,
+    amount: formatVotes(event.amount, { compact: false }),
+    unit: 'votes',
     ago: formatAgo(event.createdAt),
   }));
 }

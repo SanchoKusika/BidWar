@@ -59,7 +59,30 @@ serve('tasks', async (req, ctx) => {
     if (result.error) throw result.error;
   }
 
-  const payload = buildTaskBoard(tasks.data ?? [], completions.data ?? [], {
+  // Ссылки целевых проектов — только для subscribe: по ним экран открывает
+  // канал, когда человек ещё не подписан. Отдельным запросом, а не встроенным
+  // join'ом: строк с целью единицы, а имя связи во встроенном join придётся
+  // держать в согласии со схемой (на этом уже спотыкались в `my-spending`).
+  const targetIds = (tasks.data ?? [])
+    .map((task) => task.target_project_id)
+    .filter((id): id is number => id !== null);
+
+  const urls = new Map<number, string>();
+  if (targetIds.length > 0) {
+    const { data: targets, error: targetsError } = await db
+      .from('projects')
+      .select('id, url')
+      .in('id', targetIds);
+    if (targetsError) throw targetsError;
+    for (const row of targets ?? []) urls.set(row.id, row.url);
+  }
+
+  const rows = (tasks.data ?? []).map((task) => ({
+    ...task,
+    target_url: task.target_project_id === null ? null : (urls.get(task.target_project_id) ?? null),
+  }));
+
+  const payload = buildTaskBoard(rows, completions.data ?? [], {
     // Дата в том же виде, в каком её пишет `current_date` на сервере базы.
     today: new Date().toISOString().slice(0, 10),
     invited: invited.count ?? 0,

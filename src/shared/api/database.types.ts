@@ -149,6 +149,13 @@ export type Database = {
             foreignKeyName: "moderation_actions_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
+            referencedRelation: "free_today_top"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moderation_actions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
             referencedRelation: "paid_movement_24h"
             referencedColumns: ["project_id"]
           },
@@ -232,6 +239,13 @@ export type Database = {
             foreignKeyName: "payment_transactions_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
+            referencedRelation: "free_today_top"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_transactions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
             referencedRelation: "paid_movement_24h"
             referencedColumns: ["project_id"]
           },
@@ -247,6 +261,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_transactions_target_project_id_fkey"
+            columns: ["target_project_id"]
+            isOneToOne: false
+            referencedRelation: "free_today_top"
             referencedColumns: ["id"]
           },
           {
@@ -296,6 +317,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "project_clicks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "free_today_top"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "project_clicks_project_id_fkey"
             columns: ["project_id"]
@@ -466,6 +494,13 @@ export type Database = {
             foreignKeyName: "stake_transactions_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
+            referencedRelation: "free_today_top"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stake_transactions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
             referencedRelation: "paid_movement_24h"
             referencedColumns: ["project_id"]
           },
@@ -481,6 +516,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stake_transactions_target_project_id_fkey"
+            columns: ["target_project_id"]
+            isOneToOne: false
+            referencedRelation: "free_today_top"
             referencedColumns: ["id"]
           },
           {
@@ -544,6 +586,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "task_completions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "free_today_top"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "task_completions_project_id_fkey"
             columns: ["project_id"]
@@ -620,6 +669,13 @@ export type Database = {
           type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tasks_target_project_id_fkey"
+            columns: ["target_project_id"]
+            isOneToOne: false
+            referencedRelation: "free_today_top"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tasks_target_project_id_fkey"
             columns: ["target_project_id"]
@@ -717,6 +773,13 @@ export type Database = {
             foreignKeyName: "vote_transactions_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
+            referencedRelation: "free_today_top"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vote_transactions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
             referencedRelation: "paid_movement_24h"
             referencedColumns: ["project_id"]
           },
@@ -758,6 +821,39 @@ export type Database = {
           type: string | null
         }
         Relationships: []
+      }
+      free_today_top: {
+        Row: {
+          category_id: number | null
+          clicks: number | null
+          id: number | null
+          name: string | null
+          og_description: string | null
+          og_image_url: string | null
+          paid_amount: number | null
+          rank1_since: string | null
+          today_votes: number | null
+          type: string | null
+          url: string | null
+          user_id: string | null
+          votes: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       paid_movement_24h: {
         Row: {
@@ -818,6 +914,13 @@ export type Database = {
             foreignKeyName: "stake_transactions_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
+            referencedRelation: "free_today_top"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stake_transactions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
             referencedRelation: "paid_movement_24h"
             referencedColumns: ["project_id"]
           },
@@ -833,6 +936,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stake_transactions_target_project_id_fkey"
+            columns: ["target_project_id"]
+            isOneToOne: false
+            referencedRelation: "free_today_top"
             referencedColumns: ["id"]
           },
           {
@@ -858,8 +968,53 @@ export type Database = {
           },
         ]
       }
+      vote_activity: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          id: number | null
+          project_id: number | null
+          project_name: string | null
+          project_type: string | null
+          source: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vote_transactions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "free_today_top"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vote_transactions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "paid_movement_24h"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "vote_transactions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "paid_today_top"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vote_transactions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      apply_channel_admin: {
+        Args: { p_chat_id: number; p_is_admin: boolean; p_username: string }
+        Returns: number
+      }
       apply_payment: {
         Args: {
           p_confirmed: boolean
@@ -877,6 +1032,7 @@ export type Database = {
       apply_task_completion: {
         Args: { p_project_id?: number; p_task_type: string; p_user_id: string }
         Returns: {
+          balance_after: number
           granted: number
           referral_granted: number
         }[]

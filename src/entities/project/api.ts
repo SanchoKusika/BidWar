@@ -396,3 +396,52 @@ export async function registerClick(params: RegisterClickParams): Promise<boolea
   if (error) throw new Error(await functionErrorMessage(error, 'Не удалось засчитать клик'));
   return data?.counted ?? false;
 }
+
+/**
+ * Бесплатный топ за скользящие сутки — та же вкладка «Today», только метрика
+ * другая. Отдельная функция, а не параметр к платной: вьюхи разные, колонка с
+ * движением называется по-своему, и объединять их значило бы смешивать очки с
+ * голосами в одном запросе — ту самую границу, которую продукт держит везде.
+ *
+ * Отрицательных строк здесь быть не может: голоса только прибавляются, отнять
+ * их нечем — атаки в бесплатном топе нет.
+ */
+export async function fetchFreeTodayBoard(categoryId?: number | null): Promise<ProjectListItem[]> {
+  let query = getSupabase()
+    .from('free_today_top')
+    .select(
+      'id, user_id, category_id, type, name, url, og_image_url, og_description, paid_amount, votes, clicks, rank1_since, today_votes',
+    )
+    .gt('today_votes', 0)
+    .order('today_votes', { ascending: false })
+    .order('id', { ascending: true })
+    .limit(50);
+
+  if (categoryId != null) query = query.eq('category_id', categoryId);
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const items: ProjectListItem[] = [];
+  for (const row of data ?? []) {
+    // Колонки вьюхи генератор типов помечает nullable — сквозь представление
+    // планировщик NOT NULL не доказывает.
+    if (row.id === null || row.type === null) continue;
+    items.push({
+      id: row.id,
+      userId: row.user_id ?? '',
+      categoryId: row.category_id ?? 0,
+      type: row.type as ShowcaseType,
+      name: row.name ?? '',
+      url: row.url ?? '',
+      ogImageUrl: row.og_image_url,
+      ogDescription: row.og_description,
+      paidAmount: row.paid_amount ?? 0,
+      votes: row.votes ?? 0,
+      clicks: row.clicks ?? 0,
+      rank1Since: row.rank1_since,
+      todayAmount: row.today_votes ?? 0,
+    });
+  }
+  return items;
+}

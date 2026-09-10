@@ -1,6 +1,11 @@
-import { useShowcase, useOwnPosition, useTopProject } from '@/entities/project';
+import { useShowcase, useOwnPosition, useTopProject, useFreeTodayBoard } from '@/entities/project';
 import { useCategoryStats } from '@/entities/category';
-import type { ShowcaseState, OwnPositionState, TopProjectState } from '@/entities/project';
+import type {
+  ShowcaseState,
+  OwnPositionState,
+  TopProjectState,
+  TodayBoardState,
+} from '@/entities/project';
 import type { CategoryStatsState } from '@/entities/category';
 
 export function useFreeShowcase(): ShowcaseState {
@@ -20,4 +25,9 @@ export function useFreeCategories(): CategoryStatsState {
 
 export function useFreeTopProject(): TopProjectState {
   return useTopProject('free');
+}
+
+/** Бесплатный топ за скользящие сутки — грузится, только когда вкладку открыли. */
+export function useFreeToday(enabled: boolean, categoryId: number | null): TodayBoardState {
+  return useFreeTodayBoard(enabled, categoryId);
 }
