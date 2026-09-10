@@ -14,20 +14,16 @@ export type Language = 'RU' | 'UZ' | 'EN';
 export type { ThemeChoice };
 
 /**
- * Работающие настройки приходят из `shared/settings`, остальные поля — вёрстка
- * кита под механики, которых ещё нет, и живут за `PREVIEW.settingsStubs`.
- *
- * Здесь остались ровно те, что будут написаны: язык (нужен настоящий i18n,
- * сейчас словарь один) и три уведомления (их рассылает бот, срез 1.9). Строки
- * кита, которых в продукте не будет вовсе — «подтверждать каждый платёж»,
- * «выйти» и «удалить аккаунт», — убраны, а не спрятаны: флаг показывает, что
- * придёт, и держать в нём то, что не придёт, значит врать самим себе.
+ * Работающие настройки приходят из `shared/settings`, остальные поля — только
+ * заглушки кита и живут за `PREVIEW.settingsStubs`.
  */
 export interface SettingsState extends AppSettings {
   language: Language;
+  haptics: boolean;
   alertAttacked: boolean;
   alertLostPosition: boolean;
   alertNewTasks: boolean;
+  confirmPayments: boolean;
 }
 
 export interface SettingsPanelProps {
@@ -41,11 +37,6 @@ export interface SettingsPanelProps {
    * доступное действие (CLAUDE.md).
    */
   onRemoveProjects?: () => void;
-  /**
-   * Прокрутить к чекам — они на том же экране, ниже настроек. Не передан ⇒
-   * строки нет: пока `my-spending` не ответил, прокручивать не к чему.
-   */
-  onPaymentHistory?: () => void;
 }
 
 const THEME_OPTIONS = [
@@ -69,7 +60,6 @@ export function SettingsPanel({
   onRules,
   onDoc,
   onRemoveProjects,
-  onPaymentHistory,
 }: SettingsPanelProps) {
   return (
     <div className={styles.panel}>
@@ -101,18 +91,20 @@ export function SettingsPanel({
             />
           }
         />
-        <SettingsRow
-          icon="vibrate"
-          title={t.vibration}
-          description={t.vibrationNote}
-          control={
-            <Switch
-              checked={value.haptics}
-              onChange={(v) => onChange('haptics', v)}
-              label={t.vibration}
-            />
-          }
-        />
+        {PREVIEW.settingsStubs && (
+          <SettingsRow
+            icon="vibrate"
+            title={t.vibration}
+            description={t.vibrationNote}
+            control={
+              <Switch
+                checked={value.haptics}
+                onChange={(v) => onChange('haptics', v)}
+                label={t.vibration}
+              />
+            }
+          />
+        )}
         <SettingsRow
           icon="banknote"
           title={t.currency}
@@ -181,25 +173,29 @@ export function SettingsPanel({
       )}
 
       <SettingsGroup label={t.payments} footnote={t.paymentsNote}>
-        {/* Строка со значением и без действия: список провайдеров — сведение,
-            а не кнопка. Открывать по ней нечего, и `disabled` тут врал бы про
-            действие, которого не задумано. */}
-        <SettingsRow icon="credit-card" title={t.paymentMethods} value={PROVIDERS} />
-        {onPaymentHistory && (
-          <SettingsRow icon="receipt-text" title={t.paymentHistory} onPress={onPaymentHistory} />
+        {PREVIEW.settingsStubs && (
+          <SettingsRow
+            icon="shield-check"
+            title={t.confirmPayments}
+            description={t.confirmPaymentsNote}
+            control={
+              <Switch
+                checked={value.confirmPayments}
+                onChange={(v) => onChange('confirmPayments', v)}
+                label={t.confirmPayments}
+              />
+            }
+          />
         )}
+        <SettingsRow icon="credit-card" title={t.paymentMethods} value={PROVIDERS} disabled />
+        <SettingsRow icon="receipt-text" title={t.paymentHistory} disabled />
       </SettingsGroup>
 
       <SettingsGroup label={t.account}>
         <SettingsRow icon="gavel" title={t.rules} onPress={onRules} />
         <SettingsRow icon="send" title={t.bot} value={brand.bot} onPress={() => onDoc('bot')} />
         <SettingsRow icon="life-buoy" title={t.support} onPress={() => onDoc('support')} />
-        <SettingsRow
-          icon="file-text"
-          title={t.terms}
-          value={brand.legalVersion}
-          onPress={() => onDoc('terms')}
-        />
+        <SettingsRow icon="file-text" title={t.terms} onPress={() => onDoc('terms')} />
         {onRemoveProjects && (
           <SettingsRow
             icon="trash-2"
@@ -209,6 +205,8 @@ export function SettingsPanel({
             onPress={onRemoveProjects}
           />
         )}
+        <SettingsRow icon="log-out" title={t.logOut} disabled />
+        <SettingsRow icon="trash-2" title={t.deleteAccount} danger disabled />
       </SettingsGroup>
     </div>
   );

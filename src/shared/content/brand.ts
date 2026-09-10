@@ -6,5 +6,4 @@ export const brand: Brand = {
   botLink: 'https://t.me/bidwar_bot',
   city: 'Tashkent',
   year: 2026,
-  legalVersion: 'v1.0',
 };

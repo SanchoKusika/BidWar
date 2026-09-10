@@ -19,20 +19,20 @@ export interface ProfilePageProps {
 }
 
 /**
- * Поля настроек без единого обработчика: язык и три уведомления. Панель их
- * рисует только под PREVIEW.settingsStubs — состояние им нужно, чтобы тумблер
- * в этом режиме хотя бы двигался, и дальше профиля оно не уходит.
- *
- * Вибрация отсюда ушла: она стала настоящей настройкой и живёт в
- * `shared/settings` рядом с темой и валютой.
+ * Поля настроек без единого обработчика: язык, вибрация, три уведомления и
+ * подтверждение платежей. Панель их рисует только под PREVIEW.settingsStubs —
+ * состояние им нужно, чтобы тумблер в этом режиме хотя бы двигался, и дальше
+ * профиля оно не уходит.
  */
 type StubSettings = Omit<SettingsState, keyof AppSettings>;
 
 const STUB_DEFAULTS: StubSettings = {
   language: 'RU',
+  haptics: true,
   alertAttacked: true,
   alertLostPosition: true,
   alertNewTasks: false,
+  confirmPayments: true,
 };
 
 /** Строка чека из ответа `my-spending`. Провайдер в подписи — как в ките. */
@@ -173,7 +173,6 @@ export function ProfilePage({ nav }: ProfilePageProps) {
             if (key === 'theme') setSetting('theme', next as ThemeChoice);
             else if (key === 'currency') setSetting('currency', next as DisplayCurrency);
             else if (key === 'compactAmounts') setSetting('compactAmounts', next as boolean);
-            else if (key === 'haptics') setSetting('haptics', next as boolean);
             else setStubs((prev) => ({ ...prev, [key]: next }));
           },
           onRules: () => nav.push({ name: 'rules', anchor: 'bidding' }),
@@ -193,9 +192,7 @@ export function ProfilePage({ nav }: ProfilePageProps) {
         // Путь Raise живёт на вкладке Paid — оттуда шторка и оплата. Кнопка на
         // карточке профиля отправляет туда, а не изображает второй вход.
         onRaise={() => nav.setTab('paid')}
-        // Голоса отдаются на вкладке Free — там шторка и там же баланс. Пустой
-        // обработчик стоял здесь, пока механики не было (Срез 1.7).
-        onVote={() => nav.setTab('free')}
+        onVote={() => {}}
       />
 
       <ConfirmSheet
