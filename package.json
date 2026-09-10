@@ -19,7 +19,7 @@
     "db:seed:dev": "deno run --allow-env --allow-net --allow-read --allow-sys --env-file=.env supabase/seed/dev_board.ts",
     "db:types": "supabase gen types typescript --linked > src/shared/api/database.types.ts",
     "test": "deno test --allow-env supabase/functions",
-    "test:db": "deno test --allow-env --allow-net --allow-read --allow-sys supabase/tests",
+    "test:db": "deno test --allow-env --allow-net --allow-read --allow-sys --env-file=.env supabase/tests",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run check:platform && npm run test"
   },
   "dependencies": {
