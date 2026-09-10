@@ -5,6 +5,7 @@ import { useSettings } from '@/shared/settings';
 import { createProject, registerClick, type ProjectListItem } from '@/entities/project';
 import { toVoteActivityItems, useRecentVotes } from '@/entities/activity';
 import { castVotes } from '@/features/vote';
+import { haptic } from '@/shared/lib/haptic';
 import { ShowcaseScreen } from '@/widgets/mobile/ShowcaseScreen';
 import { AddProjectSheet } from '@/widgets/mobile/AddProjectSheet';
 import { VoteSheet } from '@/widgets/mobile/VoteSheet';
@@ -79,10 +80,14 @@ export function FreeMobile({ nav }: FreeMobileProps) {
       // Баланс берётся из ответа, а не вычитается на клиенте: считала его та же
       // хранимка, что и списала голоса.
       applyVoteBalance(result.balanceAfter);
+      // Отклик по факту отданного голоса, а не по нажатию: до ответа сервера
+      // ещё ничего не произошло.
+      haptic('success');
       setVoteTarget(null);
       refreshBoard();
     } catch (error) {
       setVoteError(error instanceof Error ? error.message : String(error));
+      haptic('error');
     }
   };
 
