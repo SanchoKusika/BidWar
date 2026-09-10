@@ -281,7 +281,7 @@ export const strings = {
     themeLight: 'Light',
     themeDark: 'Dark',
     vibration: 'Vibration',
-    vibrationNote: 'Haptic feedback on bids and attacks',
+    vibrationNote: 'A short buzz when a bid, attack or vote goes through',
     currency: 'Currency',
     currencyNote: 'Display only — every charge is made in UZS',
     compact: 'Compact amounts',
@@ -297,8 +297,6 @@ export const strings = {
     payments: 'Payments',
     paymentsNote:
       'No balance is kept for you: every raise, attack and opening bid is charged on the provider’s own page.',
-    confirmPayments: 'Confirm every payment',
-    confirmPaymentsNote: 'Ask again before each card charge',
     paymentMethods: 'Payment methods',
     paymentHistory: 'Payment history',
 
@@ -307,8 +305,6 @@ export const strings = {
     bot: 'Telegram bot',
     support: 'Support',
     terms: 'Terms & privacy',
-    logOut: 'Log out',
-    deleteAccount: 'Delete account',
 
     removeProjects: 'Remove my projects',
     removeProjectsNote: 'Frees both slots — you can add projects again',

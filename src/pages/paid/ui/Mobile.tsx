@@ -17,6 +17,7 @@ import { createAttackPayment, fetchAttackQuote, type AttackQuote } from '@/featu
 import { toActivityItems, useRecentActivity } from '@/entities/activity';
 import { CURRENCY_SUFFIX, formatMoney } from '@/shared/lib/format';
 import { useSettings } from '@/shared/settings';
+import { haptic } from '@/shared/lib/haptic';
 import { strings } from '@/shared/i18n/strings';
 import { ShowcaseScreen } from '@/widgets/mobile/ShowcaseScreen';
 import { AddProjectSheet } from '@/widgets/mobile/AddProjectSheet';
@@ -232,8 +233,13 @@ export function PaidMobile({ nav }: PaidMobileProps) {
     }
     if (outcome.status !== 'confirmed') {
       setPayError(strings.raise.failed);
+      haptic('error');
       return;
     }
+
+    // Отклик по факту применённого платежа, а не по нажатию кнопки: до ответа
+    // сервера ещё ничего не произошло, и вибрация там означала бы «сделано».
+    haptic('success');
 
     // Ранг не гадаем: own.rank сразу после этой строки — ещё дораисовый (его
     // обновит только retry() внутри refresh(), см. код-ревью раунд 1).
