@@ -511,7 +511,9 @@ export type Database = {
           completed_at: string | null
           created_at: string
           id: number
+          period_day: string | null
           project_id: number | null
+          referred_user_id: string | null
           reward_votes: number
           status: string
           task_id: number
@@ -521,7 +523,9 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           id?: number
+          period_day?: string | null
           project_id?: number | null
+          referred_user_id?: string | null
           reward_votes: number
           status: string
           task_id: number
@@ -531,7 +535,9 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           id?: number
+          period_day?: string | null
           project_id?: number | null
+          referred_user_id?: string | null
           reward_votes?: number
           status?: string
           task_id?: number
@@ -557,6 +563,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_completions_referred_user_id_fkey"
+            columns: ["referred_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
@@ -858,6 +871,21 @@ export type Database = {
           credited_points: number
           points_granted: number
           project_id: number
+          reason: string
+        }[]
+      }
+      apply_task_completion: {
+        Args: { p_project_id?: number; p_task_type: string; p_user_id: string }
+        Returns: {
+          granted: number
+          referral_granted: number
+        }[]
+      }
+      cast_votes: {
+        Args: { p_amount: number; p_project_id: number; p_user_id: string }
+        Returns: {
+          applied: boolean
+          balance_after: number
           reason: string
         }[]
       }
