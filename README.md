@@ -250,8 +250,3 @@ bidwar.pages.dev      служебный алиас Pages, плюс превью
 `.env.example` — список. Во фронт попадает только `VITE_*`; `SUPABASE_SERVICE_ROLE_KEY`,
 `BOT_TOKEN` и ключи провайдеров живут в окружении Edge Functions и в бандл не
 попадают никогда.
-
-## Коммиты
-
-Conventional Commits, **на английском**, без трейлеров. Работа идёт через ветки и
-pull request'ы, не прямыми пушами в `main`.
