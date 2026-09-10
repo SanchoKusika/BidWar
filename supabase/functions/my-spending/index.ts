@@ -18,6 +18,8 @@ interface Receipt {
   /** Имя проекта, за который платили (у атаки — цели). */
   subject: string | null;
   amount: number;
+  /** Сколько и в какой валюте реально списали. В чеке показывается это. */
+  charged: number;
   currency: string;
   provider: string;
   confirmedAt: string;
@@ -101,6 +103,11 @@ serve('my-spending', async (req, ctx) => {
     intent: row.intent,
     subject: row.intent === 'attack' ? (row.target?.name ?? null) : (row.project?.name ?? null),
     amount: row.points_granted,
+    // Сумма и валюта списания идут отдельно от очков: в чеке показывается
+    // ровно то, что ушло с карты, и это не пересчитывается никогда
+    // (04 Платежи и валюты). Очки остаются для итогов — складывать доллары
+    // с сумами в одну строку «всего заплачено» нельзя.
+    charged: row.original_amount,
     currency: row.original_currency,
     provider: row.provider,
     // confirmed_at проставляется той же транзакцией, что и статус, — у

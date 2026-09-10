@@ -157,3 +157,19 @@ export function formatDelta(n: number): { text: string; dir: DeltaDirection } {
   if (!n) return { text: '0', dir: 'flat' };
   return { text: (n > 0 ? '+' : '−') + Math.abs(n), dir: n > 0 ? 'up' : 'down' };
 }
+
+/**
+ * Сумма ровно та, что списали, и в той валюте, в которой списали.
+ *
+ * Отдельно от `formatMoney` намеренно: тот пересчитывает очки в валюту
+ * зрителя, а чек пересчитывать нельзя никогда (04 Платежи и валюты). Здесь
+ * число уже в своей валюте и остаётся собой — меняется только оформление.
+ *
+ * Валюта приходит из базы строкой: у списания может оказаться код, которого в
+ * валютах показа нет вовсе. Тогда суффиксом становится сам код — это честнее,
+ * чем подставить чужой знак.
+ */
+export function formatCharged(amount: number, currency: string): string {
+  const known = CURRENCY_SUFFIX[currency as DisplayCurrency];
+  return `${group(Math.round(Number(amount) || 0))} ${known ?? currency}`;
+}
