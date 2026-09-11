@@ -697,7 +697,9 @@ export type Database = {
           id: number
           is_active: boolean
           reward_votes: number
+          target_chat_id: number | null
           target_project_id: number | null
+          target_url: string | null
           title: string
           type: string
         }
@@ -707,7 +709,9 @@ export type Database = {
           id?: number
           is_active?: boolean
           reward_votes: number
+          target_chat_id?: number | null
           target_project_id?: number | null
+          target_url?: string | null
           title: string
           type: string
         }
@@ -717,7 +721,9 @@ export type Database = {
           id?: number
           is_active?: boolean
           reward_votes?: number
+          target_chat_id?: number | null
           target_project_id?: number | null
+          target_url?: string | null
           title?: string
           type?: string
         }
@@ -1098,7 +1104,12 @@ export type Database = {
         }[]
       }
       apply_task_completion: {
-        Args: { p_project_id?: number; p_task_type: string; p_user_id: string }
+        Args: {
+          p_project_id?: number
+          p_task_id?: number
+          p_task_type: string
+          p_user_id: string
+        }
         Returns: {
           balance_after: number
           granted: number

@@ -9,6 +9,7 @@ import {
 } from '@/shared/lib/format';
 import { cx } from '@/shared/lib/cx';
 import { strings } from '@/shared/i18n/strings';
+import { haptic } from '@/shared/lib/haptic';
 import styles from './AmountInput.module.css';
 
 export type AmountSegment = 'paid' | 'free' | 'attack';
@@ -67,6 +68,16 @@ export function AmountInput({
   const clamp = (n: number) => Math.max(min, max !== undefined ? Math.min(max, n) : n);
   const set = (n: number) => {
     if (!disabled) onChange?.(clamp(Math.round(n)));
+  };
+
+  /**
+   * То же, что `set`, но с откликом — и только когда число правда сдвинулось.
+   * Пресет, нажатый на уже максимальной сумме, упирается в `clamp`: вибрация
+   * там сообщила бы о событии, которого не произошло.
+   */
+  const nudge = (n: number) => {
+    if (clamp(Math.round(n)) !== value) haptic('selection');
+    set(n);
   };
 
   const show = (points: number) => (converts ? formatEditable(points, currency) : group(points));
@@ -132,7 +143,12 @@ export function AmountInput({
               type="button"
               className={styles.preset}
               disabled={disabled}
-              onClick={() => set((value || 0) + preset)}
+              onClick={() => {
+                // Отклик только если число правда сдвинулось: пресет на уже
+                // максимальной сумме ничего не меняет, и вибрация там означала
+                // бы событие, которого не было.
+                nudge((value || 0) + preset);
+              }}
             >
               +{show(preset)}
             </button>
@@ -143,7 +159,7 @@ export function AmountInput({
               data-accent="true"
               className={styles.preset}
               disabled={disabled}
-              onClick={() => set(max)}
+              onClick={() => nudge(max)}
             >
               MAX
             </button>

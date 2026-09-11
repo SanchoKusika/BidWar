@@ -63,15 +63,49 @@ export async function findChannel(
  * прав идёт первой, до любых начислений.
  */
 export async function isBotAdmin(botToken: string, chatId: number): Promise<boolean> {
-  const botId = botIdFromToken(botToken);
-  if (botId === null) return false;
+  return (await botChatStatus(botToken, chatId)) === 'admin';
+}
 
-  const data = await call<ChatMemberResponse>(botToken, 'getChatMember', {
-    chat_id: chatId,
-    user_id: botId,
-  });
-  const status = data.ok ? data.result?.status : undefined;
-  return BOT_IS_ADMIN.includes(status as (typeof BOT_IS_ADMIN)[number]);
+/**
+ * То же самое, но с третьим ответом: `unknown` — Telegram не ответил по делу
+ * (429, 5xx, оборванная сеть).
+ *
+ * Разница не косметическая. Задание площадки спрашивает права при каждой
+ * проверке, и `false` на месте `unknown` означал бы: подписанный человек в
+ * момент сетевой икоты получает «у этого задания нет канала» вместо «попробуй
+ * ещё раз» — и канал ему при этом даже не откроют.
+ */
+export async function botChatStatus(
+  botToken: string,
+  chatId: number,
+): Promise<'admin' | 'not_admin' | 'unknown'> {
+  const botId = botIdFromToken(botToken);
+  if (botId === null) return 'unknown';
+
+  let data: ChatMemberResponse;
+  try {
+    data = await call<ChatMemberResponse>(botToken, 'getChatMember', {
+      chat_id: chatId,
+      user_id: botId,
+    });
+  } catch {
+    return 'unknown';
+  }
+
+  // `ok: false` — это ответ Telegram по существу: чата нет, бота выгнали,
+  // список участников недоступен. Всё это «не админ», а не «непонятно».
+  if (!data.ok) {
+    const description = (data.description ?? '').toLowerCase();
+    const transient =
+      description.includes('too many requests') ||
+      description.includes('internal server error') ||
+      description.includes('bad gateway');
+    return transient ? 'unknown' : 'not_admin';
+  }
+
+  return BOT_IS_ADMIN.includes(data.result?.status as (typeof BOT_IS_ADMIN)[number])
+    ? 'admin'
+    : 'not_admin';
 }
 
 /** Подписан ли человек. Отказ Bot API считается «не подписан», а не ошибкой. */

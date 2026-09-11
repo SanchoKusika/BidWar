@@ -38,7 +38,7 @@ serve('tasks', async (req, ctx) => {
   const [tasks, user, completions, invited, paidCount] = await Promise.all([
     db
       .from('tasks')
-      .select('id, type, title, description, reward_votes, target_project_id')
+      .select('id, type, title, description, reward_votes, target_project_id, target_url')
       .eq('is_active', true)
       .order('id'),
     db.from('users').select('vote_balance').eq('id', userId).single(),
@@ -77,9 +77,13 @@ serve('tasks', async (req, ctx) => {
     for (const row of targets ?? []) urls.set(row.id, row.url);
   }
 
+  // Своя ссылка у задания площадки, ссылка проекта — у задания проекта.
   const rows = (tasks.data ?? []).map((task) => ({
     ...task,
-    target_url: task.target_project_id === null ? null : (urls.get(task.target_project_id) ?? null),
+    target_url:
+      task.target_project_id === null
+        ? (task.target_url ?? null)
+        : (urls.get(task.target_project_id) ?? null),
   }));
 
   const payload = buildTaskBoard(rows, completions.data ?? [], {

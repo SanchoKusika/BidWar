@@ -1,5 +1,6 @@
 import type { ShowcaseType } from '@/entities/project';
 import { strings } from '@/shared/i18n/strings';
+import { haptic } from '@/shared/lib/haptic';
 import styles from './ScopeToggle.module.css';
 
 /** `today` — доска последних 24 часов, `all` — за всё время. */
@@ -27,7 +28,10 @@ export function ScopeToggle({ value, onChange, segment }: ScopeToggleProps) {
           className={styles.option}
           data-segment={segment}
           data-active={value === scope}
-          onClick={() => onChange(scope)}
+          onClick={() => {
+            if (scope !== value) haptic('selection');
+            onChange(scope);
+          }}
         >
           {scope === 'all' ? strings.showcase.allTime : strings.showcase.today}
         </button>

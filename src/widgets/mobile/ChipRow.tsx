@@ -1,4 +1,5 @@
 import { Icon, type IconName } from '@/shared/ui/Icon';
+import { haptic } from '@/shared/lib/haptic';
 import styles from './ChipRow.module.css';
 
 export interface Chip<T extends string | number> {
@@ -38,7 +39,12 @@ export function ChipRow<T extends string | number>({
           className={styles.chip}
           data-tone={tone}
           data-active={item.id === value}
-          onClick={() => onChange(item.id)}
+          onClick={() => {
+            // Тот же выбор из вариантов, что у сегментов: отклик слабый и
+            // только когда чип правда сменился.
+            if (item.id !== value) haptic('selection');
+            onChange(item.id);
+          }}
         >
           {item.icon && <Icon name={item.icon} size={13} />}
           {item.label}
