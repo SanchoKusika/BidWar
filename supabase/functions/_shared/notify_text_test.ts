@@ -165,3 +165,20 @@ Deno.test('три языка дают три разных текста', () => {
 Deno.test('неизвестный вид не превращается в пустое сообщение', () => {
   assertEquals(renderNotification({ kind: 'whatever', payload: {} }, 'EN'), null);
 });
+
+Deno.test('русское числительное согласуется с числом ударов', () => {
+  const text = (count: number) =>
+    renderNotification(
+      {
+        kind: 'attacked',
+        payload: { project_name: 'Mebel', attacker: '@beta', amount: 1000, count },
+      },
+      'RU',
+    )!;
+
+  assertStringIncludes(text(2), '2 раза подряд');
+  assertStringIncludes(text(5), '5 раз подряд');
+  assertStringIncludes(text(11), '11 раз подряд');
+  assertStringIncludes(text(21), '21 раз подряд');
+  assertStringIncludes(text(22), '22 раза подряд');
+});

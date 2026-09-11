@@ -68,6 +68,22 @@ function held(seconds: number, locale: NotifyLocale): string {
   return `${minutes} ${unit[2]}`;
 }
 
+/**
+ * Русская форма после числа: 1 раз, 2 раза, 5 раз, 21 раз, 112 раз.
+ *
+ * Нужна ровно одному месту — серии атак, — но нужна: `count` ничем не
+ * ограничен, и «5 раза» в сообщении о потерянных деньгах выглядит как машинный
+ * перевод. В английском и узбекском форма одна, поэтому их это не касается.
+ */
+function timesRu(count: number): string {
+  const tail = count % 100;
+  if (tail >= 11 && tail <= 14) return `${count} раз`;
+  const last = count % 10;
+  if (last === 1) return `${count} раз`;
+  if (last >= 2 && last <= 4) return `${count} раза`;
+  return `${count} раз`;
+}
+
 function topName(top: string, locale: NotifyLocale): string {
   const paid = { RU: 'платном топе', UZ: "to'lovli topda", EN: 'Paid Top' };
   const free = { RU: 'бесплатном топе', UZ: 'bepul topda', EN: 'Free Top' };
@@ -88,7 +104,7 @@ function attacked(p: Record<string, unknown>, locale: NotifyLocale): string {
   if (locale === 'RU') {
     const head =
       count > 1
-        ? `⚔️ Тебя атаковали ${count} раза подряд: −${lost} у «${project}».`
+        ? `⚔️ Тебя атаковали ${timesRu(count)} подряд: −${lost} у «${project}».`
         : `⚔️ ${attacker} атаковал тебя: −${lost} у «${project}».`;
     return moved
       ? `${head} Ты упал с #${before} на #${after}.`

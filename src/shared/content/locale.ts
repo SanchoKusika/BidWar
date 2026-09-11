@@ -7,7 +7,7 @@ import { rulesUz } from './rules.uz';
 import { docsEn, type DocId } from './docs.en';
 import { docsRu } from './docs.ru';
 import { docsUz } from './docs.uz';
-import { paymentMethods } from './payments';
+import { paymentMethods, paymentProviders } from './payments';
 
 /**
  * Правила и правовые страницы на языке интерфейса.
@@ -47,4 +47,12 @@ export function getDocs(): Record<DocId, DocPage> {
  */
 export function getPaymentMethods(): readonly [PaymentProvider, ...PaymentProvider[]] {
   return paymentMethods(getSettings().language);
+}
+
+/**
+ * Провайдеры продукта — для строки «Способы оплаты» в настройках. Она говорит,
+ * через кого платят вообще, и от сегодняшнего мока не зависит.
+ */
+export function getPaymentProviders(): readonly [PaymentProvider, ...PaymentProvider[]] {
+  return paymentProviders(getSettings().language);
 }

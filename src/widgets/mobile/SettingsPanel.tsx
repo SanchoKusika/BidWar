@@ -3,7 +3,7 @@ import { SettingsGroup, SettingsRow } from '@/shared/ui/Settings';
 import { Switch } from '@/shared/ui/Switch';
 import type { DisplayCurrency } from '@/shared/lib/format';
 import type { AppSettings, ThemeChoice } from '@/shared/settings';
-import { brand, getPaymentMethods, type DocId } from '@/shared/content';
+import { brand, getPaymentProviders, type DocId } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
 import { LOCALES, type Locale } from '@/shared/i18n/locale';
 import styles from './SettingsPanel.module.css';
@@ -70,9 +70,11 @@ const themeOptions = () => [
   { value: 'dark', label: t.themeDark },
 ];
 
-// Функция: список способов оплаты читает язык в момент отрисовки.
+// Функция: список читает язык в момент отрисовки. Провайдеры продукта, а не
+// сегодняшние способы оплаты: под моком строка иначе сообщала бы, что площадка
+// принимает «Test payment».
 const providers = () =>
-  getPaymentMethods()
+  getPaymentProviders()
     .map((p) => p.name)
     .join(' · ');
 

@@ -36,23 +36,15 @@ const UNIT: Record<Locale, { uzsOnly: string; rubOnly: string; uzs: string }> = 
 };
 
 /**
- * Способы оплаты, доступные прямо сейчас. Непустой кортеж, а не просто массив:
- * платёжное окно обязано кого-то предложить по умолчанию, и это требование
- * продукта, а не удобство типов.
+ * Провайдеры продукта — те, через кого платят по-настоящему.
  *
- * Пока платежи идут через мок, показывать GlobalPay и Platega нельзя: имя
- * настоящего провайдера под мгновенным бесплатным подтверждением — прямая
- * неправда. Мок называет себя моком. Список меняется в Срезе 1.10.
+ * Этот список не зависит от мока: в настройках строка «Способы оплаты» — это
+ * сведение о продукте, а не о сегодняшнем стенде, и «Test payment» в ней
+ * означал бы, что площадка принимает тестовые платежи.
  */
-export function paymentMethods(locale: Locale): readonly [PaymentProvider, ...PaymentProvider[]] {
+export function paymentProviders(locale: Locale): readonly [PaymentProvider, ...PaymentProvider[]] {
   const desc = DESC[locale];
   const unit = UNIT[locale];
-
-  if (PREVIEW.mockPayments) {
-    return [
-      { id: 'mock', name: 'Test payment', icon: 'credit-card', desc: desc.mock, unit: unit.uzs },
-    ];
-  }
 
   return [
     {
@@ -61,7 +53,39 @@ export function paymentMethods(locale: Locale): readonly [PaymentProvider, ...Pa
       icon: 'credit-card',
       desc: desc.globalpay,
       unit: unit.uzsOnly,
+      currency: 'UZS',
     },
-    { id: 'platega', name: 'Platega', icon: 'globe', desc: desc.platega, unit: unit.rubOnly },
+    {
+      id: 'platega',
+      name: 'Platega',
+      icon: 'globe',
+      desc: desc.platega,
+      unit: unit.rubOnly,
+      currency: 'RUB',
+    },
+  ];
+}
+
+/**
+ * Способы оплаты, доступные прямо сейчас, — то, что предлагает платёжное окно.
+ * Непустой кортеж, а не просто массив: окно обязано кого-то предложить по
+ * умолчанию, и это требование продукта, а не удобство типов.
+ *
+ * Пока платежи идут через мок, показывать здесь GlobalPay и Platega нельзя: имя
+ * настоящего провайдера под мгновенным бесплатным подтверждением — прямая
+ * неправда. Мок называет себя моком. Список меняется в Срезе 1.10.
+ */
+export function paymentMethods(locale: Locale): readonly [PaymentProvider, ...PaymentProvider[]] {
+  if (!PREVIEW.mockPayments) return paymentProviders(locale);
+
+  return [
+    {
+      id: 'mock',
+      name: 'Test payment',
+      icon: 'credit-card',
+      desc: DESC[locale].mock,
+      unit: UNIT[locale].uzs,
+      currency: 'UZS',
+    },
   ];
 }

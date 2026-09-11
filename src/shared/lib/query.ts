@@ -25,6 +25,45 @@ import { useCallback, useEffect, useState } from 'react';
  */
 const store = new Map<string, unknown>();
 
+/**
+ * Подписчики на ключ. Без них кэш был общим только на чтение: два хука с одним
+ * ключом жили каждый со своей копией ответа, и обновление у одного не доходило
+ * до другого. Счётчик заданий в нижнем меню и сам экран заданий — ровно такая
+ * пара: экран засчитывал задание и перезапрашивал список, а число на вкладке
+ * оставалось прежним до перезапуска мини-аппа.
+ */
+type Listener = (data: unknown) => void;
+const listeners = new Map<string, Set<Listener>>();
+
+/**
+ * Запросы, которые прямо сейчас в пути. Нужны, чтобы два хука с одним ключом
+ * на старте не позвали функцию дважды: до этого `Shell` и экран заданий
+ * дёргали `tasks` каждый сам.
+ *
+ * Переиспользуется только первый запрос хука (`token === 0`). Явный `refresh()`
+ * обязан пойти в сеть заново: квитанция после оплаты ждёт ИМЕННО свежий ранг, а
+ * ответ, запрошенный до платежа, показал бы позицию до него.
+ */
+const inflight = new Map<string, Promise<unknown>>();
+
+function publish<T>(key: string, data: T): void {
+  store.set(key, data);
+  const subs = listeners.get(key);
+  if (!subs) return;
+  for (const notify of [...subs]) notify(data);
+}
+
+function share<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
+  const existing = inflight.get(key) as Promise<T> | undefined;
+  if (existing) return existing;
+
+  const request = fetcher().finally(() => {
+    if (inflight.get(key) === request) inflight.delete(key);
+  });
+  inflight.set(key, request);
+  return request;
+}
+
 /** Сбросить сохранённое — целиком или по префиксу ключа. */
 export function dropQueryCache(prefix?: string): void {
   if (prefix === undefined) {
@@ -91,15 +130,37 @@ export function useQuery<T>(key: string | null, fetcher: () => Promise<T>): Quer
     if (cached !== undefined) setEntry({ key, data: cached, error: false, stamp: MISSING });
   }
 
+  // Подписка на чужие обновления того же ключа: данные кладёт тот, кто их
+  // получил, а показать их обязаны все, кто на этот ключ смотрит.
+  useEffect(() => {
+    if (key === null) return;
+
+    const notify: Listener = (data) =>
+      setEntry((prev) => (prev.key === key ? { ...prev, data: data as T, error: false } : prev));
+
+    const subs = listeners.get(key) ?? new Set<Listener>();
+    subs.add(notify);
+    listeners.set(key, subs);
+
+    return () => {
+      subs.delete(notify);
+      if (subs.size === 0) listeners.delete(key);
+    };
+  }, [key]);
+
   useEffect(() => {
     if (key === null) return;
     let cancelled = false;
     const stamp = token;
 
-    fetcher()
+    // Первый запрос хука делится с соседями по ключу, повторный — нет:
+    // `refresh()` зовут ровно тогда, когда прошлый ответ уже не годится.
+    const request = token === 0 ? share(key, fetcher) : fetcher();
+
+    request
       .then((data) => {
         if (cancelled) return;
-        store.set(key, data);
+        publish(key, data);
         setEntry({ key, data, error: false, stamp });
       })
       .catch(() => {
@@ -122,7 +183,9 @@ export function useQuery<T>(key: string | null, fetcher: () => Promise<T>): Quer
   const mutate = useCallback(
     (next: T) => {
       if (key === null) return;
-      store.set(key, next);
+      // Через publish, а не store.set: дозагруженная страница и сохранённые
+      // настройки обязаны доехать до всех, кто смотрит на тот же ключ.
+      publish(key, next);
       setEntry((prev) => (prev.key === key ? { ...prev, data: next } : prev));
     },
     [key],

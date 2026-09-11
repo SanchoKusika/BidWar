@@ -157,7 +157,7 @@ export function PaySheet({ open, payload, currency = 'UZS', onClose, onConfirm }
       </SheetField>
 
       <SheetFootnote tone="muted">
-        {mock ? t.chargeNoteMock : t.chargeNote(provider.name, provider.unit)}
+        {mock ? t.chargeNoteMock : t.chargeNote(provider.name, provider.currency)}
       </SheetFootnote>
 
       <SheetActions onSecondary={handleClose} secondaryDisabled={submitting}>
