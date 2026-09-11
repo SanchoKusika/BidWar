@@ -210,12 +210,33 @@ Deno.test('свой проект и бесплатный проект не ат�
 
 Deno.test('сбитый лидер отдаёт rank1_since тому, кто теперь первый', async () => {
   await inRollback(async (tx) => {
-    const leader = await addPaid(tx, await addUser(tx, 'leader'), 5_000_000, 4_000_000);
-    await tx`update projects set rank1_since = now() where id = ${leader.projectId}`;
-    const second = await addPaid(tx, await addUser(tx, 'second'), 4_900_000, 4_900_000);
-    const beta = await addPaid(tx, await addUser(tx, 'beta'), 1_000_000, 1_000_000);
+    // Ставки считаются от текущего максимума живого борда, а не от круглых
+    // чисел: этот тест уже падал на ВЕРНОЙ хранимке, когда настоящий лидер
+    // базы обогнал зашитые 5 000 000 (та же история, что с находкой I7 —
+    // см. 12 Состояние реализации).
+    const [top] = await tx`
+      select coalesce(max(paid_amount), 0) as amount from projects
+       where type = 'paid' and status = 'active'`;
+    const base = Number(top.amount);
 
-    const { result } = await attack(tx, beta, leader.projectId, 2_000_000, 'atk-lead');
+    const leader = await addPaid(
+      tx,
+      await addUser(tx, 'leader'),
+      base + 2_000_000,
+      base + 2_000_000,
+    );
+    await tx`update projects set rank1_since = now() where id = ${leader.projectId}`;
+    const second = await addPaid(
+      tx,
+      await addUser(tx, 'second'),
+      base + 1_900_000,
+      base + 1_900_000,
+    );
+    const beta = await addPaid(tx, await addUser(tx, 'beta'), base + 10_000, base + 10_000);
+
+    // Урон роняет лидера ниже второго, но атакующего выше второго не поднимает:
+    // проверяется переезд отметки к СТАРОМУ второму, а не к атакующему.
+    const { result } = await attack(tx, beta, leader.projectId, 150_000, 'atk-lead');
     assertEquals(result.applied, true);
 
     const held = async (id: number) => {
