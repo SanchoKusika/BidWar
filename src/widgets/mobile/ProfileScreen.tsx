@@ -67,8 +67,13 @@ export interface ProfileScreenProps {
    * Ответы ещё в пути — экран держит место, а не рисует пустоту. Без этого
    * профиль собирался на глазах: сначала пустой список, потом карточки, потом
    * плитка трат, и каждый приход толкал всё, что ниже.
+   *
+   * Флага два, потому что ответа тоже два и приходят они врозь. С одним общим
+   * список проектов ждал бы ответа про траты — и показывал заглушку над
+   * списком, про который уже известно, что он пуст.
    */
-  loading?: boolean;
+  projectsLoading?: boolean;
+  spendingLoading?: boolean;
   /**
    * Перечитать свои записи. Витрина обновляется сама после оплаты, но профиль
    * открывают и просто так — а ставка и позиция к этому моменту могли уже
@@ -124,7 +129,8 @@ export function ProfileScreen({
   compactAmounts = false,
   settings,
   onEarn,
-  loading = false,
+  projectsLoading = false,
+  spendingLoading = false,
   onAdd,
   onOpenProject,
   onRaise,
@@ -163,7 +169,13 @@ export function ProfileScreen({
               </Button>
             }
           />
-          {!spending && loading && <SkeletonBox height={96} radius="var(--radius-card)" />}
+          {!spending && spendingLoading && (
+            <SkeletonBox
+              height={96}
+              radius="var(--radius-card)"
+              className={styles.balanceSkeleton}
+            />
+          )}
           {spending && (
             // Итог — не чек: он складывает платежи, которые могли пройти в
             // разных валютах, а сложить их можно только в очках. Поэтому здесь
@@ -213,7 +225,7 @@ export function ProfileScreen({
           </SectionLabel>
 
           <Gutter className={styles.projects}>
-            {loading && projects.length === 0 ? (
+            {projectsLoading && projects.length === 0 ? (
               <SkeletonCard showActions />
             ) : projects.length > 0 ? (
               projects.map(({ project, rank }) => (
@@ -275,7 +287,7 @@ export function ProfileScreen({
           />
         </Gutter>
 
-        {!spending && loading && (
+        {!spending && spendingLoading && (
           <Gutter>
             <SkeletonBox height={84} radius="var(--radius-card)" />
           </Gutter>

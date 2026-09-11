@@ -124,7 +124,8 @@ export function ProfilePage({ nav }: ProfilePageProps) {
             : undefined
         }
         projects={mine.projects}
-        loading={mine.loading || spendingLoading}
+        projectsLoading={mine.loading}
+        spendingLoading={spendingLoading}
         onRefresh={refresh}
         refreshing={mine.refreshing}
         // Формат ссылки — t.me/<bot>?start=<users.id> (01 Механики): раньше

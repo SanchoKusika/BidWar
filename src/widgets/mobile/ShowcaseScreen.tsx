@@ -352,6 +352,9 @@ export function ShowcaseScreen({
         right={
           // Место под число держится с первого кадра: иначе шапка подрастала в
           // момент ответа и толкала вниз всё, что под ней.
+          // `null` — это и «ещё грузится», и «числа не будет»: у гостя и после
+          // неудачной авторизации оно остаётся пустым навсегда. Заглушка стоит
+          // только пока сессия в пути.
           segment === 'free' ? (
             voteBalance !== null ? (
               <StatBlock
@@ -361,9 +364,9 @@ export function ShowcaseScreen({
                 size="md"
                 showUnit={false}
               />
-            ) : (
+            ) : sessionStatus === 'loading' ? (
               <SkeletonStat />
-            )
+            ) : undefined
           ) : undefined
         }
         action={<HeaderAction icon="gavel" label={strings.rules.chip} onClick={onOpenRules} />}

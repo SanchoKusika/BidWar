@@ -137,21 +137,3 @@ export function SkeletonProjectPage({ className }: { className?: string }) {
     </div>
   );
 }
-
-/**
- * The profile while its three answers are in flight — session, own projects and
- * spending. They land at different moments, and without reserved space each
- * arrival shoved the blocks below it.
- */
-export function SkeletonProfile({ className }: { className?: string }) {
-  return (
-    <div aria-busy="true" className={cx(styles.page, className)}>
-      <div className={styles.pageRow}>
-        <Bar w="48%" h={96} r="var(--radius-card)" />
-        <Bar w="48%" h={96} r="var(--radius-card)" />
-      </div>
-      <SkeletonCard />
-      <Bar w="100%" h={84} r="var(--radius-card)" />
-    </div>
-  );
-}

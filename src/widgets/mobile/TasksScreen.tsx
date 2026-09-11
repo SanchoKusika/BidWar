@@ -50,13 +50,15 @@ export function TasksScreen({
         title={t.title}
         meta={t.meta}
         right={
+          // Место под число держится, пока ответ в пути. Но `null` бывает и
+          // конечным состоянием — у гостя без initData и после неудачной
+          // авторизации числа не будет никогда, и вечно мерцающая заглушка
+          // врала бы про загрузку, которой нет.
           voteBalance !== null ? (
             <StatBlock segment="free" value={voteBalance} label={t.yourVotes} showUnit={false} />
-          ) : (
-            // Шапка не должна подрастать в момент ответа — место под число есть
-            // с первого кадра.
+          ) : loading ? (
             <SkeletonStat />
-          )
+          ) : undefined
         }
         action={<HeaderAction icon="gavel" label={strings.rules.chip} onClick={onRules} />}
       />
