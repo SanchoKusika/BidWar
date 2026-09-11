@@ -1,6 +1,6 @@
 import type { DocPage } from './types';
 
-export const docs = {
+export const docsEn = {
   about: {
     icon: 'info',
     title: 'About BidWar',
@@ -139,4 +139,4 @@ export const docs = {
   },
 } satisfies Record<string, DocPage>;
 
-export type DocId = keyof typeof docs;
+export type DocId = keyof typeof docsEn;

@@ -10,6 +10,7 @@
  * что позволяет спутать деньги с голосами.
  */
 
+import { strings } from '@/shared/i18n/strings';
 export type DisplayCurrency = 'UZS' | 'USD' | 'RUB';
 
 export const CURRENCY_SUFFIX: Record<DisplayCurrency, string> = {
@@ -98,26 +99,43 @@ export function formatCount(value: number): string {
   return group(n);
 }
 
-/** «Держит первое место N дн M ч» — 07 Экраны.md, карточка лидера топа. */
+/**
+ * Сколько проект держит первое место — подпись рядом с короной.
+ *
+ * Единица растёт вместе со сроком: минуты, часы, дни с часами. Раньше счёт шёл
+ * сразу в часах, и свежий лидер получал под корону «0 ч» — число, которое
+ * выглядит как ошибка, хотя означает «только что занял». Первая минута так и
+ * называется словами: «0 мин» ничем не лучше «0 ч».
+ */
 export function formatHeldDuration(sinceIso: string): string {
+  const d = strings.duration;
   const ms = Date.now() - new Date(sinceIso).getTime();
-  if (!Number.isFinite(ms) || ms <= 0) return '0 ч';
+  if (!Number.isFinite(ms) || ms < 60_000) return d.justNow;
 
-  const hours = Math.floor(ms / 3_600_000);
-  const days = Math.floor(hours / 24);
-  const restHours = hours % 24;
+  const minutes = Math.floor(ms / 60_000);
+  if (minutes < 60) return d.minutes(minutes);
 
-  return days > 0 ? `${days} дн ${restHours} ч` : `${hours} ч`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return d.hours(hours);
+
+  return d.daysHours(Math.floor(hours / 24), hours % 24);
 }
 
 /**
- * Полная дата — «28 August 2026». Интерфейс английский (shared/i18n), поэтому
- * локаль зафиксирована: en-GB даёт «день месяц год» без запятых, как в ките.
+ * Полная дата — «28 August 2026» / «28 августа 2026».
+ *
+ * Локаль берётся из словаря, а не зашита: до трёх языков она была
+ * зафиксирована в `en-GB`, и русский интерфейс печатал английские месяцы.
+ * Порядок «день месяц год» одинаков во всех трёх — разница только в словах.
  */
 export function formatFullDate(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  return date.toLocaleDateString(strings.duration.dateLocale, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 }
 
 /**
@@ -126,24 +144,25 @@ export function formatFullDate(iso: string): string {
  * секунды создавали бы иллюзию точности, которой у выборки нет.
  */
 export function formatAgo(iso: string): string {
+  const d = strings.duration;
   const ms = Date.now() - new Date(iso).getTime();
   if (!Number.isFinite(ms)) return '—';
-  if (ms < 60_000) return 'just now';
+  if (ms < 60_000) return d.justNow;
 
   const minutes = Math.floor(ms / 60_000);
-  if (minutes < 60) return `${minutes} min`;
+  if (minutes < 60) return d.minutes(minutes);
 
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} h`;
+  if (hours < 24) return d.hours(hours);
 
-  return `${Math.floor(hours / 24)} d`;
+  return d.days(Math.floor(hours / 24));
 }
 
 /** Короткая дата с временем для строки чека — «28 Aug, 14:05». */
 export function formatReceiptDate(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleDateString('en-GB', {
+  return date.toLocaleDateString(strings.duration.dateLocale, {
     day: 'numeric',
     month: 'short',
     hour: '2-digit',

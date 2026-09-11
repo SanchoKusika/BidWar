@@ -27,6 +27,7 @@ interface TgWebApp {
   HapticFeedback?: {
     impactOccurred(style: 'light' | 'medium' | 'heavy'): void;
     notificationOccurred(type: 'success' | 'error' | 'warning'): void;
+    selectionChanged?(): void;
   };
   ready(): void;
   expand(): void;
@@ -178,6 +179,9 @@ export function createTelegramPlatform(tg: TgWebApp): Platform {
       const h = tg.HapticFeedback;
       if (!h) return;
       if (kind === 'success' || kind === 'error') h.notificationOccurred(kind);
+      // `selectionChanged` появился позже остальных и на старых клиентах его
+      // может не быть — там выбор отзывается самым лёгким ударом, а не молчит.
+      else if (kind === 'selection') (h.selectionChanged ?? (() => h.impactOccurred('light')))();
       else h.impactOccurred(kind);
     },
 

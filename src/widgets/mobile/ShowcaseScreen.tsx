@@ -60,7 +60,7 @@ function formatMetric(value: number, segment: ShowcaseType, money: MoneyFormat):
 }
 
 function unitOf(segment: ShowcaseType, currency: DisplayCurrency): string {
-  return segment === 'paid' ? CURRENCY_SUFFIX[currency] : 'votes';
+  return segment === 'paid' ? CURRENCY_SUFFIX[currency] : strings.vote.unit;
 }
 
 type CategoryById = Map<number, CategoryStat>;
@@ -104,7 +104,9 @@ function tierFor(
   if (!band) return null;
 
   const last = items[Math.min(items.length, band.end) - 1];
-  const note = last ? `from ${formatMetric(metricOf(last), segment, money)} ${unit}` : undefined;
+  const note = last
+    ? s.tierFrom(`${formatMetric(metricOf(last), segment, money)} ${unit}`)
+    : undefined;
 
   return { label: band.label, note };
 }
@@ -338,11 +340,17 @@ export function ShowcaseScreen({
     <div className={styles.screen}>
       <PageHeader
         segment={segment}
-        title={segment === 'paid' ? 'Paid Top' : 'Free Top'}
+        title={segment === 'paid' ? s.paidTitle : s.freeTitle}
         meta={meta}
         right={
           segment === 'free' && voteBalance !== null ? (
-            <StatBlock segment="free" value={voteBalance} label={s.yourVotes} size="md" />
+            <StatBlock
+              segment="free"
+              value={voteBalance}
+              label={s.yourVotes}
+              size="md"
+              showUnit={false}
+            />
           ) : undefined
         }
         action={<HeaderAction icon="gavel" label={strings.rules.chip} onClick={onOpenRules} />}

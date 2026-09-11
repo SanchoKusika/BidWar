@@ -1142,6 +1142,7 @@ export type Database = {
         Returns: undefined
       }
       mark_notification_sent: { Args: { p_id: number }; Returns: undefined }
+      notification_handle: { Args: { p_user_id: string }; Returns: string }
       register_project_click: {
         Args: { p_project_id: number; p_user_id: string }
         Returns: boolean

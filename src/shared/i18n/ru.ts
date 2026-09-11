@@ -25,6 +25,26 @@ export const ru: PartialStrings = {
     taskLocked: 'Закрыто',
     amount: 'Сумма',
     balance: 'Баланс',
+    raise: 'Поднять',
+    attack: 'Атаковать',
+    giveVotes: 'Отдать голоса',
+    tenure: (held: string) => `Держит первое место · ${held}`,
+  },
+
+  tabs: {
+    paid: 'Платный',
+    free: 'Бесплатный',
+    tasks: 'Задания',
+    profile: 'Профиль',
+  },
+
+  duration: {
+    justNow: 'только что',
+    minutes: (value: number) => `${value} мин`,
+    hours: (value: number) => `${value} ч`,
+    daysHours: (days: number, hours: number) => `${days} дн ${hours} ч`,
+    days: (value: number) => `${value} дн`,
+    dateLocale: 'ru-RU',
   },
 
   common: {
@@ -151,6 +171,7 @@ export const ru: PartialStrings = {
     todayEmptyTitle: 'За сутки ничего не сдвинулось',
     todayEmptyNote: 'Ни одна ставка в этом топе не менялась последние 24 часа.',
     justHappened: 'Только что',
+    tierFrom: (amount: string) => `от ${amount}`,
     raiseMine: 'Поднять свою ставку',
     voteMine: 'Отдать голоса своему проекту',
     entryHintPaid: (price: string) =>
@@ -208,6 +229,13 @@ export const ru: PartialStrings = {
     title: 'Задания',
     meta: 'Выполняй задания, получай голоса. Голоса — не деньги.',
     yourVotes: 'ТВОИ ГОЛОСА',
+    visitTitle: 'Подтолкни платный проект',
+    visitNote: 'Открой проект из платного топа. Голос за проект, раз в сутки.',
+    referralTitle: 'Приглашай друзей',
+    referralNote:
+      'Голоса приходят, когда друг выполнит первое задание, а не когда откроет приложение.',
+    subscribeTitle: (channel: string) => `Подпишись на ${channel}`,
+    subscribeNote: 'Оставайся подписанным, чтобы голоса не пропали.',
     daily: 'Каждый день',
     oneTime: 'Разовые',
     emptyTitle: 'На сегодня всё',

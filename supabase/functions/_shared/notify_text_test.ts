@@ -50,7 +50,7 @@ Deno.test('серия атак говорит про серию, а не про 
     'EN',
   );
 
-  assertStringIncludes(text!, '3 hits');
+  assertStringIncludes(text!, 'attacked 3 times');
   assertStringIncludes(text!, `450${NBSP}000`, 'сумма складывается за всё окно');
 });
 
@@ -70,20 +70,50 @@ Deno.test('удар, не сдвинувший позицию, не врёт п�
     'EN',
   );
 
-  assertStringIncludes(text!, 'Still at #2');
+  assertStringIncludes(text!, 'holding at #2');
 });
 
-Deno.test('потеря места считает срок удержания днями и часами', () => {
-  const text = renderNotification(
-    { kind: 'rank_lost', payload: { project_name: 'Mebel', top: 'paid', held_seconds: 367200 } },
+Deno.test('сообщение обращается к человеку, а не рассказывает о нём', () => {
+  const attacked = renderNotification(
+    {
+      kind: 'attacked',
+      payload: { project_name: 'Mebel', attacker: '@beta', amount: 50000, count: 1 },
+    },
+    'EN',
+  );
+  const lost = renderNotification(
+    {
+      kind: 'rank_lost',
+      payload: { project_name: 'Mebel', top: 'paid', held_seconds: 3600, winner: '@gamma' },
+    },
     'EN',
   );
 
-  assertStringIncludes(text!, '4 d 6 h');
-  assertStringIncludes(text!, 'Paid Top');
+  assertStringIncludes(attacked!, 'attacked you');
+  assertStringIncludes(lost!, 'You are no longer #1');
 });
 
-Deno.test('короткое удержание не превращается в «0 д 0 ч»', () => {
+Deno.test('потеря места несёт корону, срок удержания и того, кто занял', () => {
+  const text = renderNotification(
+    {
+      kind: 'rank_lost',
+      payload: {
+        project_name: 'Mebel',
+        top: 'paid',
+        held_seconds: 367200,
+        winner: '@gamma',
+      },
+    },
+    'EN',
+  );
+
+  assertStringIncludes(text!, '👑');
+  assertStringIncludes(text!, '4 d 6 h');
+  assertStringIncludes(text!, 'Paid Top');
+  assertStringIncludes(text!, '@gamma took the spot');
+});
+
+Deno.test('неизвестный победитель не даёт оборванной фразы', () => {
   const text = renderNotification(
     { kind: 'rank_lost', payload: { project_name: 'Mebel', top: 'free', held_seconds: 900 } },
     'EN',
@@ -91,6 +121,7 @@ Deno.test('короткое удержание не превращается в 
 
   assertStringIncludes(text!, '15 min');
   assertStringIncludes(text!, 'Free Top');
+  assertEquals(text!.includes('took the spot'), false, 'без имени строки про него нет вовсе');
 });
 
 Deno.test('дайджест голосов считает отдачи, а не людей', () => {
@@ -111,15 +142,15 @@ Deno.test('одна отдача не приписывает себе колич
     'EN',
   );
 
-  assertEquals(text, '+4 votes for "Mebel".');
+  assertEquals(text, '🗳 Your project "Mebel" got +4 votes.');
 });
 
 Deno.test('приглашённые: один и несколько — разные фразы', () => {
   const one = renderNotification({ kind: 'referral', payload: { amount: 3, count: 1 } }, 'EN');
   const many = renderNotification({ kind: 'referral', payload: { amount: 9, count: 3 } }, 'EN');
 
-  assertStringIncludes(one!, 'your invite');
-  assertStringIncludes(many!, '3 invites');
+  assertStringIncludes(one!, 'someone you invited');
+  assertStringIncludes(many!, '3 people you invited');
 });
 
 Deno.test('три языка дают три разных текста', () => {
@@ -133,4 +164,21 @@ Deno.test('три языка дают три разных текста', () => {
 
 Deno.test('неизвестный вид не превращается в пустое сообщение', () => {
   assertEquals(renderNotification({ kind: 'whatever', payload: {} }, 'EN'), null);
+});
+
+Deno.test('русское числительное согласуется с числом ударов', () => {
+  const text = (count: number) =>
+    renderNotification(
+      {
+        kind: 'attacked',
+        payload: { project_name: 'Mebel', attacker: '@beta', amount: 1000, count },
+      },
+      'RU',
+    )!;
+
+  assertStringIncludes(text(2), '2 раза подряд');
+  assertStringIncludes(text(5), '5 раз подряд');
+  assertStringIncludes(text(11), '11 раз подряд');
+  assertStringIncludes(text(21), '21 раз подряд');
+  assertStringIncludes(text(22), '22 раза подряд');
 });

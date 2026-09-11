@@ -1,7 +1,7 @@
 import { Button } from '@/shared/ui/Button';
 import type { IconName } from '@/shared/ui/Icon';
 import { KeyRow } from '@/shared/ui/KeyRow';
-import { brand, docs, type DocId } from '@/shared/content';
+import { brand, getDocs, type DocId } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
 import { PageHeader } from './PageHeader';
 import { ChipRow } from './ChipRow';
@@ -26,7 +26,7 @@ const chips = () =>
   ORDER.map((id) => ({
     id,
     label: t.tabs[id],
-    icon: docs[id].icon as IconName,
+    icon: getDocs()[id].icon as IconName,
   }));
 
 /**
@@ -35,7 +35,7 @@ const chips = () =>
  * общего с сайтом.
  */
 export function DocScreen({ id, onBack, onDoc }: DocScreenProps) {
-  const doc = docs[id];
+  const doc = getDocs()[id];
 
   return (
     <>

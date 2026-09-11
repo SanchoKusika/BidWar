@@ -1,4 +1,4 @@
-export { TASK_ICON, isDaily, splitTasks } from './model';
+export { TASK_ICON, availableCount, isDaily, splitTasks, taskCopy } from './model';
 export { fetchTasks } from './api';
 export { useTaskBoard } from './hooks';
 export type { TaskBoard } from './api';

@@ -1,6 +1,6 @@
 import type { RuleSection } from './types';
 
-export const rules: readonly RuleSection[] = [
+export const rulesEn: readonly RuleSection[] = [
   {
     id: 'bidding',
     icon: 'gavel',

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/shared/ui/Button';
 import { Icon, type IconName } from '@/shared/ui/Icon';
 import { KeyRow } from '@/shared/ui/KeyRow';
-import { rules } from '@/shared/content';
+import { getRules, type RuleSection } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
 import { PageHeader } from './PageHeader';
 import { ChipRow } from './ChipRow';
@@ -18,7 +18,10 @@ export interface RulesScreenProps {
   onSupport: () => void;
 }
 
-const CHIPS = rules.map((r) => ({ id: r.id, label: r.title, icon: r.icon as IconName }));
+// Функция, а не константа: правила переведены на три языка, и собранный при
+// импорте список чипов остался бы на языке первого запуска.
+const chips = (sections: readonly RuleSection[]) =>
+  sections.map((r) => ({ id: r.id, label: r.title, icon: r.icon as IconName }));
 
 /**
  * Правила игры (design/ui_kits/mini_app/Screens.jsx). Текст берётся из
@@ -26,8 +29,9 @@ const CHIPS = rules.map((r) => ({ id: r.id, label: r.title, icon: r.icon as Icon
  * читаться одинаково на обеих площадках, иначе спор о списании не разрешить.
  */
 export function RulesScreen({ anchor, onBack, onSupport }: RulesScreenProps) {
-  const [active, setActive] = useState(anchor ?? rules[0]?.id ?? '');
-  const rule = rules.find((r) => r.id === active) ?? rules[0];
+  const sections = getRules();
+  const [active, setActive] = useState(anchor ?? sections[0]?.id ?? '');
+  const rule = sections.find((r) => r.id === active) ?? sections[0];
 
   if (!rule) return null;
 
@@ -36,7 +40,7 @@ export function RulesScreen({ anchor, onBack, onSupport }: RulesScreenProps) {
       <PageHeader title={t.title} meta={t.meta} onBack={onBack} />
 
       <ScreenBody>
-        <ChipRow items={CHIPS} value={active} onChange={setActive} />
+        <ChipRow items={chips(sections)} value={active} onChange={setActive} />
 
         <Gutter>
           <Card>

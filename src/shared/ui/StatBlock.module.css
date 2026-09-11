@@ -67,10 +67,17 @@
   white-space: nowrap;
 }
 
+/*
+  Единица — часть числа, а не сноска под ним: она держит примерно 55-60% от
+  кегля суммы. До этого она была фиксированно мелкой (13px под 40px суммы), и
+  рядом с крупной цифрой валюта читалась как случайный хвостик — а именно она
+  отличает деньги от голосов.
+*/
 .unit {
   font: var(--type-micro);
   font-size: var(--stat-unit-fs);
-  color: var(--text-muted);
+  font-weight: var(--fw-bold);
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
@@ -81,17 +88,17 @@
 
 .stat[data-size='md'] {
   --stat-font: var(--type-amount-md);
-  --stat-unit-fs: var(--fs-11);
+  --stat-unit-fs: var(--fs-12);
 }
 
 .stat[data-size='lg'] {
   --stat-font: var(--type-amount-lg);
-  --stat-unit-fs: var(--fs-12);
+  --stat-unit-fs: var(--fs-15);
 }
 
 .stat[data-size='hero'] {
   --stat-font: var(--type-amount-hero);
-  --stat-unit-fs: var(--fs-13);
+  --stat-unit-fs: var(--fs-24);
 }
 
 .delta {

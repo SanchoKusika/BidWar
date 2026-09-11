@@ -158,7 +158,7 @@ export function ProjectCard({
           <span className={styles.counters}>
             {showTenure && (
               <Counter
-                title={`Держит первое место ${heldFor}`}
+                title={t.tenure(heldFor ?? '')}
                 icon={<Icon name="crown" size={13} color="var(--medal-1-line)" />}
               >
                 {heldFor}
@@ -215,7 +215,7 @@ export function ProjectCard({
               disabled={actionsDisabled}
               onClick={stop(onRaise)}
             >
-              Raise
+              {t.raise}
             </Button>
           )}
           {onAttack && (
@@ -227,7 +227,7 @@ export function ProjectCard({
               disabled={actionsDisabled}
               onClick={stop(onAttack)}
             >
-              Attack
+              {t.attack}
             </Button>
           )}
           {onVote && (
@@ -239,7 +239,7 @@ export function ProjectCard({
               disabled={actionsDisabled}
               onClick={stop(onVote)}
             >
-              Give votes
+              {t.giveVotes}
             </Button>
           )}
           {onDetails && (

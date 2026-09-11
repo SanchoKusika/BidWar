@@ -4,7 +4,7 @@ import { Icon, type IconName } from '@/shared/ui/Icon';
 import { KeyRow, type KeyRowTone } from '@/shared/ui/KeyRow';
 import { CURRENCY_SUFFIX, formatMoney, type DisplayCurrency } from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
-import { activePaymentMethods } from '@/shared/content';
+import { getPaymentMethods } from '@/shared/content';
 import { Sheet } from './Sheet';
 import { SheetHeader } from './SheetHeader';
 import { SheetActions, SheetField, SheetFootnote, SheetNote, SheetRows } from './SheetParts';
@@ -54,7 +54,8 @@ function title(kind: PayPayload['kind']): string {
  * покупает. Поэтому в шторке нет ни пополнения, ни остатка.
  */
 export function PaySheet({ open, payload, currency = 'UZS', onClose, onConfirm }: PaySheetProps) {
-  const [providerId, setProviderId] = useState(activePaymentMethods[0].id);
+  const methods = getPaymentMethods();
+  const [providerId, setProviderId] = useState(methods[0].id);
   // Находка I4 финального ревью: без своего "в полёте" второй тап по Pay на
   // медленной сети успевал уйти вторым запросом create-payment ещё до того,
   // как первый вернулся и закрыл шторку через pending — двойной платёж.
@@ -64,7 +65,7 @@ export function PaySheet({ open, payload, currency = 'UZS', onClose, onConfirm }
   if (open !== prevOpen) {
     setPrevOpen(open);
     if (open) {
-      setProviderId(activePaymentMethods[0].id);
+      setProviderId(methods[0].id);
       setSubmitting(false);
     }
   }
@@ -73,7 +74,7 @@ export function PaySheet({ open, payload, currency = 'UZS', onClose, onConfirm }
 
   const attack = payload.kind === 'attack';
   const tone = attack ? 'attack' : 'paid';
-  const provider = activePaymentMethods.find((p) => p.id === providerId) ?? activePaymentMethods[0];
+  const provider = methods.find((p) => p.id === providerId) ?? methods[0];
   const mock = provider.id === 'mock';
   const amount = formatMoney(payload.amount, { currency, compact: false });
 
@@ -126,7 +127,7 @@ export function PaySheet({ open, payload, currency = 'UZS', onClose, onConfirm }
 
       <SheetField label={t.methodLabel}>
         <div className={styles.methods}>
-          {activePaymentMethods.map((p) => {
+          {methods.map((p) => {
             const on = p.id === providerId;
             return (
               <button
@@ -156,7 +157,7 @@ export function PaySheet({ open, payload, currency = 'UZS', onClose, onConfirm }
       </SheetField>
 
       <SheetFootnote tone="muted">
-        {mock ? t.chargeNoteMock : t.chargeNote(provider.name, provider.unit)}
+        {mock ? t.chargeNoteMock : t.chargeNote(provider.name, provider.currency)}
       </SheetFootnote>
 
       <SheetActions onSecondary={handleClose} secondaryDisabled={submitting}>

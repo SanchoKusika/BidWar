@@ -24,6 +24,26 @@ export const uz: PartialStrings = {
     taskLocked: 'Yopiq',
     amount: 'Summa',
     balance: 'Balans',
+    raise: "Ko'tarish",
+    attack: 'Hujum qilish',
+    giveVotes: 'Ovoz berish',
+    tenure: (held: string) => `Birinchi o'rinni ushlab turibdi · ${held}`,
+  },
+
+  tabs: {
+    paid: "To'lovli",
+    free: 'Bepul',
+    tasks: 'Topshiriqlar',
+    profile: 'Profil',
+  },
+
+  duration: {
+    justNow: 'hozirgina',
+    minutes: (value: number) => `${value} daq`,
+    hours: (value: number) => `${value} soat`,
+    daysHours: (days: number, hours: number) => `${days} kun ${hours} soat`,
+    days: (value: number) => `${value} kun`,
+    dateLocale: 'uz-UZ',
   },
 
   common: {
@@ -149,6 +169,7 @@ export const uz: PartialStrings = {
     todayEmptyTitle: 'Bugun hech narsa qimirlamadi',
     todayEmptyNote: "Bu topda oxirgi 24 soatda birorta stavka o'zgarmadi.",
     justHappened: 'Hozirgina',
+    tierFrom: (amount: string) => `${amount} dan`,
     raiseMine: "O'z stavkamni ko'tarish",
     voteMine: "O'z loyihamga ovoz berish",
     entryHintPaid: (price: string) =>
@@ -207,6 +228,13 @@ export const uz: PartialStrings = {
     title: 'Topshiriqlar',
     meta: 'Topshiriqlarni bajaring, ovoz oling. Ovoz — pul emas.',
     yourVotes: 'SIZNING OVOZLARINGIZ',
+    visitTitle: "To'lovli loyihani qo'llab-quvvatlang",
+    visitNote: "To'lovli topdagi loyihani oching. Har loyiha uchun kuniga bitta ovoz.",
+    referralTitle: "Do'stlaringizni taklif qiling",
+    referralNote:
+      "Ovozlar do'stingiz birinchi topshiriqni bajarganda keladi, ilovani ochganda emas.",
+    subscribeTitle: (channel: string) => `${channel} kanaliga obuna bo'ling`,
+    subscribeNote: 'Ovozlar saqlanishi uchun obunada qoling.',
     daily: 'Har kuni',
     oneTime: 'Bir martalik',
     emptyTitle: 'Bugunga shu',

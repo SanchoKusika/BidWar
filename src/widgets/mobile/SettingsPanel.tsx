@@ -3,7 +3,7 @@ import { SettingsGroup, SettingsRow } from '@/shared/ui/Settings';
 import { Switch } from '@/shared/ui/Switch';
 import type { DisplayCurrency } from '@/shared/lib/format';
 import type { AppSettings, ThemeChoice } from '@/shared/settings';
-import { brand, payments, type DocId } from '@/shared/content';
+import { brand, getPaymentProviders, type DocId } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
 import { LOCALES, type Locale } from '@/shared/i18n/locale';
 import styles from './SettingsPanel.module.css';
@@ -70,7 +70,13 @@ const themeOptions = () => [
   { value: 'dark', label: t.themeDark },
 ];
 
-const PROVIDERS = payments.map((p) => p.name).join(' · ');
+// Функция: список читает язык в момент отрисовки. Провайдеры продукта, а не
+// сегодняшние способы оплаты: под моком строка иначе сообщала бы, что площадка
+// принимает «Test payment».
+const providers = () =>
+  getPaymentProviders()
+    .map((p) => p.name)
+    .join(' · ');
 
 /**
  * Настройки живут внутри профиля (design/ui_kits/mini_app/Screens.jsx):
@@ -214,7 +220,7 @@ export function SettingsPanel({
         {/* Строка со значением и без действия: список провайдеров — сведение,
             а не кнопка. Открывать по ней нечего, и `disabled` тут врал бы про
             действие, которого не задумано. */}
-        <SettingsRow icon="credit-card" title={t.paymentMethods} value={PROVIDERS} />
+        <SettingsRow icon="credit-card" title={t.paymentMethods} value={providers()} />
         {onPaymentHistory && (
           <SettingsRow icon="receipt-text" title={t.paymentHistory} onPress={onPaymentHistory} />
         )}

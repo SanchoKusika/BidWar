@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import { cx } from '@/shared/lib/cx';
+import { haptic } from '@/shared/lib/haptic';
 import styles from './Segmented.module.css';
 
 export type SegmentedOption = string | { value: string; label: string };
@@ -42,7 +43,13 @@ export function Segmented({
             role="tab"
             aria-selected={optionValue === value}
             className={styles.option}
-            onClick={() => onChange?.(optionValue)}
+            onClick={() => {
+              // Выбор уже случился — отзываемся по факту, а не авансом.
+              // Повторное нажатие активного сегмента молчит: ничего не
+              // изменилось.
+              if (optionValue !== value) haptic('selection');
+              onChange?.(optionValue);
+            }}
           >
             {optionLabel}
           </button>
