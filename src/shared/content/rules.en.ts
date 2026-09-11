@@ -42,6 +42,7 @@ export const rulesEn: readonly RuleSection[] = [
       'You choose where votes go — all of them on your own project, or spread across others.',
       'Votes given are final. There is no take-back and no decay, so the Free Top only ever grows.',
       'Rewards are fixed by the platform, not by project owners: open a project +1, follow a link +1, subscribe to a channel +2, invite a friend +3.',
+      'Opening projects pays up to ten times a day. The cap keeps the vote supply tied to real attention rather than to how fast someone can tap through the board.',
       'A task reward is credited once per project. Subscriptions aren’t re-checked afterward, so votes already earned are never taken back — unsubscribing later doesn’t undo the reward.',
       'Tasks are the platform’s own list. Nobody can create, price or buy a task — that is what stops votes from having a market price.',
       'Free Top projects cannot be attacked and cannot attack. Position is only ever earned upward.',

@@ -59,7 +59,7 @@ Edge Functions `PAYMENT_PROVIDER=mock`, а не флаг `PREVIEW.mockPayments`:
 запуска, флаг `PREVIEW.mockPayments` снимается тем же заходом, но он
 косметический.
 
-**Тесты есть, раннер `deno test`.** `npm run test` — 116 быстрых тестов без базы,
+**Тесты есть, раннер `deno test`.** `npm run test` — 118 быстрых тестов без базы,
 входит в `npm run check` и в CI. `npm run test:db` — интеграционные тесты
 хранимок против живой базы, требует `SUPABASE_DB_URL`, в `check` и CI не
 входит намеренно.
