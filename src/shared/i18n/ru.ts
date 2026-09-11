@@ -46,6 +46,18 @@ export const ru: PartialStrings = {
     million: 'млн',
   },
 
+  own: {
+    position: 'ТВОЯ ПОЗИЦИЯ',
+    bid: 'ТВОЯ СТАВКА',
+    votes: 'ТВОИ ГОЛОСА',
+    bidShort: 'СТАВКА',
+    votesShort: 'ГОЛОСА',
+    noEntryPaid: 'В платном топе записи пока нет',
+    noEntryFree: 'В бесплатном топе записи пока нет',
+    addMine: 'Добавить свой проект',
+    addMore: 'Добавить проект',
+  },
+
   tabs: {
     paid: 'Платный',
     free: 'Бесплатный',
@@ -187,6 +199,7 @@ export const ru: PartialStrings = {
     todayEmptyNote: 'Ни одна ставка в этом топе не менялась последние 24 часа.',
     justHappened: 'Только что',
     tierFrom: (amount: string) => `от ${amount}`,
+    tier: (rank: number) => `Топ-${rank}`,
     raiseMine: 'Поднять свою ставку',
     voteMine: 'Отдать голоса своему проекту',
     entryHintPaid: (price: string) =>

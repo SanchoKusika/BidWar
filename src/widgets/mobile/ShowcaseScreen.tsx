@@ -41,10 +41,10 @@ const s = strings.showcase;
 // end — последний ранг яруса: у первых двух по 10 строк, у третьего — 30
 // (21..50), поэтому цену "от" нужно брать со строки end, не rank+9 — на
 // фиксированном шаге третий ярус называл "Top 50" цену 30-й строки.
-const TIER_BANDS: Record<number, { label: string; end: number }> = {
-  1: { label: 'Top 10', end: 10 },
-  11: { label: 'Top 20', end: 20 },
-  21: { label: 'Top 50', end: 50 },
+const TIER_BANDS: Record<number, { end: number }> = {
+  1: { end: 10 },
+  11: { end: 20 },
+  21: { end: 50 },
 };
 
 function metricOf(item: Pick<ProjectListItem, 'type' | 'paidAmount' | 'votes'>): number {
@@ -113,7 +113,7 @@ function tierFor(
     ? s.tierFrom(`${formatMetric(metricOf(last), segment, money)} ${unit}`)
     : undefined;
 
-  return { label: band.label, note };
+  return { label: s.tier(band.end), note };
 }
 
 function spotFor(

@@ -7,12 +7,15 @@ import {
   type DisplayCurrency,
 } from '@/shared/lib/format';
 import { cx } from '@/shared/lib/cx';
+import { strings } from '@/shared/i18n/strings';
 import type { Segment } from './OgPreview';
 import styles from './StatBlock.module.css';
 
-const SEG: Record<Segment, { icon: IconName; label: string }> = {
-  paid: { icon: 'coins', label: 'BID' },
-  free: { icon: 'vote', label: 'VOTES' },
+// Функция, а не константа: подписи читают язык в момент отрисовки, иначе
+// после переключения останутся на языке первого запуска.
+const SEG: Record<Segment, { icon: IconName; label: () => string }> = {
+  paid: { icon: 'coins', label: () => strings.own.bidShort },
+  free: { icon: 'vote', label: () => strings.own.votesShort },
 };
 
 export type StatSize = 'sm' | 'md' | 'lg' | 'hero';
@@ -76,7 +79,7 @@ export function StatBlock({
       className={cx(styles.stat, className)}
       style={style}
     >
-      {label !== null && <span className={styles.caption}>{label ?? seg.label}</span>}
+      {label !== null && <span className={styles.caption}>{label ?? seg.label()}</span>}
 
       <span className={styles.amount}>
         {showIcon && (

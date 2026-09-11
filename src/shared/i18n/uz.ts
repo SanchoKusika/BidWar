@@ -45,6 +45,18 @@ export const uz: PartialStrings = {
     million: 'mln',
   },
 
+  own: {
+    position: 'SIZNING POZITSIYANGIZ',
+    bid: 'SIZNING STAVKANGIZ',
+    votes: 'SIZNING OVOZLARINGIZ',
+    bidShort: 'STAVKA',
+    votesShort: 'OVOZLAR',
+    noEntryPaid: "To'lovli topda yozuvingiz yo'q",
+    noEntryFree: "Bepul topda yozuvingiz yo'q",
+    addMine: "O'z loyihamni qo'shish",
+    addMore: "Loyiha qo'shish",
+  },
+
   tabs: {
     paid: "To'lovli",
     free: 'Bepul',
@@ -185,6 +197,7 @@ export const uz: PartialStrings = {
     todayEmptyNote: "Bu topda oxirgi 24 soatda birorta stavka o'zgarmadi.",
     justHappened: 'Hozirgina',
     tierFrom: (amount: string) => `${amount} dan`,
+    tier: (rank: number) => `Top ${rank}`,
     raiseMine: "O'z stavkamni ko'tarish",
     voteMine: "O'z loyihamga ovoz berish",
     entryHintPaid: (price: string) =>

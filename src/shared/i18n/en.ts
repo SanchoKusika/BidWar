@@ -62,6 +62,23 @@ export const en = {
     million: 'mil',
   },
 
+  /**
+   * Панель «твоя позиция» под шапкой витрины и числовые подписи карточек.
+   * Отдельной секцией, потому что одни и те же слова стоят в трёх местах:
+   * панель, карточка проекта и блок с числом — и расходиться им нельзя.
+   */
+  own: {
+    position: 'YOUR POSITION',
+    bid: 'YOUR BID',
+    votes: 'YOUR VOTES',
+    bidShort: 'BID',
+    votesShort: 'VOTES',
+    noEntryPaid: 'No entry in the Paid Top yet',
+    noEntryFree: 'No entry in the Free Top yet',
+    addMine: 'Add my project',
+    addMore: 'Add project',
+  },
+
   /** Нижнее меню. Четыре вкладки, подписи короткие — места под ними нет. */
   tabs: {
     paid: 'Paid',
@@ -225,6 +242,8 @@ export const en = {
     justHappened: 'Just happened',
     /** Подпись яруса: «от 500 000 so'm» — цена входа в этот десяток. */
     tierFrom: (amount: string) => `from ${amount}`,
+    /** Подпись яруса списка: «Top 10» — читательская подсказка, не механика. */
+    tier: (rank: number) => `Top ${rank}`,
     raiseMine: 'Raise my bid',
     voteMine: 'Give votes to my project',
     entryHintPaid: (price: string) =>
