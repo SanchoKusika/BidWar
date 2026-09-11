@@ -5,10 +5,13 @@
  * корень, и тянуть туда клиентский модуль нельзя. Дублирование здесь
  * осознанное и маленькое — четыре сообщения против трёхсот строк интерфейса.
  *
- * Язык берётся из `language_code` Telegram, сохранённого при регистрации. Это
- * тот же источник, с которого стартует и мини-апп; если человек переключил язык
- * руками, бот об этом пока не знает — выбор живёт на устройстве и на сервер не
- * уезжает (срез 1.9, клиентская часть).
+ * Сообщение написано человеку и про него: «тебя атаковали», «ты больше не
+ * первый». Раньше оно было в третьем лице («„Aleksandr K“ больше не первый») —
+ * это читалось как новость о постороннем, хотя приходит в личный чат и
+ * единственному, кого это касается.
+ *
+ * Язык берётся из `users.language`, а если человек не выбирал — из
+ * `language_code` Telegram.
  */
 
 export type NotifyLocale = 'RU' | 'UZ' | 'EN';
@@ -36,6 +39,9 @@ const str = (value: unknown): string => (typeof value === 'string' ? value : '')
  * Суммы в сообщении — очки, то есть сумы: бот пишет о движении ставки, а не о
  * списании с карты. Валюта показа сюда не доезжает и не должна: она живёт в
  * настройках устройства, а сообщение уходит с сервера.
+ *
+ * Разряды разделены неразрывным пробелом: в Telegram сумма не имеет права
+ * переехать на вторую строку половиной.
  */
 function money(points: number, locale: NotifyLocale): string {
   const grouped = Math.abs(points)
@@ -44,7 +50,7 @@ function money(points: number, locale: NotifyLocale): string {
   return locale === 'EN' ? `${grouped} UZS` : `${grouped} so'm`;
 }
 
-/** «4 д 6 ч» — дни и часы, без минут: точность тут не нужна, а длина мешает. */
+/** «4 д 6 ч» — крупная единица вперёд, минуты только пока нет часов. */
 function held(seconds: number, locale: NotifyLocale): string {
   const total = Math.max(0, Math.floor(seconds));
   const days = Math.floor(total / 86400);
@@ -82,38 +88,59 @@ function attacked(p: Record<string, unknown>, locale: NotifyLocale): string {
   if (locale === 'RU') {
     const head =
       count > 1
-        ? `⚔️ «${project}» получил ${count} удара подряд: −${lost}.`
-        : `⚔️ ${attacker} атаковал «${project}»: −${lost}.`;
-    return moved ? `${head} Ты упал с #${before} на #${after}.` : `${head} Позиция пока #${after}.`;
+        ? `⚔️ Тебя атаковали ${count} раза подряд: −${lost} у «${project}».`
+        : `⚔️ ${attacker} атаковал тебя: −${lost} у «${project}».`;
+    return moved
+      ? `${head} Ты упал с #${before} на #${after}.`
+      : `${head} Ты держишься на #${after}.`;
   }
 
   if (locale === 'UZ') {
     const head =
       count > 1
-        ? `⚔️ «${project}» ketma-ket ${count} zarba oldi: −${lost}.`
-        : `⚔️ ${attacker} «${project}» loyihangizga hujum qildi: −${lost}.`;
+        ? `⚔️ Sizga ketma-ket ${count} marta hujum qilishdi: «${project}» −${lost}.`
+        : `⚔️ ${attacker} sizga hujum qildi: «${project}» −${lost}.`;
     return moved
       ? `${head} Siz #${before} dan #${after} ga tushdingiz.`
-      : `${head} O'rin hozircha #${after}.`;
+      : `${head} Siz #${after} da turibsiz.`;
   }
 
   const head =
     count > 1
-      ? `⚔️ "${project}" took ${count} hits in a row: −${lost}.`
-      : `⚔️ ${attacker} attacked "${project}": −${lost}.`;
+      ? `⚔️ You were attacked ${count} times in a row: −${lost} off "${project}".`
+      : `⚔️ ${attacker} attacked you: −${lost} off "${project}".`;
   return moved
     ? `${head} You dropped from #${before} to #${after}.`
-    : `${head} Still at #${after}.`;
+    : `${head} You are holding at #${after}.`;
 }
 
+/**
+ * Потеря первого места. Корона стоит здесь, а не на карточке победителя:
+ * сообщение приходит ровно в тот момент, когда она перешла к другому, и это
+ * единственная новость, ради которой его открывают.
+ *
+ * Кто занял место — главный вопрос, и до сих пор ответа в сообщении не было.
+ * Если нового лидера посчитать не удалось, строка про него просто не
+ * появляется: пустое «место занял » хуже, чем его отсутствие.
+ */
 function rankLost(p: Record<string, unknown>, locale: NotifyLocale): string {
   const project = str(p.project_name);
   const where = topName(str(p.top), locale);
   const kept = held(num(p.held_seconds), locale);
+  const winner = str(p.winner);
 
-  if (locale === 'RU') return `«${project}» больше не первый в ${where}. Держал ${kept}.`;
-  if (locale === 'UZ') return `«${project}» endi ${where} birinchi emas. ${kept} ushlab turdi.`;
-  return `"${project}" is no longer #1 in the ${where}. It held the spot for ${kept}.`;
+  if (locale === 'RU') {
+    const head = `👑 Ты больше не первый в ${where}: «${project}» держал корону ${kept}.`;
+    return winner ? `${head} Место занял ${winner}.` : head;
+  }
+
+  if (locale === 'UZ') {
+    const head = `👑 Siz endi ${where} birinchi emassiz: «${project}» tojni ${kept} ushlab turdi.`;
+    return winner ? `${head} O'rinni ${winner} egalladi.` : head;
+  }
+
+  const head = `👑 You are no longer #1 in the ${where}: "${project}" held the crown for ${kept}.`;
+  return winner ? `${head} ${winner} took the spot.` : head;
 }
 
 /**
@@ -130,17 +157,17 @@ function votes(p: Record<string, unknown>, locale: NotifyLocale): string {
 
   if (locale === 'RU') {
     return times > 1
-      ? `+${amount} голосов «${project}» — ${times} отдачи за раз.`
-      : `+${amount} голосов «${project}».`;
+      ? `🗳 Твоему проекту «${project}» отдали +${amount} голосов — ${times} отдачи за раз.`
+      : `🗳 Твоему проекту «${project}» отдали +${amount} голосов.`;
   }
   if (locale === 'UZ') {
     return times > 1
-      ? `«${project}» uchun +${amount} ovoz — ${times} marta berildi.`
-      : `«${project}» uchun +${amount} ovoz.`;
+      ? `🗳 «${project}» loyihangizga +${amount} ovoz berildi — ${times} marta.`
+      : `🗳 «${project}» loyihangizga +${amount} ovoz berildi.`;
   }
   return times > 1
-    ? `+${amount} votes for "${project}" — ${times} separate votes.`
-    : `+${amount} votes for "${project}".`;
+    ? `🗳 Your project "${project}" got +${amount} votes — ${times} separate votes.`
+    : `🗳 Your project "${project}" got +${amount} votes.`;
 }
 
 function referral(p: Record<string, unknown>, locale: NotifyLocale): string {
@@ -149,17 +176,17 @@ function referral(p: Record<string, unknown>, locale: NotifyLocale): string {
 
   if (locale === 'RU') {
     return friends > 1
-      ? `+${amount} голосов: ${friends} приглашённых выполнили первое задание.`
-      : `+${amount} голосов за приглашённого — он выполнил первое задание.`;
+      ? `🤝 +${amount} голосов: ${friends} приглашённых тобой выполнили первое задание.`
+      : `🤝 +${amount} голосов: приглашённый тобой выполнил первое задание.`;
   }
   if (locale === 'UZ') {
     return friends > 1
-      ? `+${amount} ovoz: ${friends} ta do'stingiz birinchi topshiriqni bajardi.`
-      : `+${amount} ovoz — taklif qilganingiz birinchi topshiriqni bajardi.`;
+      ? `🤝 +${amount} ovoz: siz taklif qilgan ${friends} kishi birinchi topshiriqni bajardi.`
+      : `🤝 +${amount} ovoz: siz taklif qilgan do'st birinchi topshiriqni bajardi.`;
   }
   return friends > 1
-    ? `+${amount} votes: ${friends} invites finished their first task.`
-    : `+${amount} votes — your invite finished their first task.`;
+    ? `🤝 +${amount} votes: ${friends} people you invited finished their first task.`
+    : `🤝 +${amount} votes: someone you invited finished their first task.`;
 }
 
 /** Подпись кнопки, открывающей мини-апп. */
