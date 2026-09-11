@@ -25,6 +25,8 @@ export const ru: PartialStrings = {
     taskLocked: 'Закрыто',
     amount: 'Сумма',
     balance: 'Баланс',
+    you: 'ТЫ',
+    catLeader: (category: string) => `Лидер категории «${category}»`,
     raise: 'Поднять',
     attack: 'Атаковать',
     giveVotes: 'Отдать голоса',
@@ -80,6 +82,7 @@ export const ru: PartialStrings = {
     back: 'Назад',
     done: 'Готово',
     continueToPayment: 'Перейти к оплате',
+    max: 'МАКС',
   },
 
   addProject: {

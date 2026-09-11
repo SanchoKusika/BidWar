@@ -11,8 +11,9 @@ import { strings } from '@/shared/i18n/strings';
 import type { Segment } from './OgPreview';
 import styles from './StatBlock.module.css';
 
-// Функция, а не константа: подписи читают язык в момент отрисовки, иначе
-// после переключения останутся на языке первого запуска.
+// Functions, not strings: a record built at module level keeps the language of
+// the first launch. The proxy in `strings` is read per access, so calling it at
+// render is what makes the caption follow the switch.
 const SEG: Record<Segment, { icon: IconName; label: () => string }> = {
   paid: { icon: 'coins', label: () => strings.own.bidShort },
   free: { icon: 'vote', label: () => strings.own.votesShort },
@@ -66,7 +67,10 @@ export function StatBlock({
   const text = isPaid
     ? formatMoney(value, { currency, compact })
     : formatVotes(value, { compact: compact ?? true });
-  const unit = isPaid ? CURRENCY_SUFFIX[currency] : 'votes';
+  // Read at render, like the caption above it: a module-level value would
+  // keep the language of the first launch, and this unit sits right under a
+  // caption that does not.
+  const unit = isPaid ? CURRENCY_SUFFIX[currency] : strings.vote.unit;
 
   const d = Number(delta) || 0;
 

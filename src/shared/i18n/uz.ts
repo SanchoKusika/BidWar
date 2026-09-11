@@ -24,6 +24,8 @@ export const uz: PartialStrings = {
     taskLocked: 'Yopiq',
     amount: 'Summa',
     balance: 'Balans',
+    you: 'SIZ',
+    catLeader: (category: string) => `${category} toifasining yetakchisi`,
     raise: "Ko'tarish",
     attack: 'Hujum qilish',
     giveVotes: 'Ovoz berish',
@@ -79,6 +81,7 @@ export const uz: PartialStrings = {
     back: 'Orqaga',
     done: 'Tayyor',
     continueToPayment: "To'lovga o'tish",
+    max: 'MAKS',
   },
 
   addProject: {

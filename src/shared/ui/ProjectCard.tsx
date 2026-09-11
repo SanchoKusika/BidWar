@@ -125,16 +125,13 @@ export function ProjectCard({
             {/* Лидерство в категории — то самое дешёвое первое место. Скрыто у
                 первой строки общего топа: две короны рядом не нужны. */}
             {catLeader && rank !== 1 && (
-              <span
-                className={cx(styles.chip, styles.catLeader)}
-                title={`Лидер категории «${catLeader}»`}
-              >
+              <span className={cx(styles.chip, styles.catLeader)} title={t.catLeader(catLeader)}>
                 <Icon name="crown" size={10} />
                 #1 {catLeader}
               </span>
             )}
 
-            {isOwn && <span className={cx(styles.chip, styles.own)}>YOU</span>}
+            {isOwn && <span className={cx(styles.chip, styles.own)}>{t.you}</span>}
           </div>
 
           {subtitle && <p className={styles.description}>{subtitle}</p>}

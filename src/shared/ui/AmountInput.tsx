@@ -161,7 +161,7 @@ export function AmountInput({
               disabled={disabled}
               onClick={() => nudge(max)}
             >
-              MAX
+              {strings.common.max}
             </button>
           )}
         </div>
