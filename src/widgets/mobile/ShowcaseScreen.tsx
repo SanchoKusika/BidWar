@@ -1,7 +1,7 @@
 import { CategoryTile } from '@/shared/ui/CategoryTile';
 import { ProjectCard } from '@/shared/ui/ProjectCard';
 import { TierDivider } from '@/shared/ui/TierDivider';
-import { SkeletonFeed } from '@/shared/ui/Skeleton';
+import { SkeletonBox, SkeletonFeed, SkeletonStat } from '@/shared/ui/Skeleton';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Button } from '@/shared/ui/Button';
 import { StatBlock } from '@/shared/ui/StatBlock';
@@ -350,14 +350,23 @@ export function ShowcaseScreen({
         title={segment === 'paid' ? s.paidTitle : s.freeTitle}
         meta={meta}
         right={
-          segment === 'free' && voteBalance !== null ? (
-            <StatBlock
-              segment="free"
-              value={voteBalance}
-              label={s.yourVotes}
-              size="md"
-              showUnit={false}
-            />
+          // Место под число держится с первого кадра: иначе шапка подрастала в
+          // момент ответа и толкала вниз всё, что под ней.
+          // `null` — это и «ещё грузится», и «числа не будет»: у гостя и после
+          // неудачной авторизации оно остаётся пустым навсегда. Заглушка стоит
+          // только пока сессия в пути.
+          segment === 'free' ? (
+            voteBalance !== null ? (
+              <StatBlock
+                segment="free"
+                value={voteBalance}
+                label={s.yourVotes}
+                size="md"
+                showUnit={false}
+              />
+            ) : sessionStatus === 'loading' ? (
+              <SkeletonStat />
+            ) : undefined
           ) : undefined
         }
         action={<HeaderAction icon="gavel" label={strings.rules.chip} onClick={onOpenRules} />}
@@ -377,8 +386,10 @@ export function ShowcaseScreen({
         {userId && (
           <>
             {ownLoading ? (
+              // Заглушка по высоте самой панели, а не строки ленты: подмена
+              // разной формы — это и есть прыжок, от которого заглушка ставится.
               <div className={styles.ownSkeleton}>
-                <SkeletonFeed rows={1} />
+                <SkeletonBox height={168} radius="var(--radius-card)" />
               </div>
             ) : (
               <OwnPositionPanel

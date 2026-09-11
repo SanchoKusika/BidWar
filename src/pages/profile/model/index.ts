@@ -57,6 +57,8 @@ export function useMyProjects(userId: string | null): MyProjectsState {
 
 export interface SpendingState {
   spending: Spending | null;
+  /** Показывать нечего и ответ в пути — экран держит под траты место. */
+  loading: boolean;
   retry: () => void;
 }
 
@@ -79,7 +81,7 @@ export function useMySpending(userId: string | null): SpendingState {
   }, []);
 
   const query = useQuery<Spending>(userId ? `spending:${userId}` : null, fetcher);
-  return { spending: query.data, retry: query.refresh };
+  return { spending: query.data, loading: query.loading, retry: query.refresh };
 }
 
 export interface NotificationPrefsState {
