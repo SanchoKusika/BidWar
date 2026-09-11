@@ -88,6 +88,49 @@ export async function isSubscribed(
   return SUBSCRIBED.includes(status as (typeof SUBSCRIBED)[number]);
 }
 
+export interface SendResult {
+  ok: boolean;
+  /** Текст отказа Telegram — уходит в `notifications.last_error` как есть. */
+  description?: string;
+  /** Отказ, который не лечится повтором: человек не начинал диалог или заблокировал бота. */
+  permanent: boolean;
+}
+
+/**
+ * Сообщение человеку с кнопкой, открывающей мини-апп.
+ *
+ * Писать можно только тем, кто сам начал диалог с ботом
+ * ([[06 Telegram-бот и Mini App]]). Проверять это заранее нечем: `initData`
+ * отдаёт `allows_write_to_pm` только при открытии мини-аппа, а очередь
+ * разбирается потом и без человека. Поэтому запрет узнаётся из ответа: 403
+ * означает «повторять бесполезно», и такая строка гасится сразу, а не ретраится
+ * пять раз.
+ */
+export async function sendMessage(
+  botToken: string,
+  chatId: string,
+  text: string,
+  button: { text: string; url: string },
+): Promise<SendResult> {
+  const data = await call<{ ok: boolean; description?: string; error_code?: number }>(
+    botToken,
+    'sendMessage',
+    {
+      chat_id: chatId,
+      text,
+      reply_markup: {
+        inline_keyboard: [[{ text: button.text, web_app: { url: button.url } }]],
+      },
+    },
+  );
+
+  return {
+    ok: data.ok === true,
+    description: data.description,
+    permanent: data.error_code === 403 || data.error_code === 400,
+  };
+}
+
 /**
  * Юзернейм канала из ссылки проекта. `t.me/joinchat/...` и `t.me/+hash` — это
  * приглашения в закрытый чат, а не публичный канал: по ним `getChat` не

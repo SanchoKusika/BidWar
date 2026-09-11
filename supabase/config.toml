@@ -460,3 +460,9 @@ verify_jwt = true
 
 [functions.check-subscription]
 verify_jwt = true
+
+# Отправщик уведомлений: его будит расписание базы через pg_net, а у него
+# Supabase-сессии нет — та же причина, что у двух вебхуков выше. Подлинность
+# доказывает заголовок `x-notify-secret`.
+[functions.notify]
+verify_jwt = false

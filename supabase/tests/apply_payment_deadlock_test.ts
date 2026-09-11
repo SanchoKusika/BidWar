@@ -63,6 +63,10 @@ async function cleanup(sql: postgres.Sql, f: Fixture | null) {
   await sql`delete from stake_transactions where actor_user_id = any(${users}::uuid[])`;
   await sql`delete from payment_transactions where user_id = any(${users}::uuid[])`;
   await sql`delete from projects where id = any(${projects}::bigint[])`;
+  // Атака кладёт жертве уведомление (срез 1.9), и оно ссылается на users:
+  // этот тест единственный, кто коммитит по-настоящему, поэтому убирает за
+  // собой и очередь.
+  await sql`delete from notifications where user_id = any(${users}::uuid[])`;
   await sql`delete from users where id = any(${users}::uuid[])`;
 }
 

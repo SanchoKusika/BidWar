@@ -115,8 +115,17 @@ export async function verifyInitData(
   return { user, authDate, startParam: params.get('start_param') };
 }
 
+/**
+ * Общий секрет в заголовке, сравнение константное по времени. Так доказывают
+ * подлинность вызовы без Supabase-сессии: вебхук Telegram и расписание базы,
+ * которое будит отправщика уведомлений.
+ */
+export function verifySecretHeader(req: Request, header: string, expected: string): boolean {
+  const provided = req.headers.get(header);
+  return provided !== null && timingSafeEqual(provided, expected);
+}
+
 /** Заголовок, которым Telegram подтверждает, что вебхук пришёл от него. */
 export function verifyWebhookSecret(req: Request, expected: string): boolean {
-  const provided = req.headers.get('x-telegram-bot-api-secret-token');
-  return provided !== null && timingSafeEqual(provided, expected);
+  return verifySecretHeader(req, 'x-telegram-bot-api-secret-token', expected);
 }

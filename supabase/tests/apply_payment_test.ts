@@ -494,6 +494,9 @@ Deno.test(
           await cleanupClient`delete from projects where id in ${cleanupClient(cleanup.projects)}`;
         }
         if (cleanup.users.length > 0) {
+          // Снятая отметка первого места кладёт владельцу уведомление (срез
+          // 1.9), а оно ссылается на users — убираем перед самими людьми.
+          await cleanupClient`delete from notifications where user_id in ${cleanupClient(cleanup.users)}`;
           await cleanupClient`delete from users where id in ${cleanupClient(cleanup.users)}`;
         }
       } finally {
