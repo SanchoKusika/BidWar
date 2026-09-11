@@ -182,6 +182,53 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          attempts: number
+          created_at: string
+          group_key: string
+          id: number
+          kind: string
+          last_error: string | null
+          payload: Json
+          send_after: string
+          sent_at: string | null
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          group_key?: string
+          id?: number
+          kind: string
+          last_error?: string | null
+          payload?: Json
+          send_after?: string
+          sent_at?: string | null
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          group_key?: string
+          id?: number
+          kind?: string
+          last_error?: string | null
+          payload?: Json
+          send_after?: string
+          sent_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_transactions: {
         Row: {
           confirmed_at: string | null
@@ -706,6 +753,10 @@ export type Database = {
           display_currency: string
           display_name: string
           id: string
+          notify_attacked: boolean
+          notify_rank_lost: boolean
+          notify_referral: boolean
+          notify_votes: boolean
           referrer_id: string | null
           status: string
           vote_balance: number
@@ -716,6 +767,10 @@ export type Database = {
           display_currency?: string
           display_name: string
           id?: string
+          notify_attacked?: boolean
+          notify_rank_lost?: boolean
+          notify_referral?: boolean
+          notify_votes?: boolean
           referrer_id?: string | null
           status?: string
           vote_balance?: number
@@ -726,6 +781,10 @@ export type Database = {
           display_currency?: string
           display_name?: string
           id?: string
+          notify_attacked?: boolean
+          notify_rank_lost?: boolean
+          notify_referral?: boolean
+          notify_votes?: boolean
           referrer_id?: string | null
           status?: string
           vote_balance?: number
@@ -1044,6 +1103,15 @@ export type Database = {
           balance_after: number
           reason: string
         }[]
+      }
+      enqueue_notification: {
+        Args: {
+          p_group_key: string
+          p_kind: string
+          p_payload: Json
+          p_user_id: string
+        }
+        Returns: undefined
       }
       register_project_click: {
         Args: { p_project_id: number; p_user_id: string }
