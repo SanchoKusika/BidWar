@@ -3,7 +3,7 @@ import { useSession } from '@/entities/user';
 import { categoryTitle, useCategoryStats } from '@/entities/category';
 import { registerClick, type ProjectListItem, type ShowcaseType } from '@/entities/project';
 import { useProjectActivity } from '@/entities/activity';
-import { SkeletonFeed } from '@/shared/ui/Skeleton';
+import { SkeletonProjectPage } from '@/shared/ui/Skeleton';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { PREVIEW } from '@/shared/config/preview';
 import { useSettings } from '@/shared/settings';
@@ -52,7 +52,7 @@ export function ProjectPage({
   if (status === 'loading') {
     return (
       <div className={styles.pad}>
-        <SkeletonFeed rows={3} />
+        <SkeletonProjectPage />
       </div>
     );
   }

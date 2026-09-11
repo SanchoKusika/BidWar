@@ -5,6 +5,7 @@ import { Icon } from '@/shared/ui/Icon';
 import { KeyRow } from '@/shared/ui/KeyRow';
 import { OgPreview } from '@/shared/ui/OgPreview';
 import { ProjectCard } from '@/shared/ui/ProjectCard';
+import { SkeletonBox, SkeletonCard } from '@/shared/ui/Skeleton';
 import { ReferralShareCard } from '@/shared/ui/ReferralShareCard';
 import { SectionLabel } from '@/shared/ui/SectionLabel';
 import {
@@ -63,6 +64,12 @@ export interface ProfileScreenProps {
   };
   projects: readonly { project: ProjectListItem; rank: number | null }[];
   /**
+   * Ответы ещё в пути — экран держит место, а не рисует пустоту. Без этого
+   * профиль собирался на глазах: сначала пустой список, потом карточки, потом
+   * плитка трат, и каждый приход толкал всё, что ниже.
+   */
+  loading?: boolean;
+  /**
    * Перечитать свои записи. Витрина обновляется сама после оплаты, но профиль
    * открывают и просто так — а ставка и позиция к этому моменту могли уже
    * измениться от чужого Raise или Attack.
@@ -117,6 +124,7 @@ export function ProfileScreen({
   compactAmounts = false,
   settings,
   onEarn,
+  loading = false,
   onAdd,
   onOpenProject,
   onRaise,
@@ -155,6 +163,7 @@ export function ProfileScreen({
               </Button>
             }
           />
+          {!spending && loading && <SkeletonBox height={96} radius="var(--radius-card)" />}
           {spending && (
             // Итог — не чек: он складывает платежи, которые могли пройти в
             // разных валютах, а сложить их можно только в очках. Поэтому здесь
@@ -204,7 +213,9 @@ export function ProfileScreen({
           </SectionLabel>
 
           <Gutter className={styles.projects}>
-            {projects.length > 0 ? (
+            {loading && projects.length === 0 ? (
+              <SkeletonCard showActions />
+            ) : projects.length > 0 ? (
               projects.map(({ project, rank }) => (
                 <ProjectCard
                   key={`${project.type}-${project.id}`}
@@ -263,6 +274,12 @@ export function ProfileScreen({
             }
           />
         </Gutter>
+
+        {!spending && loading && (
+          <Gutter>
+            <SkeletonBox height={84} radius="var(--radius-card)" />
+          </Gutter>
+        )}
 
         {spending && (
           <div ref={receiptsRef}>

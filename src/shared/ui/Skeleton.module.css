@@ -60,3 +60,35 @@
   flex-direction: column;
   gap: var(--stack-gap);
 }
+
+/*
+  Заглушки целых экранов. Геометрия повторяет сам экран, а не ленту: подмена
+  формы и есть тот прыжок, ради которого заглушка ставится.
+*/
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.pageHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--card-pad);
+  background: var(--surface-card);
+  border: var(--border-w) solid var(--border-subtle);
+  border-radius: var(--radius-card);
+}
+
+.pageRow {
+  display: flex;
+  gap: var(--space-4);
+}

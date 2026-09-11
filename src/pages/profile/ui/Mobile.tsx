@@ -71,7 +71,7 @@ export function ProfilePage({ nav }: ProfilePageProps) {
   const settings = useSettings();
   const prefs = useNotificationPrefs(userId);
   const mine = useMyProjects(userId);
-  const { spending, retry: retrySpending } = useMySpending(userId);
+  const { spending, loading: spendingLoading, retry: retrySpending } = useMySpending(userId);
   const referral = useReferralNumbers();
 
   const [removeOpen, setRemoveOpen] = useState(false);
@@ -124,6 +124,7 @@ export function ProfilePage({ nav }: ProfilePageProps) {
             : undefined
         }
         projects={mine.projects}
+        loading={mine.loading || spendingLoading}
         onRefresh={refresh}
         refreshing={mine.refreshing}
         // Формат ссылки — t.me/<bot>?start=<users.id> (01 Механики): раньше

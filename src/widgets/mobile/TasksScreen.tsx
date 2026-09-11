@@ -1,5 +1,5 @@
 import { EmptyState } from '@/shared/ui/EmptyState';
-import { SkeletonFeed } from '@/shared/ui/Skeleton';
+import { SkeletonFeed, SkeletonStat } from '@/shared/ui/Skeleton';
 import { SectionLabel } from '@/shared/ui/SectionLabel';
 import { StatBlock } from '@/shared/ui/StatBlock';
 import { TaskListItem } from '@/shared/ui/TaskListItem';
@@ -52,7 +52,11 @@ export function TasksScreen({
         right={
           voteBalance !== null ? (
             <StatBlock segment="free" value={voteBalance} label={t.yourVotes} showUnit={false} />
-          ) : undefined
+          ) : (
+            // Шапка не должна подрастать в момент ответа — место под число есть
+            // с первого кадра.
+            <SkeletonStat />
+          )
         }
         action={<HeaderAction icon="gavel" label={strings.rules.chip} onClick={onRules} />}
       />
