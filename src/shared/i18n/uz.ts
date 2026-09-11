@@ -53,6 +53,7 @@ export const uz: PartialStrings = {
       "Har akkauntga ko'pi bilan ikkita loyiha: biri to'lovli topda, biri bepulda. Havola bir xil bo'lishi mumkin — yozuvlar alohida raqobatlashadi.",
     submitFree: "Loyihani qo'shish",
     genericError: "Loyihani qo'shib bo'lmadi",
+    needsTelegram: "Loyiha qo'shish uchun mini-ilovani Telegram ichida oching",
   },
 
   raise: {

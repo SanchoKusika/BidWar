@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSession } from '@/entities/user';
 import { getPlatform } from '@/shared/platform';
 import { useSettings } from '@/shared/settings';
+import { strings } from '@/shared/i18n/strings';
 import { createProject, registerClick, type ProjectListItem } from '@/entities/project';
 import { toVoteActivityItems, useRecentVotes } from '@/entities/activity';
 import { castVotes } from '@/features/vote';
@@ -145,7 +146,7 @@ export function FreeMobile({ nav }: FreeMobileProps) {
         taken={{ free: Boolean(own.project) }}
         onSubmit={async ({ url, categoryId }) => {
           const initData = getPlatform().getInitData();
-          if (!initData) throw new Error('Открой мини-апп в Telegram, чтобы добавить проект');
+          if (!initData) throw new Error(strings.addProject.needsTelegram);
           await createProject({ initData, categoryId, url });
           setAddOpen(false);
           refreshBoard();
