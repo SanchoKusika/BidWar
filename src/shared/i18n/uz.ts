@@ -30,6 +30,21 @@ export const uz: PartialStrings = {
     tenure: (held: string) => `Birinchi o'rinni ushlab turibdi · ${held}`,
   },
 
+  categories: {
+    all: 'Hammasi',
+    channels: 'Kanallar',
+    bots: 'Botlar',
+    sites: 'Saytlar',
+    business: 'Biznes',
+    services: 'Xizmatlar',
+    profiles: 'Profillar',
+  },
+
+  units: {
+    thousand: 'ming',
+    million: 'mln',
+  },
+
   tabs: {
     paid: "To'lovli",
     free: 'Bepul',

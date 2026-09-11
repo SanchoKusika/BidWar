@@ -127,12 +127,25 @@ export function useNotificationPrefs(userId: string | null): NotificationPrefsSt
     (patch: PreferencesPatch) => {
       const initData = getPlatform().getInitData();
       if (!initData) return;
+
+      // Тумблер переключается сразу, а не после ответа сервера: это настройка,
+      // а не платёж, и ждать с ней нечего. До этого каждый щелчок держал палец
+      // на месте на всё время запроса — выглядело как подвисание, при том что
+      // остальные переключатели в тех же настройках отвечают мгновенно.
+      const previous = query.data;
+      if (previous) query.mutate({ ...previous, ...patch });
       setError(null);
+
       void savePreferences(initData, patch)
         .then((next) => {
+          // На экран всё равно ложится ответ сервера: значение, которого он не
+          // принял, не имеет права остаться включённым.
           query.mutate(next);
         })
         .catch((failure: unknown) => {
+          // Не доехало — возвращаем как было: тумблер, оставшийся в новом
+          // положении, обещал бы сообщения, которых не будет.
+          if (previous) query.mutate(previous);
           setError(failure instanceof Error ? failure.message : strings.settings.saveFailed);
         });
     },

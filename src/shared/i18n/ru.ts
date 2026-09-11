@@ -31,6 +31,21 @@ export const ru: PartialStrings = {
     tenure: (held: string) => `Держит первое место · ${held}`,
   },
 
+  categories: {
+    all: 'Все',
+    channels: 'Каналы',
+    bots: 'Боты',
+    sites: 'Сайты',
+    business: 'Бизнес',
+    services: 'Услуги',
+    profiles: 'Профили',
+  },
+
+  units: {
+    thousand: 'тыс',
+    million: 'млн',
+  },
+
   tabs: {
     paid: 'Платный',
     free: 'Бесплатный',

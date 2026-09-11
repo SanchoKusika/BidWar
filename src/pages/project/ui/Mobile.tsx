@@ -24,6 +24,8 @@ export interface ProjectPageProps {
   onBoost: (target: ProjectListItem, rank: number | null) => void;
   /** Уводит на вкладку Paid и просит открыть шторку атаки на этом проекте. */
   onAttack: (target: ProjectListItem, rank: number | null) => void;
+  /** Открыть страницу другого проекта — вторую запись того же аккаунта. */
+  onOpenProject: (id: number, segment: ShowcaseType) => void;
 }
 
 /** Кто держит позицию: публичного хендла в users нет (PREVIEW.ownerHandle). */
@@ -37,6 +39,7 @@ export function ProjectPage({
   onGoPaid,
   onBoost,
   onAttack,
+  onOpenProject,
 }: ProjectPageProps) {
   const { userId } = useSession();
   const { currency, compactAmounts } = useSettings();
@@ -115,7 +118,17 @@ export function ProjectPage({
       }
       onAttack={() => onAttack(project, rank)}
       onVote={() => {}}
-      onOpenOther={() => {}}
+      // Вторая запись того же аккаунта — такой же проект со своей страницей.
+      // Оба действия карточки были пустыми функциями: «Подробнее» никуда не
+      // вело, тап по телу не открывал ссылку — то есть блок выглядел рабочим и
+      // не делал ничего.
+      onOpenOther={() => otherEntry && onOpenProject(otherEntry.id, otherEntry.type)}
+      onOpenOtherLink={() => {
+        if (!otherEntry) return;
+        const initData = getPlatform().getInitData();
+        if (initData) registerClick({ initData, projectId: otherEntry.id }).catch(() => {});
+        getPlatform().openLink(otherEntry.url);
+      }}
       onRules={() => onRules(project.type === 'paid' ? 'attacks' : 'votes')}
     />
   );

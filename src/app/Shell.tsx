@@ -80,6 +80,9 @@ export function Shell() {
               onGoPaid={() => nav.setTab('paid')}
               onAttack={(target, rank) => nav.requestAttack(target, rank)}
               onBoost={(target, rank) => nav.requestBoost(target, rank)}
+              onOpenProject={(projectId, projectSegment) =>
+                nav.push({ name: 'project', id: projectId, segment: projectSegment })
+              }
             />
           )}
           {nav.current?.name === 'rules' && (

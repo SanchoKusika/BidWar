@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Icon } from './Icon';
 import { Button } from './Button';
 import { group } from '@/shared/lib/format';
+import { haptic } from '@/shared/lib/haptic';
 import { strings } from '@/shared/i18n/strings';
 import { cx } from '@/shared/lib/cx';
 import styles from './ReferralShareCard.module.css';
@@ -42,6 +43,9 @@ export function ReferralShareCard({
 
   const copy = () => {
     void navigator.clipboard?.writeText(link).catch(() => {});
+    // Копирование — событие, а не выбор: ссылка уже в буфере к этой строке.
+    // Отклик самый слабый, потому что ничего необратимого не случилось.
+    haptic('selection');
     setCopied(true);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setCopied(false), 1600);

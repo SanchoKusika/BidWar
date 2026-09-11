@@ -12,7 +12,12 @@ import {
   formatVotes,
   type DisplayCurrency,
 } from '@/shared/lib/format';
-import { CATEGORY_ICON, type CategoryStat } from '@/entities/category';
+import {
+  CATEGORY_ICON,
+  allCategoriesTitle,
+  categoryTitle,
+  type CategoryStat,
+} from '@/entities/category';
 import type {
   Movement24h,
   NeighborProject,
@@ -90,7 +95,7 @@ function catLeaderOf(item: ProjectListItem, byId: CategoryById): string | undefi
   // проекта с одинаковым названием в категории иначе получали бы корону
   // оба или не тот (код-ревью PR #10).
   const cat = byId.get(item.categoryId);
-  return cat && cat.leaderId === item.id ? cat.title : undefined;
+  return cat && cat.leaderId === item.id ? categoryTitle(cat.slug, cat.title) : undefined;
 }
 
 function tierFor(
@@ -321,7 +326,9 @@ export function ShowcaseScreen({
       ? segment === 'paid'
         ? s.paidRanking
         : s.freeRanking
-      : (activeCategory?.title ?? '');
+      : activeCategory
+        ? categoryTitle(activeCategory.slug, activeCategory.title)
+        : '';
 
   const meta = segment === 'paid' ? s.paidMeta(globalTotals.count) : s.freeMeta(globalTotals.count);
 
@@ -399,7 +406,7 @@ export function ShowcaseScreen({
         {(categories.length > 0 || items.length > 0) && (
           <div className={styles.categoriesScroll}>
             <CategoryTile
-              name="All"
+              name={allCategoriesTitle()}
               icon="layout-grid"
               segment={segment}
               pool={formatMetric(globalTotals.pool, segment, money)}
@@ -413,7 +420,7 @@ export function ShowcaseScreen({
             {categories.map((cat) => (
               <CategoryTile
                 key={cat.categoryId}
-                name={cat.title}
+                name={categoryTitle(cat.slug, cat.title)}
                 icon={CATEGORY_ICON[cat.slug] ?? 'folder'}
                 segment={segment}
                 pool={formatMetric(cat.pool, segment, money)}

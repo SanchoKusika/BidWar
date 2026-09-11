@@ -482,3 +482,37 @@ Deno.test('проверка по id засчитывает именно своё
     assertEquals(count, 0, 'задание площадки осталось нетронутым');
   });
 });
+
+Deno.test('visit платит не больше предела переходов в сутки', async () => {
+  await inRollback(async (tx) => {
+    const visitor = await addUser(tx, 'visitor');
+    const reward = await rewardFor(tx, 'visit');
+
+    const [limitRow] = await tx`
+      select coalesce((value ->> 'visit_per_day')::int, 10) as limit
+        from app_config where key = 'task_limits'`;
+    const limit = Number(limitRow.limit);
+
+    // Проектов на один больше предела: без него упереться было бы не во что.
+    // Владелец каждому свой — на аккаунт приходится одна платная запись
+    // (projects_one_active_per_user_and_type_idx).
+    const projects: number[] = [];
+    for (let i = 0; i <= limit; i += 1) {
+      projects.push(await addProject(tx, await addUser(tx, `owner-${i}`), 'paid', 100_000));
+    }
+
+    for (const projectId of projects.slice(0, limit)) {
+      await tx`select register_project_click(${projectId}, ${visitor})`;
+    }
+    assertEquals(await balanceOf(tx, visitor), reward * limit, 'предел оплачен целиком');
+
+    const extra = projects[limit]!;
+    const [click] = await tx`select register_project_click(${extra}, ${visitor}) as counted`;
+    assertEquals(click.counted, true, 'переход всё равно считается');
+    assertEquals(
+      await balanceOf(tx, visitor),
+      reward * limit,
+      'одиннадцатый заход голос не платит',
+    );
+  });
+});
