@@ -1,6 +1,6 @@
 import { getPlatform } from '@/shared/platform';
 import { useSession } from '@/entities/user';
-import { useCategoryStats } from '@/entities/category';
+import { categoryTitle, useCategoryStats } from '@/entities/category';
 import { registerClick, type ProjectListItem, type ShowcaseType } from '@/entities/project';
 import { useProjectActivity } from '@/entities/activity';
 import { SkeletonFeed } from '@/shared/ui/Skeleton';
@@ -95,7 +95,7 @@ export function ProjectPage({
       project={project}
       segment={project.type}
       rank={rank}
-      categoryTitle={category?.title ?? null}
+      categoryTitle={category ? categoryTitle(category.slug, category.title) : null}
       isOwn={userId !== null && project.userId === userId}
       currency={currency}
       compactAmounts={compactAmounts}

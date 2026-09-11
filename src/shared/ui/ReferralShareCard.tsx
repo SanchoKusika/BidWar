@@ -42,14 +42,22 @@ export function ReferralShareCard({
   useEffect(() => () => clearTimeout(timer.current), []);
 
   const copy = () => {
-    void navigator.clipboard?.writeText(link).catch(() => {});
-    // Копирование — событие, а не выбор: ссылка уже в буфере к этой строке.
-    // Отклик самый слабый, потому что ничего необратимого не случилось.
-    haptic('selection');
-    setCopied(true);
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => setCopied(false), 1600);
-    onCopy?.();
+    // Отклик и «Скопировано» — после того, как буфер принял ссылку, а не до.
+    // Записи может не случиться вовсе: в части WebView `clipboard` нет, а
+    // `writeText` умеет отказать. Подтверждать копирование, которого не было,
+    // хуже, чем промолчать: человек уйдёт вставлять прошлое содержимое буфера.
+    const written = navigator.clipboard?.writeText(link);
+    if (!written) return;
+
+    void written
+      .then(() => {
+        haptic('selection');
+        setCopied(true);
+        clearTimeout(timer.current);
+        timer.current = setTimeout(() => setCopied(false), 1600);
+        onCopy?.();
+      })
+      .catch(() => {});
   };
 
   return (

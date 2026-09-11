@@ -516,3 +516,77 @@ Deno.test('visit платит не больше предела переходо�
     );
   });
 });
+
+// Предел, который не держит под нагрузкой, — подпись, а не предел. Клики идут
+// каждый своим соединением: так они и приходят с телефона, и так вызовы не
+// делят пул с уборкой в конце.
+Deno.test('параллельные переходы не пробивают суточный предел', async () => {
+  const admin = postgres(url!, { max: 1, prepare: false });
+  const created: { users: string[]; projects: number[] } = { users: [], projects: [] };
+
+  try {
+    const [limitRow] = await admin`
+      select coalesce((value ->> 'visit_per_day')::int, 10) as limit
+        from app_config where key = 'task_limits'`;
+    const limit = Number(limitRow.limit);
+    const [rewardRow] = await admin`
+      select reward_votes from tasks where type = 'visit' and target_project_id is null limit 1`;
+    const reward = Number(rewardRow.reward_votes);
+
+    const [category] = await admin`select id from categories order by sort_order limit 1`;
+    const [visitor] = await admin`
+      insert into users (display_name) values ('race-visitor') returning id`;
+    created.users.push(visitor.id as string);
+
+    // На два проекта больше предела: столько кликов уйдёт разом.
+    for (let i = 0; i < limit + 2; i += 1) {
+      const [owner] = await admin`
+        insert into users (display_name) values (${'race-owner-' + i}) returning id`;
+      created.users.push(owner.id as string);
+      const [project] = await admin`
+        insert into projects (user_id, category_id, name, url, type, status, paid_amount)
+        values (${owner.id}, ${category.id}, 'R', ${'https://r.example/' + crypto.randomUUID()},
+                'paid', 'active', 100000)
+        returning id`;
+      created.projects.push(Number(project.id));
+    }
+
+    const clients = created.projects.map(() => postgres(url!, { max: 1, prepare: false }));
+    try {
+      // allSettled: отказ одного вызова не должен ни прерывать остальные, ни
+      // мешать проверке — предел обязан держаться в любом случае.
+      await Promise.allSettled(
+        created.projects.map(
+          (projectId, i) => clients[i]!`select register_project_click(${projectId}, ${visitor.id})`,
+        ),
+      );
+    } finally {
+      await Promise.allSettled(clients.map((c) => c.end()));
+    }
+
+    const [balance] = await admin`select vote_balance from users where id = ${visitor.id}`;
+    const [counted] = await admin`
+      select count(*)::int as n from project_clicks
+       where project_id = any(${created.projects}::bigint[])`;
+
+    assertEquals(
+      Number(balance.vote_balance),
+      reward * Math.min(limit, Number(counted.n)),
+      'оплачено ровно столько переходов, сколько дошло, но не больше предела',
+    );
+    assertEquals(
+      Number(balance.vote_balance) <= reward * limit,
+      true,
+      'предел не пробивается параллельными вызовами',
+    );
+  } finally {
+    // Тест коммитит по-настоящему — параллельные транзакции иначе не увидят
+    // друг друга. Убираем за собой сами, как это делает тест на дедлок.
+    await admin`delete from task_completions where user_id = any(${created.users}::uuid[])`;
+    await admin`delete from project_clicks where project_id = any(${created.projects}::bigint[])`;
+    await admin`delete from projects where id = any(${created.projects}::bigint[])`;
+    await admin`delete from notifications where user_id = any(${created.users}::uuid[])`;
+    await admin`delete from users where id = any(${created.users}::uuid[])`;
+    await admin.end();
+  }
+});

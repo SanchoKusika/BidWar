@@ -244,7 +244,7 @@ export const uz: PartialStrings = {
     meta: 'Topshiriqlarni bajaring, ovoz oling. Ovoz — pul emas.',
     yourVotes: 'SIZNING OVOZLARINGIZ',
     visitTitle: "To'lovli loyihani qo'llab-quvvatlang",
-    visitNote: "To'lovli topdagi loyihani oching. Har loyiha uchun kuniga bitta ovoz.",
+    visitNote: "To'lovli topdagi loyihalarni oching. Har loyiha uchun bitta ovoz, kuniga o'nta.",
     referralTitle: "Do'stlaringizni taklif qiling",
     referralNote:
       "Ovozlar do'stingiz birinchi topshiriqni bajarganda keladi, ilovani ochganda emas.",
