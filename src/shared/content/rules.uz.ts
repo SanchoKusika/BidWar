@@ -49,6 +49,7 @@ export const rulesUz: readonly RuleSection[] = [
       "Ovozlarni qayerga berishni o'zingiz hal qilasiz: hammasini o'z loyihangizga yoki boshqalarga tarqatib.",
       "Berilgan ovoz qaytarilmaydi. Ortga olish yo'q, so'nish yo'q — bepul top faqat o'sadi.",
       "Mukofotlarni platforma belgilaydi, loyiha egalari emas: loyihani ochish +1, havoladan o'tish +1, kanalga obuna +2, do'st taklif qilish +3.",
+      "Loyihalarni ochish kuniga ko'pi bilan o'n marta to'lanadi. Chek ovozlar zaxirasini haqiqiy e'tiborga bog'lab turadi.",
       "Topshiriq mukofoti har loyiha uchun bir marta to'lanadi. Obunalar keyin qayta tekshirilmaydi, shuning uchun olingan ovozlar qaytarib olinmaydi.",
       "Topshiriqlar — platformaning o'z ro'yxati. Hech kim topshiriq yarata olmaydi, unga narx qo'ya olmaydi va sotib ololmaydi: ovozning bozor narxi yo'qligining sababi shu.",
       "Bepul topdagi loyihalarga hujum qilib bo'lmaydi va ular ham hujum qila olmaydi. Bu yerda o'rin faqat ishlab topiladi.",
