@@ -314,9 +314,11 @@ export const en = {
     notifications: 'Notifications',
     notificationsNote: 'Sent through the bot. Attack alerts are the only way to know you were hit.',
     attacked: 'I was attacked',
-    lostPosition: 'I lost a position',
-    newTasks: 'New tasks',
-    newTasksNote: 'Daily at 09:00',
+    lostPosition: 'I lost first place',
+    votesDigest: 'Votes for my project',
+    votesDigestNote: 'A digest, not one message per vote',
+    referralAlert: 'My invite earned votes',
+    saveFailed: 'Could not save the setting — try again',
 
     payments: 'Payments',
     paymentsNote:

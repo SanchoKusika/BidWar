@@ -294,9 +294,11 @@ export const uz: PartialStrings = {
     notificationsNote:
       "Bot orqali keladi. Hujum haqida boshqa yo'l bilan bilib bo'lmaydi — faqat bildirishnomadan.",
     attacked: 'Menga hujum qilishdi',
-    lostPosition: "Men pozitsiyani yo'qotdim",
-    newTasks: 'Yangi topshiriqlar',
-    newTasksNote: 'Har kuni soat 09:00 da',
+    lostPosition: "Birinchi o'rinni yo'qotdim",
+    votesDigest: 'Loyiham uchun ovozlar',
+    votesDigestNote: 'Dayjest shaklida, har bir ovoz uchun alohida emas',
+    referralAlert: 'Taklif qilganim ovoz keltirdi',
+    saveFailed: "Sozlamani saqlab bo'lmadi — qayta urinib ko'ring",
 
     payments: "To'lovlar",
     paymentsNote:

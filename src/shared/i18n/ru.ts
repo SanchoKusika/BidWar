@@ -293,9 +293,11 @@ export const ru: PartialStrings = {
     notifications: 'Уведомления',
     notificationsNote: 'Приходят через бота. Об атаке узнать иначе нельзя — только из уведомления.',
     attacked: 'Меня атаковали',
-    lostPosition: 'Я потерял позицию',
-    newTasks: 'Новые задания',
-    newTasksNote: 'Каждый день в 09:00',
+    lostPosition: 'Я потерял первое место',
+    votesDigest: 'Голоса за мой проект',
+    votesDigestNote: 'Дайджестом, а не по сообщению на голос',
+    referralAlert: 'Приглашённый принёс голоса',
+    saveFailed: 'Не удалось сохранить настройку — попробуй ещё раз',
 
     payments: 'Платежи',
     paymentsNote:

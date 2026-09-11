@@ -1,7 +1,15 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useOwnPosition, type ProjectListItem } from '@/entities/project';
-import { fetchMySpending, type Spending } from '@/shared/api';
+import {
+  fetchMySpending,
+  fetchPreferences,
+  savePreferences,
+  type Preferences,
+  type PreferencesPatch,
+  type Spending,
+} from '@/shared/api';
 import { getPlatform } from '@/shared/platform';
+import { strings } from '@/shared/i18n/strings';
 import { useQuery } from '@/shared/lib/query';
 
 export interface MyProject {
@@ -71,4 +79,53 @@ export function useMySpending(userId: string | null): SpendingState {
 
   const query = useQuery<Spending>(userId ? `spending:${userId}` : null, fetcher);
   return { spending: query.data, retry: query.refresh };
+}
+
+export interface NotificationPrefsState {
+  /** null — настройки ещё не получены: группу тумблеров рисовать не на чем. */
+  value: Preferences | null;
+  /** Последнее сохранение не доехало; тумблеры при этом показывают серверное. */
+  error: string | null;
+  set: (patch: PreferencesPatch) => void;
+}
+
+/**
+ * Настройки уведомлений. Живут на сервере, а не в `shared/settings`: по ним
+ * решает бот, которому `localStorage` не виден.
+ *
+ * Пока ответа нет, группа тумблеров не рисуется вовсе — тот же принцип, что у
+ * трат и у ленты событий: выключатель, показывающий выдуманное состояние, врёт
+ * сильнее отсутствующего.
+ *
+ * Сохранение оптимистичное только на вид: на экран кладётся ответ сервера, а не
+ * отправленное значение. Не доехало — состояние остаётся прежним, и рядом
+ * появляется строка об этом.
+ */
+export function useNotificationPrefs(userId: string | null): NotificationPrefsState {
+  const fetcher = useCallback(() => {
+    const initData = getPlatform().getInitData();
+    if (!initData) return Promise.reject(new Error('initData недоступен'));
+    return fetchPreferences(initData);
+  }, []);
+
+  const query = useQuery<Preferences>(userId ? `preferences:${userId}` : null, fetcher);
+  const [error, setError] = useState<string | null>(null);
+
+  const set = useCallback(
+    (patch: PreferencesPatch) => {
+      const initData = getPlatform().getInitData();
+      if (!initData) return;
+      setError(null);
+      void savePreferences(initData, patch)
+        .then((next) => {
+          query.mutate(next);
+        })
+        .catch((failure: unknown) => {
+          setError(failure instanceof Error ? failure.message : strings.settings.saveFailed);
+        });
+    },
+    [query],
+  );
+
+  return { value: query.data, error, set };
 }
