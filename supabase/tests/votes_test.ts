@@ -399,3 +399,24 @@ Deno.test('баланс в ответе — свой, без доплаты пр
     assertEquals(await balanceOf(tx, referrer), referralReward);
   });
 });
+
+// ---------------------------------------------------------------------------
+// visit платит только за платные проекты
+// ---------------------------------------------------------------------------
+
+Deno.test('клик по бесплатному проекту не платит голос, по платному — платит', async () => {
+  await inRollback(async (tx) => {
+    const owner = await addUser(tx, 'owner');
+    const free = await addProject(tx, owner, 'free', 10);
+    const paid = await addProject(tx, owner, 'paid', 100000);
+    const visitor = await addUser(tx, 'visitor');
+    const reward = await rewardFor(tx, 'visit');
+
+    const [freeClick] = await tx`select register_project_click(${free}, ${visitor}) as counted`;
+    assertEquals(freeClick.counted, true, 'переход всё равно считается');
+    assertEquals(await balanceOf(tx, visitor), 0, 'но голос за него не платят');
+
+    await tx`select register_project_click(${paid}, ${visitor})`;
+    assertEquals(await balanceOf(tx, visitor), reward, 'платный проект платит');
+  });
+});
