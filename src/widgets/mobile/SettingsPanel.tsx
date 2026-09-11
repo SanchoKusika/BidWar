@@ -3,7 +3,6 @@ import { SettingsGroup, SettingsRow } from '@/shared/ui/Settings';
 import { Switch } from '@/shared/ui/Switch';
 import type { DisplayCurrency } from '@/shared/lib/format';
 import type { AppSettings, ThemeChoice } from '@/shared/settings';
-import { PREVIEW } from '@/shared/config/preview';
 import { brand, payments, type DocId } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
 import { LOCALES, type Locale } from '@/shared/i18n/locale';
@@ -14,24 +13,39 @@ const t = strings.settings;
 export type { ThemeChoice };
 
 /**
- * Работающие настройки приходят из `shared/settings`, остальные поля — вёрстка
- * кита под механики, которых ещё нет, и живут за `PREVIEW.settingsStubs`.
+ * Настройки устройства — тема, валюта показа, компактные суммы, вибрация, язык
+ * — приходят из `shared/settings` и применяются прямо в браузере.
  *
- * Осталось здесь только одно — три уведомления: их рассылает бот, срез 1.9.
- * Язык уехал отсюда в `shared/settings` 10.09.2026 вместе с настоящими
- * словарями. Строки кита, которых в продукте не будет вовсе («подтверждать
- * каждый платёж», «выйти», «удалить аккаунт»), убраны, а не спрятаны: флаг
- * показывает, что придёт, и держать в нём то, что не придёт, — врать самим себе.
+ * Заглушек в панели не осталось (11.09.2026, срез 1.9): последние три тумблера
+ * — уведомления — стали настоящими и уехали на сервер, потому что решает по ним
+ * бот. Флага `PREVIEW.settingsStubs` вместе с ними не стало.
  */
-export interface SettingsState extends AppSettings {
-  alertAttacked: boolean;
-  alertLostPosition: boolean;
-  alertNewTasks: boolean;
+export type SettingsState = AppSettings;
+
+/** Четыре вида сообщений бота — по одному на событие из 06 Telegram-бот. */
+export interface NotificationSettings {
+  notifyAttacked: boolean;
+  notifyRankLost: boolean;
+  notifyVotes: boolean;
+  notifyReferral: boolean;
+}
+
+export interface NotificationsProps {
+  value: NotificationSettings;
+  onChange: <K extends keyof NotificationSettings>(key: K, next: boolean) => void;
+  /** Сохранение не доехало. Тумблеры при этом показывают то, что в базе. */
+  error?: string | null;
 }
 
 export interface SettingsPanelProps {
   value: SettingsState;
   onChange: <K extends keyof SettingsState>(key: K, next: SettingsState[K]) => void;
+  /**
+   * Настройки уведомлений. Не переданы ⇒ группы нет вовсе: пока сервер не
+   * ответил (или его некому спросить — веб-гость без initData), тумблер показал
+   * бы выдуманное состояние. Источник вместо флага, как у ленты событий.
+   */
+  notifications?: NotificationsProps;
   onRules: () => void;
   onDoc: (id: DocId) => void;
   /**
@@ -68,6 +82,7 @@ const PROVIDERS = payments.map((p) => p.name).join(' · ');
 export function SettingsPanel({
   value,
   onChange,
+  notifications,
   onRules,
   onDoc,
   onRemoveProjects,
@@ -140,15 +155,18 @@ export function SettingsPanel({
         />
       </SettingsGroup>
 
-      {PREVIEW.settingsStubs && (
-        <SettingsGroup label={t.notifications} footnote={t.notificationsNote}>
+      {notifications && (
+        <SettingsGroup
+          label={t.notifications}
+          footnote={notifications.error ?? t.notificationsNote}
+        >
           <SettingsRow
             icon="swords"
             title={t.attacked}
             control={
               <Switch
-                checked={value.alertAttacked}
-                onChange={(v) => onChange('alertAttacked', v)}
+                checked={notifications.value.notifyAttacked}
+                onChange={(v) => notifications.onChange('notifyAttacked', v)}
                 label={t.attacked}
               />
             }
@@ -158,22 +176,34 @@ export function SettingsPanel({
             title={t.lostPosition}
             control={
               <Switch
-                checked={value.alertLostPosition}
-                onChange={(v) => onChange('alertLostPosition', v)}
+                checked={notifications.value.notifyRankLost}
+                onChange={(v) => notifications.onChange('notifyRankLost', v)}
                 label={t.lostPosition}
               />
             }
           />
           <SettingsRow
-            icon="list-checks"
-            title={t.newTasks}
-            description={t.newTasksNote}
+            icon="vote"
+            title={t.votesDigest}
+            description={t.votesDigestNote}
             control={
               <Switch
-                checked={value.alertNewTasks}
-                onChange={(v) => onChange('alertNewTasks', v)}
+                checked={notifications.value.notifyVotes}
+                onChange={(v) => notifications.onChange('notifyVotes', v)}
                 segment="free"
-                label={t.newTasks}
+                label={t.votesDigest}
+              />
+            }
+          />
+          <SettingsRow
+            icon="user-plus"
+            title={t.referralAlert}
+            control={
+              <Switch
+                checked={notifications.value.notifyReferral}
+                onChange={(v) => notifications.onChange('notifyReferral', v)}
+                segment="free"
+                label={t.referralAlert}
               />
             }
           />

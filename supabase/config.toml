@@ -466,3 +466,6 @@ verify_jwt = true
 # доказывает заголовок `x-notify-secret`.
 [functions.notify]
 verify_jwt = false
+
+[functions.preferences]
+verify_jwt = true

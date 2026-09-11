@@ -7,33 +7,16 @@ import { getPlatform } from '@/shared/platform';
 import { formatFullDate, formatReceiptDate, type DisplayCurrency } from '@/shared/lib/format';
 import { dropQueryCache } from '@/shared/lib/query';
 import { strings } from '@/shared/i18n/strings';
-import { setSetting, useSettings, type AppSettings, type ThemeChoice } from '@/shared/settings';
+import { setSetting, useSettings, type ThemeChoice } from '@/shared/settings';
 import type { Locale } from '@/shared/i18n/locale';
 import { ProfileScreen, type Receipt } from '@/widgets/mobile/ProfileScreen';
 import { ConfirmSheet } from '@/widgets/mobile/ConfirmSheet';
-import type { SettingsState } from '@/widgets/mobile/SettingsPanel';
 import type { Navigation } from '@/app/navigation';
-import { useMyProjects, useMySpending } from '../model';
+import { useMyProjects, useMySpending, useNotificationPrefs } from '../model';
 
 export interface ProfilePageProps {
   nav: Navigation;
 }
-
-/**
- * Поля настроек без единого обработчика: язык и три уведомления. Панель их
- * рисует только под PREVIEW.settingsStubs — состояние им нужно, чтобы тумблер
- * в этом режиме хотя бы двигался, и дальше профиля оно не уходит.
- *
- * Вибрация отсюда ушла: она стала настоящей настройкой и живёт в
- * `shared/settings` рядом с темой и валютой.
- */
-type StubSettings = Omit<SettingsState, keyof AppSettings>;
-
-const STUB_DEFAULTS: StubSettings = {
-  alertAttacked: true,
-  alertLostPosition: true,
-  alertNewTasks: false,
-};
 
 /** Строка чека из ответа `my-spending`. Провайдер в подписи — как в ките. */
 function toReceipt(row: {
@@ -79,14 +62,14 @@ function useReferralNumbers(): { reward: number; rewarded: number } {
 /**
  * Профиль. Всё, что здесь показано, — настоящее: хендл, дата регистрации,
  * аватар и число приглашённых из сессии, свои записи в обоих топах, траты и
- * чеки из `my-spending`. Заглушек в профиле не осталось; поля настроек без
- * обработчика по-прежнему живут за PREVIEW.settingsStubs.
+ * чеки из `my-spending`, настройки уведомлений из `preferences`. Ни заглушек,
+ * ни полей без обработчика в профиле больше не осталось (11.09.2026).
  */
 export function ProfilePage({ nav }: ProfilePageProps) {
   const { userId, displayName, username, avatarUrl, joinedAt, invitedCount, voteBalance } =
     useSession();
   const settings = useSettings();
-  const [stubs, setStubs] = useState(STUB_DEFAULTS);
+  const prefs = useNotificationPrefs(userId);
   const mine = useMyProjects(userId);
   const { spending, retry: retrySpending } = useMySpending(userId);
   const referral = useReferralNumbers();
@@ -167,7 +150,7 @@ export function ProfilePage({ nav }: ProfilePageProps) {
         currency={settings.currency}
         compactAmounts={settings.compactAmounts}
         settings={{
-          value: { ...settings, ...stubs },
+          value: settings,
           // Разбор по ключу, а не один setSetting(key, next): сузить сам ключ
           // TypeScript умеет, а связанное с ним значение — нет, поэтому тип
           // значения подтверждается здесь по одной ветке на настройку.
@@ -176,9 +159,23 @@ export function ProfilePage({ nav }: ProfilePageProps) {
             else if (key === 'currency') setSetting('currency', next as DisplayCurrency);
             else if (key === 'compactAmounts') setSetting('compactAmounts', next as boolean);
             else if (key === 'haptics') setSetting('haptics', next as boolean);
-            else if (key === 'language') setSetting('language', next as Locale);
-            else setStubs((prev) => ({ ...prev, [key]: next }));
+            else if (key === 'language') {
+              setSetting('language', next as Locale);
+              // Язык уезжает и на сервер: тем же языком бот пишет уведомления,
+              // и подпись группы это прямо обещает. Экран при этом не ждёт
+              // ответа — интерфейс переключается сразу, локально.
+              prefs.set({ language: next as Locale });
+            }
           },
+          // Группы нет, пока сервер не ответил: тумблер с выдуманным
+          // состоянием врал бы про то, что придёт в Telegram.
+          notifications: prefs.value
+            ? {
+                value: prefs.value,
+                onChange: (key, nextValue) => prefs.set({ [key]: nextValue }),
+                error: prefs.error,
+              }
+            : undefined,
           onRules: () => nav.push({ name: 'rules', anchor: 'bidding' }),
           onDoc: (id) => nav.push({ name: 'doc', id }),
           onRemoveProjects:

@@ -753,6 +753,7 @@ export type Database = {
           display_currency: string
           display_name: string
           id: string
+          language: string | null
           notify_attacked: boolean
           notify_rank_lost: boolean
           notify_referral: boolean
@@ -767,6 +768,7 @@ export type Database = {
           display_currency?: string
           display_name: string
           id?: string
+          language?: string | null
           notify_attacked?: boolean
           notify_rank_lost?: boolean
           notify_referral?: boolean
@@ -781,6 +783,7 @@ export type Database = {
           display_currency?: string
           display_name?: string
           id?: string
+          language?: string | null
           notify_attacked?: boolean
           notify_rank_lost?: boolean
           notify_referral?: boolean
