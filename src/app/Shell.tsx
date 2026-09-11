@@ -13,6 +13,7 @@ import { ProfilePage } from '@/pages/profile/ui/Mobile';
 import { ProjectPage } from '@/pages/project/ui/Mobile';
 import { RulesScreen } from '@/widgets/mobile/RulesScreen';
 import { DocScreen } from '@/widgets/mobile/DocScreen';
+import { availableCount, useTaskBoard } from '@/entities/task';
 import { useNavigation } from './navigation';
 import { bindTheme } from './theme';
 import styles from './Shell.module.css';
@@ -33,6 +34,8 @@ export function Shell() {
   // здесь, а не перемонтирование по `key`, потому что перемонтирование сбросило
   // бы вкладку и прокрутку — человек менял язык, а не уходил с экрана.
   const { language } = useSettings();
+  const board = useTaskBoard();
+  const availableTasks = board.data ? availableCount(board.data.tasks) : 0;
 
   useEffect(() => {
     platform.ready();
@@ -95,7 +98,11 @@ export function Shell() {
           )}
         </main>
 
-        <TabBar active={nav.tab} onChange={nav.setTab} />
+        {/* Счётчик на вкладке заданий — сколько прямо сейчас можно выполнить.
+            Тот же ответ, что читает сам экран заданий: ключ кэша один, лишнего
+            запроса не появляется. Ноль числа не рисует — пустая плашка врала бы
+            про работу, которой нет. */}
+        <TabBar active={nav.tab} onChange={nav.setTab} badges={{ tasks: availableTasks }} />
       </div>
     </SessionProvider>
   );

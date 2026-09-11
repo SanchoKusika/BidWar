@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import { cx } from '@/shared/lib/cx';
+import { haptic } from '@/shared/lib/haptic';
 import styles from './Switch.module.css';
 
 export interface SwitchProps {
@@ -31,7 +32,13 @@ export function Switch({
       disabled={disabled}
       className={cx(styles.switch, className)}
       style={style}
-      onClick={() => onChange?.(!checked)}
+      onClick={() => {
+        // Тумблер — тот редкий случай, когда отклик уместен на нажатии:
+        // состояние меняется сразу, ждать подтверждения нечего. Отклик
+        // отдельный, самый слабый, чтобы не спутать с применённым платежом.
+        haptic('selection');
+        onChange?.(!checked);
+      }}
     >
       <span className={styles.knob} />
     </button>

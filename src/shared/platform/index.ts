@@ -2,7 +2,14 @@ import { createTelegramPlatform, getTelegramWebApp, isTelegramMiniApp } from './
 import { createWebPlatform } from './web';
 import type { Platform } from './types';
 
-export type { ColorScheme, InvoiceStatus, Platform, PlatformName, SystemButton } from './types';
+export type {
+  ColorScheme,
+  HapticKind,
+  InvoiceStatus,
+  Platform,
+  PlatformName,
+  SystemButton,
+} from './types';
 export { isTelegramMiniApp };
 
 let instance: Platform | null = null;

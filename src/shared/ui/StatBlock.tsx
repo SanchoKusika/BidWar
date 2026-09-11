@@ -28,6 +28,14 @@ export interface StatBlockProps {
   align?: 'left' | 'right';
   delta?: number;
   compact?: boolean;
+  /**
+   * Единицу можно убрать ровно в одном случае: когда её уже назвала подпись
+   * («ТВОИ ГОЛОСА» над числом, а под ним ещё раз «голосов»). Правило «число
+   * всегда идёт со своей единицей» при этом не нарушается — единица на экране
+   * остаётся, просто один раз. Для денег так делать нельзя никогда: подпись
+   * говорит «ставка», а не в какой валюте.
+   */
+  showUnit?: boolean;
   showIcon?: boolean;
   inline?: boolean;
   className?: string;
@@ -43,6 +51,7 @@ export function StatBlock({
   align = 'right',
   delta,
   compact,
+  showUnit = true,
   showIcon = false,
   inline = false,
   className,
@@ -79,7 +88,7 @@ export function StatBlock({
           />
         )}
         <span className={styles.value}>{text}</span>
-        <span className={styles.unit}>{unit}</span>
+        {showUnit && <span className={styles.unit}>{unit}</span>}
       </span>
 
       {d !== 0 && (

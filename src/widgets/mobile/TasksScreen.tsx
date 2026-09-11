@@ -3,7 +3,7 @@ import { SkeletonFeed } from '@/shared/ui/Skeleton';
 import { SectionLabel } from '@/shared/ui/SectionLabel';
 import { StatBlock } from '@/shared/ui/StatBlock';
 import { TaskListItem } from '@/shared/ui/TaskListItem';
-import { TASK_ICON, splitTasks, type TaskItem } from '@/entities/task';
+import { TASK_ICON, splitTasks, taskCopy, type TaskItem } from '@/entities/task';
 import { strings } from '@/shared/i18n/strings';
 import { PageHeader } from './PageHeader';
 import { HeaderAction } from './HeaderAction';
@@ -51,7 +51,7 @@ export function TasksScreen({
         meta={t.meta}
         right={
           voteBalance !== null ? (
-            <StatBlock segment="free" value={voteBalance} label={t.yourVotes} />
+            <StatBlock segment="free" value={voteBalance} label={t.yourVotes} showUnit={false} />
           ) : undefined
         }
         action={<HeaderAction icon="gavel" label={strings.rules.chip} onClick={onRules} />}
@@ -113,18 +113,24 @@ function Group({
     <Section>
       <SectionLabel>{label}</SectionLabel>
       <Gutter className={styles.list}>
-        {items.map((task) => (
-          <TaskListItem
-            key={task.id}
-            title={task.title}
-            subtitle={task.description ?? undefined}
-            reward={task.rewardVotes}
-            icon={TASK_ICON[task.type]}
-            state={task.state}
-            progress={task.progress}
-            onPress={() => onTask(task)}
-          />
-        ))}
+        {items.map((task) => {
+          // Подписи — на языке интерфейса, из базы берётся только награда и
+          // состояние: список заданий фиксированный, и его строки не текст
+          // пользователя, а часть продукта.
+          const copy = taskCopy(task);
+          return (
+            <TaskListItem
+              key={task.id}
+              title={copy.title}
+              subtitle={copy.note ?? undefined}
+              reward={task.rewardVotes}
+              icon={TASK_ICON[task.type]}
+              state={task.state}
+              progress={task.progress}
+              onPress={() => onTask(task)}
+            />
+          );
+        })}
       </Gutter>
     </Section>
   );

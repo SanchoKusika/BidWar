@@ -13,6 +13,17 @@ export type ColorScheme = 'light' | 'dark';
 export type InvoiceStatus = 'paid' | 'cancelled' | 'failed' | 'pending';
 
 /**
+ * Виды тактильного отклика.
+ *
+ * `selection` стоит особняком: в Telegram это `selectionChanged()` — самый
+ * слабый из откликов, придуманный ровно под переключатели и выбор из
+ * нескольких вариантов. Остальные — про событие с последствиями (платёж,
+ * голос, отказ), и путать их нельзя: если щелчок тумблера ощущается как
+ * применённый платёж, оба перестают что-либо значить.
+ */
+export type HapticKind = 'light' | 'medium' | 'heavy' | 'success' | 'error' | 'selection';
+
+/**
  * У Telegram BackButton нет текста — это всегда просто стрелка назад, метод
  * setText у неё в реальном клиенте не существует (в отличие от MainButton).
  * Раньше оба типа кнопок были одним интерфейсом с общим show(text, onClick) —
@@ -55,7 +66,7 @@ export interface Platform {
   /** Открыть оплату. Только в ответ на действие пользователя. */
   openInvoice(url: string): Promise<InvoiceStatus>;
 
-  haptic(kind: 'light' | 'medium' | 'heavy' | 'success' | 'error'): void;
+  haptic(kind: HapticKind): void;
 
   /**
    * Пока открыта своя шторка, системный свайп-вниз Telegram (сворачивает

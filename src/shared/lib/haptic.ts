@@ -1,4 +1,4 @@
-import { getPlatform } from '@/shared/platform';
+import { getPlatform, type HapticKind } from '@/shared/platform';
 import { getSettings } from '@/shared/settings';
 
 /**
@@ -12,8 +12,13 @@ import { getSettings } from '@/shared/settings';
  * Зовётся только по факту: «платёж применён», «голос отдан», «отказ». На нажатие
  * кнопки, за которой ещё ничего не произошло, отклика нет — иначе он перестаёт
  * что-либо значить.
+ *
+ * Исключение ровно одно и оно из той же логики — `selection`. Переключение
+ * вкладки, тумблера или сегмента и есть результат: состояние меняется прямо
+ * под пальцем, ждать нечего. В Telegram это отдельный, самый слабый отклик
+ * (`selectionChanged`), и спутать его с подтверждением платежа нельзя.
  */
-export function haptic(kind: 'light' | 'medium' | 'heavy' | 'success' | 'error'): void {
+export function haptic(kind: HapticKind): void {
   if (!getSettings().haptics) return;
   getPlatform().haptic(kind);
 }

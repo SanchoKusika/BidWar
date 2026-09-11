@@ -1,0 +1,157 @@
+import type { RuleSection } from './types';
+
+/**
+ * O'yin qoidalari, o'zbekcha (lotin).
+ *
+ * Pulga tegishli joylarda tarjima so'zma-so'z: «bekor qilib bo'lmaydi»,
+ * «hech narsa qaytarilmaydi». Bu jumlalarni yumshatish mumkin emas — ular
+ * bo'yicha to'lov bo'yicha nizo hal qilinadi.
+ */
+export const rulesUz: readonly RuleSection[] = [
+  {
+    id: 'bidding',
+    icon: 'gavel',
+    title: 'Stavkalar qanday ishlaydi',
+    lead: "To'lovli top — stavka hajmi bo'yicha tartiblangan bitta ro'yxat. Auksion bosqichlari ham, yashirin narx ham yo'q: kimning stavkasi katta bo'lsa, o'rni ham yuqori — to'lov tasdiqlangan soniyadan boshlab.",
+    facts: [
+      ['Tartiblash', 'Stavka hajmi'],
+      ['Eng kam stavka', "50 000 so'm"],
+      ["Eng kam ko'tarish", "50 000 so'm"],
+      ['Pozitsiya yangilanishi', 'Darhol'],
+      ["Stavkaning so'nishi", "Yo'q"],
+      ['Valyuta', 'UZS'],
+    ],
+    points: [
+      "Mahsulotda balans yo'q. Har bir ko'tarish — alohida karta to'lovi: bir marta yechiladi va to'g'ridan-to'g'ri stavkaga qo'shiladi, sizning hech narsangiz platformada turmaydi.",
+      "Ko'tarish avvalgi stavkaga qo'shiladi — stavkalar yig'iladi va so'nmaydi.",
+      "Begona stavkani ham ko'tarish mumkin. Bu egasiga pul o'tkazish emas: pul o'z ko'tarishingizdagidek platformaga boradi, loyiha esa to'langan summaga ko'tariladi.",
+      "Stavkalar teng bo'lsa, summani avval yig'gani yuqorida turadi.",
+      "Kartangizdagi o'tishlar hammaga ko'rinadi, lekin pozitsiyaga ta'sir qilmaydi.",
+      "Pozitsiya hech qayerda saqlanmaydi — ro'yxat joriy stavkalardan hisoblanadi, shuning uchun ko'tarish sizni to'lov tasdiqlangan zahoti suradi. Bitta istisno bor: birinchi o'rinni ushlab turish muddati — hozirgi yetakchi cho'qqini qancha ushlab turgani saqlanadi va uning kartasida ko'rsatiladi.",
+      "To'lovni provayder o'tkazadi — Telegram ichida yoki o'zining himoyalangan sahifasida. Stavka provayder tasdiqlaganda qo'llanadi, siz «to'lash» tugmasini bosganda emas.",
+      "Topdan chiqish pulni qaytarmaydi — «Pul qaytarilmaydi» bo'limiga qarang.",
+    ],
+  },
+  {
+    id: 'votes',
+    icon: 'list-checks',
+    title: 'Bepul top va ovozlar',
+    lead: "Bepul top xuddi shunday ishlaydi, faqat yoqilg'isi boshqa — topshiriqlardan olingan ovozlar. Ovozni sotib olish, sotish yoki almashtirish mumkin emas: ikkinchi topni halol saqlab turgan narsa shu.",
+    facts: [
+      ['Tartiblash', 'Ovozlar'],
+      ['Ovozlar qayerdan', 'Faqat topshiriqlar'],
+      ['Pul → ovoz', 'Hech qachon'],
+      ['Ovoz → pul', 'Hech qachon'],
+      ['Hujum qilish mumkinmi', "Yo'q"],
+    ],
+    points: [
+      'Balansdagi har bir ovoz bajarilgan topshiriqdan keldi: obuna, taklif, tekshiruv, loyihaga kirish.',
+      "Ovozlarni qayerga berishni o'zingiz hal qilasiz: hammasini o'z loyihangizga yoki boshqalarga tarqatib.",
+      "Berilgan ovoz qaytarilmaydi. Ortga olish yo'q, so'nish yo'q — bepul top faqat o'sadi.",
+      "Mukofotlarni platforma belgilaydi, loyiha egalari emas: loyihani ochish +1, havoladan o'tish +1, kanalga obuna +2, do'st taklif qilish +3.",
+      "Topshiriq mukofoti har loyiha uchun bir marta to'lanadi. Obunalar keyin qayta tekshirilmaydi, shuning uchun olingan ovozlar qaytarib olinmaydi.",
+      "Topshiriqlar — platformaning o'z ro'yxati. Hech kim topshiriq yarata olmaydi, unga narx qo'ya olmaydi va sotib ololmaydi: ovozning bozor narxi yo'qligining sababi shu.",
+      "Bepul topdagi loyihalarga hujum qilib bo'lmaydi va ular ham hujum qila olmaydi. Bu yerda o'rin faqat ishlab topiladi.",
+      'Bitta loyiha ikkala topda bir vaqtda tura oladi — bu ikkita mustaqil pozitsiya.',
+      "Bepul top yetakchisining ham ushlab turish muddati bor: u kartada ko'rinadi va kimdir o'zib ketgan zahoti nolga tushadi.",
+    ],
+  },
+  {
+    id: 'attacks',
+    icon: 'swords',
+    title: 'Hujumlar',
+    lead: "Hujum — bu raqibingizga ham qimmatga tushadigan ko'tarish. Siz platformaga bir marta to'laysiz, va shu to'lov sizning stavkangizga qo'shilib, uning stavkasidan xuddi shuncha oladi. Oradagi farq oddiy ko'tarishdan ikki barobar tez qisqaradi. Pulingizni platformadan boshqa hech kim olmaydi: raqib pozitsiyani yo'qotadi, pulni emas.",
+    facts: [
+      ["Siz to'laysiz", 'Platformaga'],
+      ['Sizning stavkangiz', '+ summa, takrorda kamroq'],
+      ['Uning stavkasi', '− summa'],
+      ['Eng kam hujum', "10 000 so'm"],
+      ['Bitta raqibga', 'Kuniga 3'],
+      ['Jami', 'Kuniga 10'],
+    ],
+    example: {
+      title: "500 000 so'm nima qiladi",
+      rows: [
+        ['Oldin', 'Unda 3 000 000 · sizda 2 000 000'],
+        ["Siz to'laysiz", "platformaga 500 000 so'm"],
+        ['Hujumdan keyin', 'Unda 2 500 000 · sizda 2 500 000'],
+        ["O'sha pul ko'tarish bo'lsa", 'Unda 3 000 000 · sizda 2 500 000'],
+      ],
+      note: "Hujum 1 000 000 lik farqni butunlay yopadi. Ko'tarish esa uni faqat yarmiga qisqartiradi — o'sha pul, ikki barobar harakat.",
+    },
+    points: [
+      "Pul odamlar o'rtasida yurmaydi. Siz ko'tarishdagidek platformaga to'laysiz: raqibning raqami tushadi, lekin hech kim hech narsa olmaydi.",
+      "Bitta raqibga takroriy hujumlar sizga kamroq to'laydi. Birinchi hujum stavkangizga butun summani qo'shadi; 48 soat ichidagi har keyingisi 15% kam, lekin yarmidan past emas. 48 soat tegmasangiz — yana to'liq bo'ladi. Uning yo'qotishi har doim to'liq.",
+      "Hech kimni bankrot qilib bo'lmaydi. Stavka 50 000 so'm va loyihaning birinchi to'lovining yarmi — shu ikkisidan kattasidan pastga tushmaydi. Summa bu chegaradan o'tsa, qisqartiriladi va faqat yetib borgan qismi yechiladi.",
+      "O'zingizga hujum qilib bo'lmaydi, bepul topga ham. Hujumlar faqat pul stavkalariga tegishli.",
+      "Hammasi ko'rinadi. Hujum yetib borgan zahoti ikkala stavka ro'yxatda ochiq o'zgaradi.",
+      "Hujum har doim ikkinchi tasdiqni so'raydi. Bu mahsulotdagi yagona ikki marta tasdiqlanadigan amal.",
+      "Qoidalar to'lov tasdiqlanganda qayta tekshiriladi, siz tugmani bosganda emas. Raqib o'shangacha quyi chegaraga tushgan bo'lsa, hujum qisqartiriladi yoki rad etiladi, yetmagan qismi uchun pul yechilmaydi.",
+      "Yetib borgan hujumni bekor qilib bo'lmaydi — «Pul qaytarilmaydi» bo'limiga qarang.",
+    ],
+  },
+  {
+    id: 'verification',
+    icon: 'shield-check',
+    title: 'Tasdiqlash',
+    status: 'planned',
+    lead: "Hali ishlamaydi — ishga tushirilgandan keyin paydo bo'ladi. Bu nishon, pozitsiyaga qo'shimcha emas: u o'rinni egallagan akkaunt haqiqatan havolani boshqarishini bildiradi.",
+    facts: [
+      ['Holati', 'Keyinroq'],
+      ['Narxi', 'Bepul'],
+      ['Tekshiruv muddati', '24 soatgacha'],
+      ['Amal qilish', '12 oy'],
+      ["O'ringa ta'siri", "Yo'q"],
+    ],
+    points: [
+      'Kanallar va botlar: administrator huquqlarini telegram-bot orqali tekshiramiz.',
+      'Saytlar: biz beradigan meta-teg yoki DNS yozuvi.',
+      'Biznes: royxatdan otish guvohnomasi va telefon orqali tasdiq.',
+      "Havolasini o'zgartirgan tasdiqlangan loyiha qayta tekshirilgunicha nishonni yo'qotadi.",
+      "Begona brend nomidan ish ko'rish loyihani ikkala topdan olib tashlaydi, pul esa sarflangan bo'lib qoladi.",
+    ],
+  },
+  {
+    id: 'refunds',
+    icon: 'receipt-text',
+    title: 'Pul qaytarilmaydi',
+    lead: "Pul yetib borgan zahoti sarflangan bo'ladi: stavka allaqachon ro'yxatda turibdi, hujum allaqachon kimgadir tekkan. Jamg'arma hisobi ham, bekor qilish ham yo'q — faqat bizning o'z xatolarimiz qaytariladi.",
+    facts: [
+      ['Stavka topda', 'Qaytarilmaydi'],
+      ['Hujum yuborilgan', 'Qaytarilmaydi'],
+      ['Topdan chiqish', 'Hech narsa'],
+      ["To'lov o'tmadi", 'Hech narsa yechilmagan'],
+      ['Ikki marta yechildi', '3 kunda qaytadi'],
+    ],
+    points: [
+      "O'tmagan yoki bizgacha yetib kelmagan to'lov hech narsani o'zgartirmaydi: stavka qimirlamaydi, provayder pulni olgan bo'lsa — 24 soat ichida avtomatik qaytadi.",
+      'Bitta tolov ikki marta yechilsa, dubl uch ish kuni ichida sorovsiz qaytariladi.',
+      "Turgan stavka sizga o'rin va o'tishlarni allaqachon sotib bergan. Raqib o'zib ketishi, havolani almashtirish yoki loyihani o'chirish hech narsa qaytarmaydi.",
+      "Hujumni ortga qaytarib bo'lmaydi — raqibning raqami to'lov tasdiqlangan paytda o'zgargan.",
+      "Ovozlar pul emas va pulga aylanmaydi: qaytaradigan, almashtiradigan narsa yo'q.",
+      "Karta bo'yicha chargeback provayder ishni yopmaguncha akkauntni muzlatadi. Pozitsiyalar joyida qoladi, amallar to'xtaydi.",
+      "Qolgan hammasi — qo'llab-quvvatlash orqali, tarixdagi to'lov raqami bilan. 24 soat ichida javob beramiz: ha yoki yo'q.",
+    ],
+  },
+  {
+    id: 'projects',
+    icon: 'link',
+    title: 'Sizning loyihangiz',
+    lead: "Har akkauntga ko'pi bilan ikkita loyiha: biri to'lovli topda, biri bepulda. Siz nom va havola berasiz — ko'rinish va tavsif havolaning o'zidan o'qiladi, yozadigan narsa yo'q.",
+    facts: [
+      ['Akkauntga', '2 ta yozuv'],
+      ["To'lovli topda", '1'],
+      ['Bepul topda', '1'],
+      ['Tavsif', "Havoladan o'qiladi"],
+      ["Ko'rinishni yangilash", "Qo'lda"],
+      ["Havolani o'zgartirish", 'Qayta tekshiruv'],
+    ],
+    points: [
+      "Ko'rinish rasmi va tavsif havolangizdagi sahifadan olinadi. Sahifa hech narsa bermasa, kartada o'rinbosar belgi qoladi — nashrga bu to'sqinlik qilmaydi.",
+      "Har topga bitta joy — bu shift. O'sha akkauntdagi ikkinchi to'lovli yozuv rad etiladi.",
+      "Bitta loyiha ikkala joyni ham egallashi mumkin: to'lovlida stavka, bepulda ovozlar — ikki mustaqil ro'yxatda ikki mustaqil pozitsiya.",
+      "Taklif havolasi: t.me/bidwar_bot?start=<sizning id>. Mukofot taklif qilingan odam ilovada birinchi haqiqiy amalni bajargandan keyin keladi, o'tishdan keyin emas.",
+      "Yashirilgan va bloklangan loyihalar ikkala topdan chiqadi va joyni bo'shatadi. Loyihani o'zingiz o'chirsangiz, hech narsa qaytarilmaydi.",
+    ],
+  },
+];

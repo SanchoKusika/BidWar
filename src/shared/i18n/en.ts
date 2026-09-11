@@ -29,6 +29,19 @@ export const en = {
     taskLocked: 'Locked',
     amount: 'Amount',
     balance: 'Balance',
+    raise: 'Raise',
+    attack: 'Attack',
+    giveVotes: 'Give votes',
+    /** Подпись к короне: сколько проект держит первое место. */
+    tenure: (held: string) => `Holds first place · ${held}`,
+  },
+
+  /** Нижнее меню. Четыре вкладки, подписи короткие — места под ними нет. */
+  tabs: {
+    paid: 'Paid',
+    free: 'Free',
+    tasks: 'Tasks',
+    profile: 'Profile',
   },
 
   common: {
@@ -37,6 +50,21 @@ export const en = {
     back: 'Back',
     done: 'Done',
     continueToPayment: 'Continue to payment',
+  },
+
+  /**
+   * Единицы времени удержания первого места. Отдельно от `common`, потому что
+   * их читает `shared/lib/format`, а не экран: сама длительность считается
+   * там же, где форматируется.
+   */
+  duration: {
+    justNow: 'just now',
+    minutes: (value: number) => `${value} min`,
+    hours: (value: number) => `${value} h`,
+    daysHours: (days: number, hours: number) => `${days} d ${hours} h`,
+    days: (value: number) => `${value} d`,
+    /** Локаль дат: её выбирает словарь, иначе даты остались бы английскими. */
+    dateLocale: 'en-GB',
   },
 
   addProject: {
@@ -169,6 +197,8 @@ export const en = {
     todayEmptyTitle: 'Nothing moved today',
     todayEmptyNote: 'No bid in this top changed in the last 24 hours.',
     justHappened: 'Just happened',
+    /** Подпись яруса: «от 500 000 so'm» — цена входа в этот десяток. */
+    tierFrom: (amount: string) => `from ${amount}`,
     raiseMine: 'Raise my bid',
     voteMine: 'Give votes to my project',
     entryHintPaid: (price: string) =>
@@ -226,6 +256,20 @@ export const en = {
     title: 'Tasks',
     meta: 'Complete tasks, get votes. Votes are not money.',
     yourVotes: 'YOUR VOTES',
+    /**
+     * Названия заданий приходят из базы по-английски: список у платформы
+     * фиксированный, и строка задания — не пользовательский текст, а часть
+     * продукта. Поэтому экран печатает свои подписи по типу задания, а из базы
+     * берёт только число награды и состояние. Канал в подписи `subscribe` —
+     * имя собственное, оно не переводится ни на каком языке.
+     */
+    visitTitle: 'Push a paid project',
+    visitNote: 'Open a project from the Paid Top. One vote per project, once a day.',
+    referralTitle: 'Invite friends',
+    referralNote:
+      'Votes land when the friend finishes their first task, not when they open the app.',
+    subscribeTitle: (channel: string) => `Subscribe to ${channel}`,
+    subscribeNote: 'Stay subscribed to keep the votes.',
     daily: 'Daily',
     oneTime: 'One-time',
     emptyTitle: "That's everything for today",
