@@ -70,6 +70,16 @@ export function AmountInput({
     if (!disabled) onChange?.(clamp(Math.round(n)));
   };
 
+  /**
+   * То же, что `set`, но с откликом — и только когда число правда сдвинулось.
+   * Пресет, нажатый на уже максимальной сумме, упирается в `clamp`: вибрация
+   * там сообщила бы о событии, которого не произошло.
+   */
+  const nudge = (n: number) => {
+    if (clamp(Math.round(n)) !== value) haptic('selection');
+    set(n);
+  };
+
   const show = (points: number) => (converts ? formatEditable(points, currency) : group(points));
 
   /**
@@ -134,8 +144,10 @@ export function AmountInput({
               className={styles.preset}
               disabled={disabled}
               onClick={() => {
-                haptic('selection');
-                set((value || 0) + preset);
+                // Отклик только если число правда сдвинулось: пресет на уже
+                // максимальной сумме ничего не меняет, и вибрация там означала
+                // бы событие, которого не было.
+                nudge((value || 0) + preset);
               }}
             >
               +{show(preset)}
@@ -147,10 +159,7 @@ export function AmountInput({
               data-accent="true"
               className={styles.preset}
               disabled={disabled}
-              onClick={() => {
-                haptic('selection');
-                set(max);
-              }}
+              onClick={() => nudge(max)}
             >
               MAX
             </button>

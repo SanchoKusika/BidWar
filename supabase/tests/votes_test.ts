@@ -431,7 +431,14 @@ Deno.test('задание площадки (свой канал) засчиты�
       select id, target_chat_id from tasks
        where type = 'subscribe' and target_project_id is null and is_active
        limit 1`;
-    assertEquals(task?.target_chat_id !== null, true, 'канал площадки задан в самой строке');
+    // Строка обязана существовать: `task?.x !== null` пропустил бы undefined,
+    // и тест падал бы дальше невнятным TypeError вместо этой проверки. Тип
+    // сравнивать нельзя — bigint приезжает из драйвера строкой.
+    assertEquals(
+      Number.isFinite(Number(task?.target_chat_id)),
+      true,
+      'канал площадки задан в самой строке',
+    );
 
     const [first] = await tx`select * from apply_task_completion(${user}, 'subscribe', null)`;
     assertEquals(Number(first.granted), reward, 'подписка платит из app_config');
@@ -446,5 +453,32 @@ Deno.test('задание площадки (свой канал) засчиты�
        where user_id = ${user} and status = 'completed'`;
     assertEquals(Number(row.task_id), Number(task.id));
     assertEquals(row.project_id, null, 'у задания площадки проекта нет');
+  });
+});
+
+Deno.test('проверка по id засчитывает именно своё задание, а не чужое', async () => {
+  await inRollback(async (tx) => {
+    const user = await addUser(tx, 'subscriber');
+    const owner = await addUser(tx, 'owner');
+    const projectId = await addProject(tx, owner, 'paid', 100_000);
+
+    // Задание канала проекта — и оно гаснет между проверкой и начислением
+    // (владелец снял права у бота). Раньше хранимка в этот момент молча
+    // подставляла задание площадки, у которого проекта нет.
+    const [projectTask] = await tx`
+      insert into tasks (type, title, description, reward_votes, target_project_id)
+      values ('subscribe', 'Subscribe to project', null, 2, ${projectId})
+      returning id`;
+    await tx`update tasks set is_active = false where id = ${projectTask.id}`;
+
+    const [result] = await tx`
+      select * from apply_task_completion(${user}, 'subscribe', ${projectId}, ${projectTask.id})`;
+
+    assertEquals(Number(result.granted), 0, 'погасшее задание не платит');
+    assertEquals(await balanceOf(tx, user), 0, 'и не платит чужим заданием тоже');
+
+    const [{ count }] = await tx`
+      select count(*)::int as count from task_completions where user_id = ${user}`;
+    assertEquals(count, 0, 'задание площадки осталось нетронутым');
   });
 });

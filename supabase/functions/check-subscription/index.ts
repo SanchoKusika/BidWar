@@ -1,9 +1,9 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
-import { serve, badRequest, unauthorized, notFound } from '../_shared/http.ts';
+import { serve, badRequest, unauthorized, notFound, HttpError } from '../_shared/http.ts';
 import { verifyInitData } from '../_shared/telegram.ts';
 import { resolveTelegramUser } from '../_shared/identity.ts';
 import { getAdminClient } from '../_shared/db.ts';
-import { isBotAdmin, isSubscribed } from '../_shared/bot_api.ts';
+import { botChatStatus, isSubscribed } from '../_shared/bot_api.ts';
 
 interface CheckSubscriptionRequest {
   initData?: string;
@@ -71,6 +71,10 @@ serve('check-subscription', async (req, ctx) => {
     // Задание площадки проектом не привязано: null здесь выбирает в хранимке
     // именно его строку — у заданий проекта `target_project_id` заполнен.
     p_project_id: task.target_project_id,
+    // Id проверенного задания: без него хранимка выбирает строку заново по
+    // типу и проекту — и с появлением задания площадки это стало значить
+    // «засчитаю подписку на наш канал, если строка проекта успела погаснуть».
+    p_task_id: task.id,
   });
   if (grantError) throw grantError;
 
@@ -103,6 +107,10 @@ type TaskRow = {
  * У задания площадки признака прав в схеме нет — вместо него спрашиваем сам
  * Bot API: строка живёт постоянно, а права могли отобрать в любой момент, и
  * тогда `getChatMember` соврёт «не подписан» про подписанного.
+ *
+ * Три ответа, а не два: «не ответил» — это не «прав нет». Сетевая икота Telegram
+ * не должна выглядеть для подписанного человека как «у задания нет канала»;
+ * такой отказ ещё и не открывает канал, то есть не оставляет никакого выхода.
  */
 async function resolveChat(
   db: ReturnType<typeof getAdminClient>,
@@ -111,7 +119,12 @@ async function resolveChat(
 ): Promise<number | null> {
   if (task.target_project_id === null) {
     if (task.target_chat_id === null) return null;
-    return (await isBotAdmin(botToken, task.target_chat_id)) ? task.target_chat_id : null;
+
+    const status = await botChatStatus(botToken, task.target_chat_id);
+    if (status === 'unknown') {
+      throw new HttpError(503, 'upstream_unavailable', 'Telegram не ответил — попробуй ещё раз');
+    }
+    return status === 'admin' ? task.target_chat_id : null;
   }
 
   const { data: project, error } = await db
