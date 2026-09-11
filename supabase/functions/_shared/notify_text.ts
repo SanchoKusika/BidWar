@@ -116,14 +116,31 @@ function rankLost(p: Record<string, unknown>, locale: NotifyLocale): string {
   return `"${project}" is no longer #1 in the ${where}. It held the spot for ${kept}.`;
 }
 
+/**
+ * `count` — число слившихся событий, то есть отданных голосов, а НЕ число
+ * людей: один человек, проголосовавший трижды за окно, даёт count = 3. Пока
+ * сообщение говорило «от 3 чел.», оно врало ровно этим (находка ревью 1.9);
+ * считать разных голосовавших пришлось бы хранить их список в payload, а
+ * число отдач и само по себе честная величина.
+ */
 function votes(p: Record<string, unknown>, locale: NotifyLocale): string {
   const project = str(p.project_name);
   const amount = num(p.amount);
-  const people = Math.max(1, num(p.count));
+  const times = Math.max(1, num(p.count));
 
-  if (locale === 'RU') return `+${amount} голосов «${project}» — от ${people} чел.`;
-  if (locale === 'UZ') return `«${project}» uchun +${amount} ovoz — ${people} kishidan.`;
-  return `+${amount} votes for "${project}" from ${people} ${people === 1 ? 'person' : 'people'}.`;
+  if (locale === 'RU') {
+    return times > 1
+      ? `+${amount} голосов «${project}» — ${times} отдачи за раз.`
+      : `+${amount} голосов «${project}».`;
+  }
+  if (locale === 'UZ') {
+    return times > 1
+      ? `«${project}» uchun +${amount} ovoz — ${times} marta berildi.`
+      : `«${project}» uchun +${amount} ovoz.`;
+  }
+  return times > 1
+    ? `+${amount} votes for "${project}" — ${times} separate votes.`
+    : `+${amount} votes for "${project}".`;
 }
 
 function referral(p: Record<string, unknown>, locale: NotifyLocale): string {

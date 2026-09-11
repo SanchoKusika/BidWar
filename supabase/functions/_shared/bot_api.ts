@@ -97,14 +97,42 @@ export interface SendResult {
 }
 
 /**
+ * Отказы, которые не лечатся повтором, — про самого адресата: он не начинал
+ * диалог, заблокировал бота или такого чата нет.
+ *
+ * Остальные 400 повторять обязательно. Telegram отвечает 400 и на
+ * `BUTTON_TYPE_INVALID` — то есть на неверно настроенный домен мини-аппа, — а
+ * это ошибка конфигурации, общая для ВСЕХ сообщений сразу. Считать её
+ * окончательной значит похоронить всю очередь целиком при первой же опечатке в
+ * `APP_URL`, причём чинить будет уже нечего.
+ */
+const PERMANENT_DESCRIPTIONS = [
+  'chat not found',
+  'user not found',
+  'bot was blocked',
+  'deactivated',
+];
+
+export function isPermanent(
+  errorCode: number | undefined,
+  description: string | undefined,
+): boolean {
+  if (errorCode === 403) return true;
+  if (errorCode !== 400) return false;
+  const text = (description ?? '').toLowerCase();
+  return PERMANENT_DESCRIPTIONS.some((known) => text.includes(known));
+}
+
+/**
  * Сообщение человеку с кнопкой, открывающей мини-апп.
  *
  * Писать можно только тем, кто сам начал диалог с ботом
  * ([[06 Telegram-бот и Mini App]]). Проверять это заранее нечем: `initData`
  * отдаёт `allows_write_to_pm` только при открытии мини-аппа, а очередь
- * разбирается потом и без человека. Поэтому запрет узнаётся из ответа: 403
- * означает «повторять бесполезно», и такая строка гасится сразу, а не ретраится
- * пять раз.
+ * разбирается потом и без человека. Поэтому запрет узнаётся из ответа.
+ *
+ * Ничего не бросает: сеть — это неудача одного сообщения, а не повод уронить
+ * разбор всей пачки, у которой попытка уже списана.
  */
 export async function sendMessage(
   botToken: string,
@@ -112,22 +140,34 @@ export async function sendMessage(
   text: string,
   button: { text: string; url: string },
 ): Promise<SendResult> {
-  const data = await call<{ ok: boolean; description?: string; error_code?: number }>(
-    botToken,
-    'sendMessage',
-    {
-      chat_id: chatId,
-      text,
-      reply_markup: {
-        inline_keyboard: [[{ text: button.text, web_app: { url: button.url } }]],
+  let data: { ok?: boolean; description?: string; error_code?: number };
+
+  try {
+    data = await call<{ ok?: boolean; description?: string; error_code?: number }>(
+      botToken,
+      'sendMessage',
+      {
+        chat_id: chatId,
+        text,
+        reply_markup: {
+          inline_keyboard: [[{ text: button.text, web_app: { url: button.url } }]],
+        },
       },
-    },
-  );
+    );
+  } catch (error) {
+    // Сеть, TLS, не-JSON от шлюза. Это неудача одного сообщения, а не повод
+    // уронить разбор всей пачки: у остальных строк попытка уже списана.
+    return {
+      ok: false,
+      description: error instanceof Error ? error.message : 'network error',
+      permanent: false,
+    };
+  }
 
   return {
     ok: data.ok === true,
     description: data.description,
-    permanent: data.error_code === 403 || data.error_code === 400,
+    permanent: isPermanent(data.error_code, data.description),
   };
 }
 

@@ -282,3 +282,107 @@ Deno.test('приглашённый дошёл до первого задани�
     assertEquals((await queueOf(tx, friend)).length, 0, 'самому новичку сообщать нечего');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Разбор ревью 1.9: жизненный цикл строки очереди
+// ---------------------------------------------------------------------------
+
+/** Кладёт строку напрямую, минуя триггеры: здесь проверяется очередь, а не события. */
+async function enqueue(tx: postgres.TransactionSql, userId: string, kind: string, key = '') {
+  await tx`select enqueue_notification(${userId}, ${kind}, ${key}, '{"amount":1}'::jsonb)`;
+}
+
+const rowsOf = async (tx: postgres.TransactionSql, userId: string) =>
+  await tx`select id, attempts, sent_at, dead_at, claimed_at, payload, send_after
+             from notifications where user_id = ${userId} order by id`;
+
+Deno.test('погашенная строка не забирает свой ключ навсегда', async () => {
+  await inRollback(async (tx) => {
+    const user = await addUser(tx, 'blocked');
+    await enqueue(tx, user, 'referral');
+
+    const [first] = await rowsOf(tx, user);
+    await tx`select drop_notification(${first.id}, 'Forbidden: bot was blocked')`;
+
+    // Человек нажал /start, и следующая награда обязана дойти.
+    await enqueue(tx, user, 'referral');
+
+    const rows = await rowsOf(tx, user);
+    assertEquals(rows.length, 2, 'новая строка, а не вливание в мёртвую');
+    assertEquals(rows[1].dead_at, null);
+    assertEquals(Number(rows[1].attempts), 0);
+  });
+});
+
+Deno.test('строка, взятая в работу, не поглощает событие во время отправки', async () => {
+  await inRollback(async (tx) => {
+    const user = await addUser(tx, 'busy');
+    await tx`insert into auth_identities (user_id, provider, provider_uid)
+             values (${user}, 'telegram', ${'88' + crypto.randomUUID().slice(0, 8)})`;
+    await enqueue(tx, user, 'votes', '1');
+    await tx`update notifications set send_after = now() - interval '1 minute'
+              where user_id = ${user}`;
+
+    const claimed = await tx`select * from claim_notifications(10)`;
+    assertEquals(claimed.length, 1);
+
+    // Пока сообщение в пути, прилетает ещё один голос.
+    await enqueue(tx, user, 'votes', '1');
+
+    const rows = await rowsOf(tx, user);
+    assertEquals(rows.length, 2, 'второе событие стало своей строкой, а не пропало');
+  });
+});
+
+Deno.test('сорвавшаяся попытка отпускает захват и отодвигает строку', async () => {
+  await inRollback(async (tx) => {
+    const user = await addUser(tx, 'flaky');
+    await tx`insert into auth_identities (user_id, provider, provider_uid)
+             values (${user}, 'telegram', ${'87' + crypto.randomUUID().slice(0, 8)})`;
+    await enqueue(tx, user, 'referral');
+    await tx`update notifications set send_after = now() - interval '1 minute'
+              where user_id = ${user}`;
+
+    const claimed = await tx`select * from claim_notifications(10)`;
+    await tx`select mark_notification_failed(${claimed[0].id}, 'Bad Gateway')`;
+
+    const [row] = await rowsOf(tx, user);
+    assertEquals(row.claimed_at, null, 'захват отпущен');
+    assertEquals(row.dead_at, null, 'одна неудача — ещё не конец');
+    assertEquals(Number(row.attempts), 1);
+
+    const [{ backed_off }] = await tx`
+      select send_after > now() + interval '30 seconds' as backed_off
+        from notifications where id = ${claimed[0].id}`;
+    assertEquals(backed_off, true, 'следующая попытка не через минуту');
+
+    // Повторный захват прямо сейчас не случается — иначе весь запас попыток
+    // сгорел бы за пять минут любого сбоя Telegram.
+    const again = await tx`select * from claim_notifications(10)`;
+    assertEquals(again.length, 0);
+  });
+});
+
+Deno.test('пятая неудача закрывает строку и освобождает ключ', async () => {
+  await inRollback(async (tx) => {
+    const user = await addUser(tx, 'doomed');
+    await tx`insert into auth_identities (user_id, provider, provider_uid)
+             values (${user}, 'telegram', ${'86' + crypto.randomUUID().slice(0, 8)})`;
+    await enqueue(tx, user, 'referral');
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await tx`update notifications set send_after = now() - interval '1 minute'
+                where user_id = ${user} and sent_at is null and dead_at is null`;
+      const claimed = await tx`select * from claim_notifications(10)`;
+      assertEquals(claimed.length, 1, `попытка ${attempt + 1} должна быть выдана`);
+      await tx`select mark_notification_failed(${claimed[0].id}, 'still down')`;
+    }
+
+    const [row] = await rowsOf(tx, user);
+    assertEquals(Number(row.attempts), 5);
+    assertEquals(row.dead_at === null, false, 'строка закрыта, а не висит вечно');
+
+    await enqueue(tx, user, 'referral');
+    assertEquals((await rowsOf(tx, user)).length, 2, 'ключ снова свободен');
+  });
+});

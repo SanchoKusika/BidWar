@@ -93,23 +93,25 @@ Deno.test('короткое удержание не превращается в 
   assertStringIncludes(text!, 'Free Top');
 });
 
-Deno.test('дайджест голосов считает и голоса, и людей', () => {
+Deno.test('дайджест голосов считает отдачи, а не людей', () => {
   const text = renderNotification(
     { kind: 'votes', payload: { project_name: 'Mebel', amount: 12, count: 3 } },
     'EN',
   );
 
   assertStringIncludes(text!, '+12 votes');
-  assertStringIncludes(text!, '3 people');
+  assertStringIncludes(text!, '3 separate votes');
+  // count — число слившихся событий: один человек мог отдать все три раза.
+  assertEquals(text!.includes('people'), false, 'число отдач не выдаётся за число людей');
 });
 
-Deno.test('один голос — «person», а не «people»', () => {
+Deno.test('одна отдача не приписывает себе количество', () => {
   const text = renderNotification(
     { kind: 'votes', payload: { project_name: 'Mebel', amount: 4, count: 1 } },
     'EN',
   );
 
-  assertStringIncludes(text!, '1 person');
+  assertEquals(text, '+4 votes for "Mebel".');
 });
 
 Deno.test('приглашённые: один и несколько — разные фразы', () => {
