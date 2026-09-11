@@ -1,5 +1,5 @@
 import { assertEquals } from 'jsr:@std/assert@1';
-import { botIdFromToken, channelUsername } from './bot_api.ts';
+import { botIdFromToken, channelUsername, isPermanent } from './bot_api.ts';
 
 Deno.test('botIdFromToken: id — это часть токена до двоеточия', () => {
   assertEquals(botIdFromToken('8440994946:AAGR0uvD3ZUZuY1hm0GPVzW8KTv'), 8440994946);
@@ -37,4 +37,28 @@ Deno.test('channelUsername: не telegram и битые ссылки', () => {
 Deno.test('channelUsername: слишком короткое имя не юзернейм', () => {
   assertEquals(channelUsername('https://t.me/abcd'), null);
   assertEquals(channelUsername('https://t.me/abcde'), 'abcde');
+});
+
+// ---------------------------------------------------------------------------
+// Какой отказ Telegram считать окончательным (находка ревью 1.9)
+// ---------------------------------------------------------------------------
+
+Deno.test('403 — окончательный отказ: человек не начинал диалог или заблокировал бота', () => {
+  assertEquals(isPermanent(403, 'Forbidden: bot was blocked by the user'), true);
+});
+
+Deno.test('400 про самого адресата — тоже окончательный', () => {
+  assertEquals(isPermanent(400, 'Bad Request: chat not found'), true);
+  assertEquals(isPermanent(400, 'Bad Request: user not found'), true);
+});
+
+Deno.test('остальные 400 повторяются: иначе опечатка в APP_URL хоронит всю очередь', () => {
+  // BUTTON_TYPE_INVALID приходит, когда домен мини-аппа настроен неверно. Это
+  // общая ошибка конфигурации, а не свойство адресата: считать её
+  // окончательной значит потерять ВСЕ уведомления всех людей разом, и после
+  // починки чинить будет уже нечего.
+  assertEquals(isPermanent(400, 'Bad Request: BUTTON_TYPE_INVALID'), false);
+  assertEquals(isPermanent(429, 'Too Many Requests: retry after 30'), false);
+  assertEquals(isPermanent(500, 'Internal Server Error'), false);
+  assertEquals(isPermanent(undefined, undefined), false);
 });

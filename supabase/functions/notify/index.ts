@@ -49,7 +49,25 @@ serve('notify', async (req, ctx) => {
   let sent = 0;
   let failed = 0;
 
+  // Каждая строка — сама по себе. Захват уже списал попытку у всей пачки, и
+  // сорвавшаяся отправка одной не имеет права стоить попытки остальным
+  // двадцати четырём (находка ревью 1.9).
   for (const row of rows) {
+    try {
+      await deliver(row);
+    } catch (error) {
+      failed += 1;
+      ctx.log('row failed', {
+        id: row.id,
+        error: error instanceof Error ? error.message : 'unknown',
+      });
+    }
+  }
+
+  ctx.log('drained', { claimed: rows.length, sent, failed });
+  return { claimed: rows.length, sent, failed };
+
+  async function deliver(row: ClaimedRow): Promise<void> {
     const locale = localeFromCode(row.language_code);
     const text = renderNotification({ kind: row.kind, payload: row.payload ?? {} }, locale);
 
@@ -61,7 +79,7 @@ serve('notify', async (req, ctx) => {
         p_error: `unknown kind ${row.kind}`,
       });
       failed += 1;
-      continue;
+      return;
     }
 
     const result = await sendMessage(botToken, row.chat_id, text, {
@@ -72,7 +90,7 @@ serve('notify', async (req, ctx) => {
     if (result.ok) {
       await db.rpc('mark_notification_sent', { p_id: row.id });
       sent += 1;
-      continue;
+      return;
     }
 
     failed += 1;
@@ -91,7 +109,4 @@ serve('notify', async (req, ctx) => {
       });
     }
   }
-
-  ctx.log('drained', { claimed: rows.length, sent, failed });
-  return { claimed: rows.length, sent, failed };
 });

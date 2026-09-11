@@ -185,7 +185,9 @@ export type Database = {
       notifications: {
         Row: {
           attempts: number
+          claimed_at: string | null
           created_at: string
+          dead_at: string | null
           group_key: string
           id: number
           kind: string
@@ -197,7 +199,9 @@ export type Database = {
         }
         Insert: {
           attempts?: number
+          claimed_at?: string | null
           created_at?: string
+          dead_at?: string | null
           group_key?: string
           id?: number
           kind: string
@@ -209,7 +213,9 @@ export type Database = {
         }
         Update: {
           attempts?: number
+          claimed_at?: string | null
           created_at?: string
+          dead_at?: string | null
           group_key?: string
           id?: number
           kind?: string

@@ -10,6 +10,7 @@ import {
 } from '@/shared/api';
 import { getPlatform } from '@/shared/platform';
 import { strings } from '@/shared/i18n/strings';
+import { useSettings } from '@/shared/settings';
 import { useQuery } from '@/shared/lib/query';
 
 export interface MyProject {
@@ -102,11 +103,22 @@ export interface NotificationPrefsState {
  * появляется строка об этом.
  */
 export function useNotificationPrefs(userId: string | null): NotificationPrefsState {
-  const fetcher = useCallback(() => {
+  const language = useSettings().language;
+
+  const fetcher = useCallback(async () => {
     const initData = getPlatform().getInitData();
-    if (!initData) return Promise.reject(new Error('initData недоступен'));
-    return fetchPreferences(initData);
-  }, []);
+    if (!initData) throw new Error('initData недоступен');
+
+    const prefs = await fetchPreferences(initData);
+    if (prefs.language !== null) return prefs;
+
+    // Язык, выбранный до среза 1.9, лежит только на устройстве: колонка
+    // `users.language` появилась позже и пишется лишь при следующем выборе
+    // руками. Значит, бот всем прежним читателям писал бы на языке оболочки —
+    // ровно то враньё, ради которого колонку и заводили. Досылаем сохранённый
+    // выбор один раз: после записи он уже не null, и ветка больше не сработает.
+    return savePreferences(initData, { language });
+  }, [language]);
 
   const query = useQuery<Preferences>(userId ? `preferences:${userId}` : null, fetcher);
   const [error, setError] = useState<string | null>(null);
