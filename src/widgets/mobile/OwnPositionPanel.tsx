@@ -1,7 +1,10 @@
 import { Icon } from '@/shared/ui/Icon';
 import { Button } from '@/shared/ui/Button';
 import type { ShowcaseType } from '@/entities/project';
+import { strings } from '@/shared/i18n/strings';
 import styles from './OwnPositionPanel.module.css';
+
+const t = strings.own;
 
 export interface OwnPositionPanelProps {
   segment: ShowcaseType;
@@ -46,11 +49,9 @@ export function OwnPositionPanel({
     return (
       <section data-segment={segment} className={styles.panel}>
         <span className={styles.headBlock}>
-          <span className={styles.label}>YOUR POSITION</span>
+          <span className={styles.label}>{t.position}</span>
           <span className={styles.dash}>—</span>
-          <span className={styles.sub}>
-            {segment === 'free' ? 'No entry in the Free Top yet' : 'No entry in the Paid Top yet'}
-          </span>
+          <span className={styles.sub}>{segment === 'free' ? t.noEntryFree : t.noEntryPaid}</span>
         </span>
         {entryHint && <span className={styles.entryHint}>{entryHint}</span>}
         <Button
@@ -61,7 +62,7 @@ export function OwnPositionPanel({
           onClick={onAdd}
           disabled={addDisabled}
         >
-          Add my project
+          {t.addMine}
         </Button>
       </section>
     );
@@ -71,11 +72,11 @@ export function OwnPositionPanel({
     <section data-segment={segment} className={styles.panel}>
       <div className={styles.row}>
         <div className={styles.headBlock}>
-          <span className={styles.label}>YOUR POSITION</span>
+          <span className={styles.label}>{t.position}</span>
           <span className={styles.rank}>{rank != null ? `#${rank}` : '—'}</span>
         </div>
         <div className={styles.valueBlock}>
-          <span className={styles.label}>{segment === 'free' ? 'YOUR VOTES' : 'YOUR BID'}</span>
+          <span className={styles.label}>{segment === 'free' ? t.votes : t.bid}</span>
           <span className={styles.value}>
             {value}
             {unit && <span className={styles.unit}>{unit}</span>}
@@ -99,7 +100,7 @@ export function OwnPositionPanel({
       {onAdd && (
         <button type="button" onClick={onAdd} disabled={addDisabled} className={styles.addLink}>
           <Icon name="plus" size={15} />
-          Add project
+          {t.addMore}
         </button>
       )}
     </section>

@@ -117,7 +117,7 @@ export function ProjectScreen({
             value={metric}
             currency={currency}
             compact={compactAmounts}
-            label={paid ? 'BID' : 'VOTES'}
+            label={paid ? strings.own.bidShort : strings.own.votesShort}
             size="md"
           />
         }
@@ -138,7 +138,12 @@ export function ProjectScreen({
                 <span className={styles.name}>
                   {project.name}
                   {PREVIEW.verifiedBadge && (
-                    <Icon name="shield-check" size={13} color="var(--info-500)" title="Verified" />
+                    <Icon
+                      name="shield-check"
+                      size={13}
+                      color="var(--info-500)"
+                      title={strings.card.verified}
+                    />
                   )}
                 </span>
                 {owner && (

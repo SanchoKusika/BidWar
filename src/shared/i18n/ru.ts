@@ -25,6 +25,8 @@ export const ru: PartialStrings = {
     taskLocked: 'Закрыто',
     amount: 'Сумма',
     balance: 'Баланс',
+    you: 'ТЫ',
+    catLeader: (category: string) => `Лидер категории «${category}»`,
     raise: 'Поднять',
     attack: 'Атаковать',
     giveVotes: 'Отдать голоса',
@@ -44,6 +46,18 @@ export const ru: PartialStrings = {
   units: {
     thousand: 'тыс',
     million: 'млн',
+  },
+
+  own: {
+    position: 'ТВОЯ ПОЗИЦИЯ',
+    bid: 'ТВОЯ СТАВКА',
+    votes: 'ТВОИ ГОЛОСА',
+    bidShort: 'СТАВКА',
+    votesShort: 'ГОЛОСА',
+    noEntryPaid: 'В платном топе записи пока нет',
+    noEntryFree: 'В бесплатном топе записи пока нет',
+    addMine: 'Добавить свой проект',
+    addMore: 'Добавить проект',
   },
 
   tabs: {
@@ -68,6 +82,7 @@ export const ru: PartialStrings = {
     back: 'Назад',
     done: 'Готово',
     continueToPayment: 'Перейти к оплате',
+    max: 'МАКС',
   },
 
   addProject: {
@@ -187,6 +202,7 @@ export const ru: PartialStrings = {
     todayEmptyNote: 'Ни одна ставка в этом топе не менялась последние 24 часа.',
     justHappened: 'Только что',
     tierFrom: (amount: string) => `от ${amount}`,
+    tier: (rank: number) => `Топ-${rank}`,
     raiseMine: 'Поднять свою ставку',
     voteMine: 'Отдать голоса своему проекту',
     entryHintPaid: (price: string) =>

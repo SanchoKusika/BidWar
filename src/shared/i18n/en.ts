@@ -29,6 +29,10 @@ export const en = {
     taskLocked: 'Locked',
     amount: 'Amount',
     balance: 'Balance',
+    /** Chip on your own row in the list. */
+    you: 'YOU',
+    /** Tooltip on the crown of a project leading its category. */
+    catLeader: (category: string) => `Category leader · ${category}`,
     raise: 'Raise',
     attack: 'Attack',
     giveVotes: 'Give votes',
@@ -37,10 +41,10 @@ export const en = {
   },
 
   /**
-   * Категории. Названия лежат в базе по-английски (`categories.title`), но это
-   * не пользовательский текст: список фиксированный, засеян первой миграцией.
-   * Экран печатает свои подписи по `slug`, а незнакомый slug падает на то, что
-   * пришло из базы, — новая категория появится хотя бы так.
+   * Categories. Their names live in the database in English, but that is not
+   * user text: the list is fixed and seeded by the first migration. The screen
+   * prints its own by `slug`; an unknown slug falls back to whatever the
+   * database holds, so a category added later still shows up.
    */
   categories: {
     all: 'All',
@@ -53,13 +57,30 @@ export const en = {
   },
 
   /**
-   * Сокращения разрядов. Уезжают в числа обеих экономик, поэтому живут отдельно
-   * от всего: «12.5 mln» в русском интерфейсе читается как чужой язык посреди
-   * своих цифр.
+   * Short forms for thousands and millions. They end up inside the numbers of
+   * both economies, which is why they live on their own: «12.5 mln» in a
+   * Russian interface reads as a foreign language in the middle of its digits.
    */
   units: {
     thousand: 'K',
     million: 'mil',
+  },
+
+  /**
+   * The own-position panel under the board header, and the numeric captions on
+   * cards. One section because the same words appear in three places — the
+   * panel, the project page and the stat block — and they must not drift.
+   */
+  own: {
+    position: 'YOUR POSITION',
+    bid: 'YOUR BID',
+    votes: 'YOUR VOTES',
+    bidShort: 'BID',
+    votesShort: 'VOTES',
+    noEntryPaid: 'No entry in the Paid Top yet',
+    noEntryFree: 'No entry in the Free Top yet',
+    addMine: 'Add my project',
+    addMore: 'Add project',
   },
 
   /** Нижнее меню. Четыре вкладки, подписи короткие — места под ними нет. */
@@ -76,6 +97,8 @@ export const en = {
     back: 'Back',
     done: 'Done',
     continueToPayment: 'Continue to payment',
+    /** Button that fills the amount field to its ceiling. */
+    max: 'MAX',
   },
 
   /**
@@ -225,6 +248,8 @@ export const en = {
     justHappened: 'Just happened',
     /** Подпись яруса: «от 500 000 so'm» — цена входа в этот десяток. */
     tierFrom: (amount: string) => `from ${amount}`,
+    /** Tier divider label. A reading aid over a long list, not a mechanic. */
+    tier: (rank: number) => `Top ${rank}`,
     raiseMine: 'Raise my bid',
     voteMine: 'Give votes to my project',
     entryHintPaid: (price: string) =>
