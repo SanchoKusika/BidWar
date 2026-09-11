@@ -60,6 +60,7 @@ export const en = {
       'Two projects per account at most — one in the Paid Top, one in the Free Top. The same link may hold both, and the two entries compete separately.',
     submitFree: 'Submit project',
     genericError: 'Could not add the project',
+    needsTelegram: 'Open the mini app inside Telegram to add a project',
   },
 
   raise: {

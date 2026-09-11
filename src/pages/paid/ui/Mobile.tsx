@@ -474,7 +474,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
           // шторку с заголовком "Pay the opening bid".
           if (segment === 'free') {
             const initData = getPlatform().getInitData();
-            if (!initData) throw new Error('Открой мини-апп в Telegram, чтобы добавить проект');
+            if (!initData) throw new Error(strings.addProject.needsTelegram);
             await createProject({ initData, categoryId, url });
             setAddOpen(false);
             refresh();
