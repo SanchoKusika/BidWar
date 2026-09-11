@@ -39,12 +39,12 @@ export function TasksPage({ nav }: TasksPageProps) {
 
   const verifySubscription = async (task: TaskItem) => {
     const initData = getPlatform().getInitData();
-    if (initData === null || task.targetProjectId === null || checking) return;
+    if (initData === null || checking) return;
 
     setChecking(true);
     setNotice(null);
     try {
-      const result = await checkSubscription({ initData, projectId: task.targetProjectId });
+      const result = await checkSubscription({ initData, taskId: task.id });
       if (result.subscribed) {
         // Число приходит из хранимки, которая его и изменила. Складывать
         // `granted` с балансом, который держит экран, неверно дважды: тот может
@@ -57,10 +57,13 @@ export function TasksPage({ nav }: TasksPageProps) {
         return;
       }
       // Не подписан — открываем канал, а не отчитываем: человек нажал именно
-      // затем, чтобы задание выполнить.
+      // затем, чтобы задание выполнить. Отклик при этом такой же, как у
+      // непрошедшего платежа: это отказ, и молчать о нём не за что.
+      haptic('error');
       setNotice(strings.tasks.notSubscribed);
       if (task.targetUrl) getPlatform().openLink(task.targetUrl);
     } catch (error) {
+      haptic('error');
       setNotice(error instanceof Error ? error.message : String(error));
     } finally {
       setChecking(false);
