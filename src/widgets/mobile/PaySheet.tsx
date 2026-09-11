@@ -8,6 +8,7 @@ import { getPaymentMethods } from '@/shared/content';
 import { Sheet } from './Sheet';
 import { SheetHeader } from './SheetHeader';
 import { SheetActions, SheetField, SheetFootnote, SheetNote, SheetRows } from './SheetParts';
+import { haptic } from '@/shared/lib/haptic';
 import styles from './PaySheet.module.css';
 
 const t = strings.pay;
@@ -137,7 +138,10 @@ export function PaySheet({ open, payload, currency = 'UZS', onClose, onConfirm }
                 data-tone={tone}
                 data-active={on}
                 disabled={submitting}
-                onClick={() => setProviderId(p.id)}
+                onClick={() => {
+                  if (!on) haptic('selection');
+                  setProviderId(p.id);
+                }}
               >
                 <span className={styles.methodIcon}>
                   <Icon name={p.icon as IconName} size={18} />

@@ -9,6 +9,7 @@ import {
 } from '@/shared/lib/format';
 import { cx } from '@/shared/lib/cx';
 import { strings } from '@/shared/i18n/strings';
+import { haptic } from '@/shared/lib/haptic';
 import styles from './AmountInput.module.css';
 
 export type AmountSegment = 'paid' | 'free' | 'attack';
@@ -132,7 +133,10 @@ export function AmountInput({
               type="button"
               className={styles.preset}
               disabled={disabled}
-              onClick={() => set((value || 0) + preset)}
+              onClick={() => {
+                haptic('selection');
+                set((value || 0) + preset);
+              }}
             >
               +{show(preset)}
             </button>
@@ -143,7 +147,10 @@ export function AmountInput({
               data-accent="true"
               className={styles.preset}
               disabled={disabled}
-              onClick={() => set(max)}
+              onClick={() => {
+                haptic('selection');
+                set(max);
+              }}
             >
               MAX
             </button>
