@@ -1104,6 +1104,21 @@ export type Database = {
           reason: string
         }[]
       }
+      claim_notifications: {
+        Args: { p_limit?: number }
+        Returns: {
+          chat_id: string
+          id: number
+          kind: string
+          language_code: string
+          payload: Json
+        }[]
+      }
+      drain_notifications: { Args: never; Returns: undefined }
+      drop_notification: {
+        Args: { p_error: string; p_id: number }
+        Returns: undefined
+      }
       enqueue_notification: {
         Args: {
           p_group_key: string
@@ -1113,6 +1128,11 @@ export type Database = {
         }
         Returns: undefined
       }
+      mark_notification_failed: {
+        Args: { p_error: string; p_id: number }
+        Returns: undefined
+      }
+      mark_notification_sent: { Args: { p_id: number }; Returns: undefined }
       register_project_click: {
         Args: { p_project_id: number; p_user_id: string }
         Returns: boolean
