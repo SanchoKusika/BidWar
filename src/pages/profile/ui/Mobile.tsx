@@ -40,7 +40,8 @@ function toReceipt(row: {
   id: string;
   intent: 'raise' | 'attack';
   subject: string | null;
-  amount: number;
+  charged: number;
+  currency: string;
   provider: string;
   confirmedAt: string;
 }): Receipt {
@@ -53,7 +54,8 @@ function toReceipt(row: {
         : strings.profile.receiptRaise(subject),
     when: formatReceiptDate(row.confirmedAt),
     provider: row.provider,
-    amount: row.amount,
+    charged: row.charged,
+    currency: row.currency,
     kind: row.intent,
   };
 }

@@ -9,6 +9,7 @@ import { ReferralShareCard } from '@/shared/ui/ReferralShareCard';
 import { SectionLabel } from '@/shared/ui/SectionLabel';
 import {
   CURRENCY_SUFFIX,
+  formatCharged,
   formatMoney,
   formatVotes,
   type DisplayCurrency,
@@ -28,7 +29,13 @@ export interface Receipt {
   label: string;
   when: string;
   provider?: string;
-  amount: number;
+  /**
+   * Сумма и валюта списания — ровно те, что ушли с карты. В валюту показа не
+   * пересчитываются никогда (04 Платежи и валюты): чек отвечает на вопрос
+   * «сколько с меня сняли», а не «сколько это сегодня в долларах».
+   */
+  charged: number;
+  currency: string;
   kind: 'raise' | 'attack' | 'entry';
 }
 
@@ -149,6 +156,10 @@ export function ProfileScreen({
             }
           />
           {spending && (
+            // Итог — не чек: он складывает платежи, которые могли пройти в
+            // разных валютах, а сложить их можно только в очках. Поэтому здесь
+            // пересчёт в валюту зрителя уместен, а строкой ниже, в самих
+            // чеках, — запрещён. Граница проходит ровно тут.
             <Balance
               label={t.paidLabel}
               value={money(spending.total)}
@@ -272,7 +283,9 @@ export function ProfileScreen({
                       <KeyRow
                         key={r.id}
                         label={`${r.label} · ${r.when}${r.provider ? ` · ${r.provider}` : ''}`}
-                        value={`−${money(r.amount)}`}
+                        // `money` здесь был бы ошибкой: он переводит очки в
+                        // валюту зрителя, а чек показывает списанное как есть.
+                        value={`−${formatCharged(r.charged, r.currency)}`}
                         tone={r.kind === 'attack' ? 'attack' : undefined}
                       />
                     ))
