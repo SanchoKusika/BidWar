@@ -36,6 +36,32 @@ export const en = {
     tenure: (held: string) => `Holds first place · ${held}`,
   },
 
+  /**
+   * Категории. Названия лежат в базе по-английски (`categories.title`), но это
+   * не пользовательский текст: список фиксированный, засеян первой миграцией.
+   * Экран печатает свои подписи по `slug`, а незнакомый slug падает на то, что
+   * пришло из базы, — новая категория появится хотя бы так.
+   */
+  categories: {
+    all: 'All',
+    channels: 'Channels',
+    bots: 'Bots',
+    sites: 'Sites',
+    business: 'Business',
+    services: 'Services',
+    profiles: 'Profiles',
+  },
+
+  /**
+   * Сокращения разрядов. Уезжают в числа обеих экономик, поэтому живут отдельно
+   * от всего: «12.5 mln» в русском интерфейсе читается как чужой язык посреди
+   * своих цифр.
+   */
+  units: {
+    thousand: 'K',
+    million: 'mil',
+  },
+
   /** Нижнее меню. Четыре вкладки, подписи короткие — места под ними нет. */
   tabs: {
     paid: 'Paid',
@@ -264,7 +290,7 @@ export const en = {
      * имя собственное, оно не переводится ни на каком языке.
      */
     visitTitle: 'Push a paid project',
-    visitNote: 'Open a project from the Paid Top. One vote per project, once a day.',
+    visitNote: 'Open projects from the Paid Top. One vote per project, ten a day.',
     referralTitle: 'Invite friends',
     referralNote:
       'Votes land when the friend finishes their first task, not when they open the app.',
@@ -353,7 +379,7 @@ export const en = {
     currency: 'Currency',
     currencyNote: 'Display only — every charge is made in UZS',
     compact: 'Compact amounts',
-    compactNote: '12.5 mln instead of 12 500 000',
+    compactNote: '12.5 mil instead of 12 500 000',
 
     notifications: 'Notifications',
     notificationsNote: 'Sent through the bot. Attack alerts are the only way to know you were hit.',

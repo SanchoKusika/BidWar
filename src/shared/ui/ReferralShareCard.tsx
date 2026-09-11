@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Icon } from './Icon';
 import { Button } from './Button';
 import { group } from '@/shared/lib/format';
+import { haptic } from '@/shared/lib/haptic';
 import { strings } from '@/shared/i18n/strings';
 import { cx } from '@/shared/lib/cx';
 import styles from './ReferralShareCard.module.css';
@@ -41,11 +42,22 @@ export function ReferralShareCard({
   useEffect(() => () => clearTimeout(timer.current), []);
 
   const copy = () => {
-    void navigator.clipboard?.writeText(link).catch(() => {});
-    setCopied(true);
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => setCopied(false), 1600);
-    onCopy?.();
+    // Отклик и «Скопировано» — после того, как буфер принял ссылку, а не до.
+    // Записи может не случиться вовсе: в части WebView `clipboard` нет, а
+    // `writeText` умеет отказать. Подтверждать копирование, которого не было,
+    // хуже, чем промолчать: человек уйдёт вставлять прошлое содержимое буфера.
+    const written = navigator.clipboard?.writeText(link);
+    if (!written) return;
+
+    void written
+      .then(() => {
+        haptic('selection');
+        setCopied(true);
+        clearTimeout(timer.current);
+        timer.current = setTimeout(() => setCopied(false), 1600);
+        onCopy?.();
+      })
+      .catch(() => {});
   };
 
   return (

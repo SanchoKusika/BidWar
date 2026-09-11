@@ -31,6 +31,21 @@ export const ru: PartialStrings = {
     tenure: (held: string) => `Держит первое место · ${held}`,
   },
 
+  categories: {
+    all: 'Все',
+    channels: 'Каналы',
+    bots: 'Боты',
+    sites: 'Сайты',
+    business: 'Бизнес',
+    services: 'Услуги',
+    profiles: 'Профили',
+  },
+
+  units: {
+    thousand: 'тыс',
+    million: 'млн',
+  },
+
   tabs: {
     paid: 'Платный',
     free: 'Бесплатный',
@@ -230,7 +245,7 @@ export const ru: PartialStrings = {
     meta: 'Выполняй задания, получай голоса. Голоса — не деньги.',
     yourVotes: 'ТВОИ ГОЛОСА',
     visitTitle: 'Подтолкни платный проект',
-    visitNote: 'Открой проект из платного топа. Голос за проект, раз в сутки.',
+    visitNote: 'Открывай проекты из платного топа. Голос за проект, десять в сутки.',
     referralTitle: 'Приглашай друзей',
     referralNote:
       'Голоса приходят, когда друг выполнит первое задание, а не когда откроет приложение.',

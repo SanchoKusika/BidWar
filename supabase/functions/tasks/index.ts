@@ -35,7 +35,7 @@ serve('tasks', async (req, ctx) => {
   const { userId } = await resolveTelegramUser(verified.user, verified.startParam);
   const db = getAdminClient();
 
-  const [tasks, user, completions, invited, paidCount] = await Promise.all([
+  const [tasks, user, completions, invited, paidCount, limits] = await Promise.all([
     db
       .from('tasks')
       .select('id, type, title, description, reward_votes, target_project_id, target_url')
@@ -53,9 +53,11 @@ serve('tasks', async (req, ctx) => {
       .select('id', { count: 'exact', head: true })
       .eq('type', 'paid')
       .eq('status', 'active'),
+    // Предел переходов — продуктовое число, и живёт там же, где награды.
+    db.from('app_config').select('value').eq('key', 'task_limits').maybeSingle(),
   ]);
 
-  for (const result of [tasks, user, completions, invited, paidCount]) {
+  for (const result of [tasks, user, completions, invited, paidCount, limits]) {
     if (result.error) throw result.error;
   }
 
@@ -91,6 +93,9 @@ serve('tasks', async (req, ctx) => {
     today: new Date().toISOString().slice(0, 10),
     invited: invited.count ?? 0,
     paidProjects: paidCount.count ?? 0,
+    visitPerDay: Number(
+      (limits.data?.value as { visit_per_day?: number } | null)?.visit_per_day ?? 10,
+    ),
   });
 
   ctx.log('tasks listed', { userId, count: payload.length });

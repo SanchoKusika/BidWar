@@ -54,8 +54,8 @@ export function formatMoney(
   { currency = 'UZS', compact = true }: MoneyOptions = {},
 ): string {
   const n = convert(points, currency);
-  if (compact && n >= 1_000_000) return `${trim(n / 1_000_000)} mln`;
-  if (compact && n >= 100_000) return `${trim(n / 1000)}K`;
+  if (compact && n >= 1_000_000) return `${trim(n / 1_000_000)} ${strings.units.million}`;
+  if (compact && n >= 100_000) return `${trim(n / 1000)} ${strings.units.thousand}`;
   if (n > 0 && n < 100) return trim(n);
   return group(Math.round(n));
 }
@@ -87,15 +87,17 @@ export function formatEditable(points: number, currency: DisplayCurrency): strin
 
 export function formatVotes(value: number, { compact = true }: { compact?: boolean } = {}): string {
   const n = Number(value) || 0;
-  if (compact && n >= 10_000) return `${(n / 1000).toFixed(n >= 100_000 ? 0 : 1)}K`;
+  if (compact && n >= 10_000)
+    return `${(n / 1000).toFixed(n >= 100_000 ? 0 : 1)} ${strings.units.thousand}`;
   return group(n);
 }
 
 /** Нейтральные счётчики — клики, просмотры. Не экономика: цвета единицы нет. */
 export function formatCount(value: number): string {
   const n = Number(value) || 0;
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1)} mln`;
-  if (n >= 10_000) return `${Math.round(n / 1000)}K`;
+  if (n >= 1_000_000)
+    return `${(n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1)} ${strings.units.million}`;
+  if (n >= 10_000) return `${Math.round(n / 1000)} ${strings.units.thousand}`;
   return group(n);
 }
 

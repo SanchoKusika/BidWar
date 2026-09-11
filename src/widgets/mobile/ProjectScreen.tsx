@@ -61,6 +61,8 @@ export interface ProjectScreenProps {
   onAttack: () => void;
   onVote: () => void;
   onOpenOther: () => void;
+  /** Тап по телу карточки второй записи — переход на сам сайт проекта. */
+  onOpenOtherLink: () => void;
   onRules: () => void;
 }
 
@@ -91,6 +93,7 @@ export function ProjectScreen({
   onAttack,
   onVote,
   onOpenOther,
+  onOpenOtherLink,
   onRules,
 }: ProjectScreenProps) {
   const paid = segment === 'paid';
@@ -237,6 +240,7 @@ export function ProjectScreen({
                 compactAmounts={compactAmounts}
                 clicks={otherEntry.clicks}
                 isOwn={otherIsOwn}
+                onPress={onOpenOtherLink}
                 onDetails={onOpenOther}
               />
             ) : (

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useOwnPosition, type ProjectListItem } from '@/entities/project';
 import {
   fetchMySpending,
@@ -98,9 +98,10 @@ export interface NotificationPrefsState {
  * трат и у ленты событий: выключатель, показывающий выдуманное состояние, врёт
  * сильнее отсутствующего.
  *
- * Сохранение оптимистичное только на вид: на экран кладётся ответ сервера, а не
- * отправленное значение. Не доехало — состояние остаётся прежним, и рядом
- * появляется строка об этом.
+ * Сохранение оптимистичное: тумблер сдвигается сразу, потому что это настройка,
+ * а не платёж. Ответ сервера всё равно последнее слово — значение, которого он
+ * не принял, на экране не остаётся, — но ждать его, держа палец на месте,
+ * незачем.
  */
 export function useNotificationPrefs(userId: string | null): NotificationPrefsState {
   const language = useSettings().language;
@@ -122,18 +123,35 @@ export function useNotificationPrefs(userId: string | null): NotificationPrefsSt
 
   const query = useQuery<Preferences>(userId ? `preferences:${userId}` : null, fetcher);
   const [error, setError] = useState<string | null>(null);
+  const sent = useRef(0);
 
   const set = useCallback(
     (patch: PreferencesPatch) => {
       const initData = getPlatform().getInitData();
       if (!initData) return;
+
+      // Тумблер переключается сразу, а не после ответа сервера: это настройка,
+      // а не платёж, и ждать с ней нечего. До этого каждый щелчок держал палец
+      // на месте на всё время запроса — выглядело как подвисание, при том что
+      // остальные переключатели в тех же настройках отвечают мгновенно.
+      const current = query.data;
+      if (current) query.mutate({ ...current, ...patch });
       setError(null);
+
+      // Номер запроса: тумблеры щёлкают быстрее, чем отвечает сеть, и ответ на
+      // ПЕРВЫЙ, пришедший последним, вернул бы на экран состояние до второго.
+      // Публикует только самый свежий.
+      const ticket = (sent.current += 1);
+
       void savePreferences(initData, patch)
         .then((next) => {
-          query.mutate(next);
+          if (sent.current === ticket) query.mutate(next);
         })
         .catch((failure: unknown) => {
           setError(failure instanceof Error ? failure.message : strings.settings.saveFailed);
+          // Откат не «вернуть снимок», а «спросить сервер»: снимок был сделан
+          // до соседних переключений и вернул бы на экран и их тоже.
+          query.refresh();
         });
     },
     [query],

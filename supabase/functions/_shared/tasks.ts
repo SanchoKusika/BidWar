@@ -43,8 +43,14 @@ export interface BoardContext {
   today: string;
   /** Сколько человек пришло по ссылке — знаменатель прогресса рефералки. */
   invited: number;
-  /** Активных платных проектов: столько раз за сутки можно взять visit. */
+  /** Активных платных проектов: больше них за сутки взять visit неоткуда. */
   paidProjects: number;
+  /**
+   * Предел переходов в сутки (`app_config.task_limits.visit_per_day`). Цель
+   * задания — меньшее из него и числа проектов: обещать десять там, где их
+   * пять, значит рисовать недостижимую полосу.
+   */
+  visitPerDay: number;
 }
 
 export function buildTaskBoard(
@@ -68,12 +74,14 @@ export function buildTaskBoard(
       // Сутки считаются по `period_day` самой строки, а не по времени её
       // создания: именно эта колонка и есть ключ дедупликации на сервере.
       const todayCount = done.filter((row) => row.period_day === ctx.today).length;
+      const target = Math.min(ctx.visitPerDay, ctx.paidProjects);
       return {
         ...base,
-        // «Выполнено» у возобновляемого задания наступает, только когда за
-        // сутки обойдены все проекты: каждый следующий платит снова.
-        state: ctx.paidProjects > 0 && todayCount >= ctx.paidProjects ? 'done' : 'available',
-        progress: { current: todayCount, total: ctx.paidProjects },
+        // «Выполнено» наступает на цели, а не на обходе всей витрины: до этого
+        // среза цель равнялась числу платных проектов, и полоса «5 из 18»
+        // читалась как задание, которое не закончить.
+        state: target > 0 && todayCount >= target ? 'done' : 'available',
+        progress: { current: Math.min(todayCount, target), total: target },
       };
     }
 

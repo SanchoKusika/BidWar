@@ -3,7 +3,12 @@ import { AmountInput } from '@/shared/ui/AmountInput';
 import { Button } from '@/shared/ui/Button';
 import { Icon } from '@/shared/ui/Icon';
 import { strings } from '@/shared/i18n/strings';
-import { CATEGORY_ICON, detectCategoryIdByUrl, type CategoryStat } from '@/entities/category';
+import {
+  CATEGORY_ICON,
+  detectCategoryIdByUrl,
+  type CategoryStat,
+  categoryTitle,
+} from '@/entities/category';
 import { normalizeUrlInput, tryParseUrl } from '@/shared/lib/url';
 import { CURRENCY_SUFFIX, formatEditable, type DisplayCurrency } from '@/shared/lib/format';
 import type { ShowcaseType } from '@/entities/project';
@@ -239,7 +244,7 @@ export function AddProjectSheet({
               }}
             >
               <Icon name={CATEGORY_ICON[cat.slug] ?? 'folder'} size={16} />
-              <span className={styles.categoryName}>{cat.title}</span>
+              <span className={styles.categoryName}>{categoryTitle(cat.slug, cat.title)}</span>
             </button>
           ))}
         </div>
