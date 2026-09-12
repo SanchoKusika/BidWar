@@ -10,7 +10,6 @@ interface SpendingRequest {
 
 /** Сколько чеков показываем — карточка в профиле, а не бухгалтерия. */
 const RECEIPT_LIMIT = 20;
-const MONTH_MS = 30 * 24 * 3600 * 1000;
 
 interface Receipt {
   id: string;
@@ -81,22 +80,15 @@ serve('my-spending', async (req, ctx) => {
   };
   const rows = (data ?? []) as unknown as Row[];
 
-  // Итоги считаем отдельным запросом, а не по этим двадцати строкам: список
-  // усечён, и сумма по нему была бы меньше настоящей — молча и незаметно.
-  const totals = await db
-    .from('payment_transactions')
-    .select('points_granted, confirmed_at')
-    .eq('user_id', userId)
-    .eq('status', 'confirmed');
+  // Totals are summed in SQL, not over rows fetched here: the receipts list is
+  // cut to twenty, and a fetch of every row is cut by the API's max_rows
+  // (1000) — either way the sum would silently come out smaller than the truth.
+  const totals = await db.rpc('spending_totals', { p_user_id: userId });
   if (totals.error) throw totals.error;
-
-  const since = Date.now() - MONTH_MS;
-  let total = 0;
-  let month = 0;
-  for (const row of totals.data ?? []) {
-    total += row.points_granted;
-    if (row.confirmed_at && Date.parse(row.confirmed_at) >= since) month += row.points_granted;
-  }
+  const sums = (Array.isArray(totals.data) ? totals.data[0] : totals.data) as
+    { total: number; month: number } | undefined;
+  const total = Number(sums?.total ?? 0);
+  const month = Number(sums?.month ?? 0);
 
   const receipts: Receipt[] = rows.map((row) => ({
     id: row.id,

@@ -1,3 +1,5 @@
+import { strings } from '@/shared/i18n/strings';
+
 /**
  * Соединение оборвалось до ответа create-payment — неизвестно, успел ли
  * сервер применить платёж (находка I6 финального ревью). Отдельный класс, а
@@ -24,6 +26,13 @@ export class PaymentOutcomeUnknownError extends Error {
 export async function functionErrorMessage(error: unknown, fallback: string): Promise<string> {
   if (error && typeof error === 'object' && 'context' in error) {
     const context = (error as { context?: unknown }).context;
+    // 401 from our functions means one thing: initData did not verify. Telegram
+    // signs it once at launch and it lives 24 hours, while the app can sit in
+    // the background far longer — then every action fails. The server's text
+    // ("initData не прошёл проверку") tells the person nothing; reopening does.
+    if (context instanceof Response && context.status === 401) {
+      return strings.common.sessionExpired;
+    }
     if (context instanceof Response) {
       try {
         const body = (await context.clone().json()) as { error?: { message?: string } };

@@ -79,6 +79,7 @@ export const uz: PartialStrings = {
     loading: 'Hisoblanmoqda…',
     cancel: 'Bekor qilish',
     back: 'Orqaga',
+    sessionExpired: 'Sessiya eskirdi — ilovani yopib, qaytadan oching',
     done: 'Tayyor',
     continueToPayment: "To'lovga o'tish",
     max: 'MAKS',
