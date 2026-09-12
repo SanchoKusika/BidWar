@@ -100,6 +100,7 @@ export function FreeMobile({ nav }: FreeMobileProps) {
         compactAmounts={compactAmounts}
         minStep={1}
         categories={categories.categories}
+        categoriesLoading={categories.loading}
         topProjectName={topProject.name}
         categoryId={showcase.categoryId}
         onCategoryChange={showcase.setCategoryId}

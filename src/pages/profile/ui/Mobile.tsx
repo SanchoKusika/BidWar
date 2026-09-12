@@ -3,6 +3,7 @@ import { useSession } from '@/entities/user';
 import { removeMyProjects } from '@/entities/project';
 import { useTaskBoard } from '@/entities/task';
 import { brand } from '@/shared/content';
+import { PREVIEW } from '@/shared/config/preview';
 import { getPlatform } from '@/shared/platform';
 import { formatFullDate, formatReceiptDate, type DisplayCurrency } from '@/shared/lib/format';
 import { dropQueryCache } from '@/shared/lib/query';
@@ -53,10 +54,14 @@ function toReceipt(row: {
  * Пока ответа нет, показывается ноль наград — это факт, а не заглушка: без
  * ответа неизвестно ни одной выданной.
  */
-function useReferralNumbers(): { reward: number; rewarded: number } {
+function useReferralNumbers(): { reward: number; rewarded: number; loading: boolean } {
   const board = useTaskBoard();
   const task = board.data?.tasks.find((item) => item.type === 'referral');
-  return { reward: task?.rewardVotes ?? 0, rewarded: task?.progress?.current ?? 0 };
+  return {
+    reward: task?.rewardVotes ?? 0,
+    rewarded: task?.progress?.current ?? 0,
+    loading: board.loading,
+  };
 }
 
 /**
@@ -66,8 +71,12 @@ function useReferralNumbers(): { reward: number; rewarded: number } {
  * ни полей без обработчика в профиле больше не осталось (11.09.2026).
  */
 export function ProfilePage({ nav }: ProfilePageProps) {
-  const { userId, displayName, username, avatarUrl, joinedAt, invitedCount, voteBalance } =
+  const { status, userId, displayName, username, avatarUrl, joinedAt, invitedCount, voteBalance } =
     useSession();
+  // Until the session lands there is no userId, so the queries below have no
+  // key and report "not loading" — which would draw "no projects" and hide the
+  // spending blocks for a moment. Unknown is not empty.
+  const sessionLoading = status === 'loading';
   const settings = useSettings();
   const prefs = useNotificationPrefs(userId);
   const mine = useMyProjects(userId);
@@ -114,6 +123,7 @@ export function ProfilePage({ nav }: ProfilePageProps) {
         joined={joinedAt ? formatFullDate(joinedAt) : '—'}
         avatarUrl={avatarUrl}
         voteBalance={voteBalance}
+        voteBalanceLoading={sessionLoading}
         spending={
           spending
             ? {
@@ -124,8 +134,9 @@ export function ProfilePage({ nav }: ProfilePageProps) {
             : undefined
         }
         projects={mine.projects}
-        projectsLoading={mine.loading}
-        spendingLoading={spendingLoading}
+        projectsLoading={sessionLoading || mine.loading}
+        spendingLoading={sessionLoading || spendingLoading}
+        referralLoading={sessionLoading || referral.loading}
         onRefresh={refresh}
         refreshing={mine.refreshing}
         // Формат ссылки — t.me/<bot>?start=<users.id> (01 Механики): раньше
@@ -178,10 +189,14 @@ export function ProfilePage({ nav }: ProfilePageProps) {
                 error: prefs.error,
               }
             : undefined,
+          notificationsLoading: sessionLoading || prefs.loading,
           onRules: () => nav.push({ name: 'rules', anchor: 'bidding' }),
           onDoc: (id) => nav.push({ name: 'doc', id }),
+          // Development tool: wipes projects and payment history for real. Shown
+          // only while payments run on the mock, the same boundary the server
+          // function checks; in production this lives in the admin panel.
           onRemoveProjects:
-            mine.projects.length > 0
+            PREVIEW.mockPayments && mine.projects.length > 0
               ? () => {
                   setRemoveError(null);
                   setRemoveOpen(true);

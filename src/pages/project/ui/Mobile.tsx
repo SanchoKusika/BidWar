@@ -3,13 +3,16 @@ import { useSession } from '@/entities/user';
 import { categoryTitle, useCategoryStats } from '@/entities/category';
 import { registerClick, type ProjectListItem, type ShowcaseType } from '@/entities/project';
 import { useProjectActivity } from '@/entities/activity';
-import { SkeletonProjectPage } from '@/shared/ui/Skeleton';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { PREVIEW } from '@/shared/config/preview';
 import { useSettings } from '@/shared/settings';
 import { formatMoney, formatReceiptDate } from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
-import { ProjectScreen, type ActivityEntry } from '@/widgets/mobile/ProjectScreen';
+import {
+  ProjectScreen,
+  ProjectScreenSkeleton,
+  type ActivityEntry,
+} from '@/widgets/mobile/ProjectScreen';
 import { useProject } from '../model';
 import styles from './Mobile.module.css';
 
@@ -51,9 +54,11 @@ export function ProjectPage({
 
   if (status === 'loading') {
     return (
-      <div className={styles.pad}>
-        <SkeletonProjectPage />
-      </div>
+      <ProjectScreenSkeleton
+        segment={segment}
+        onBack={onBack}
+        onRules={() => onRules(segment === 'paid' ? 'attacks' : 'votes')}
+      />
     );
   }
 

@@ -1,4 +1,5 @@
 import { Segmented } from '@/shared/ui/Segmented';
+import { SkeletonBlock } from '@/shared/ui/Skeleton';
 import { SettingsGroup, SettingsRow } from '@/shared/ui/Settings';
 import { Switch } from '@/shared/ui/Switch';
 import type { DisplayCurrency } from '@/shared/lib/format';
@@ -46,6 +47,12 @@ export interface SettingsPanelProps {
    * бы выдуманное состояние. Источник вместо флага, как у ленты событий.
    */
   notifications?: NotificationsProps;
+  /**
+   * The server has not answered yet: the group is drawn with its real rows and
+   * placeholder switches, so it does not push the payment and account groups
+   * down when it lands. A made-up switch state is still never shown.
+   */
+  notificationsLoading?: boolean;
   onRules: () => void;
   onDoc: (id: DocId) => void;
   /**
@@ -89,11 +96,14 @@ export function SettingsPanel({
   value,
   onChange,
   notifications,
+  notificationsLoading = false,
   onRules,
   onDoc,
   onRemoveProjects,
   onPaymentHistory,
 }: SettingsPanelProps) {
+  const switchPlaceholder = <SkeletonBlock width={46} height={28} radius="var(--radius-pill)" />;
+
   return (
     <div className={styles.panel}>
       <SettingsGroup label={t.appearance} footnote={t.appearanceNote}>
@@ -213,6 +223,20 @@ export function SettingsPanel({
               />
             }
           />
+        </SettingsGroup>
+      )}
+
+      {!notifications && notificationsLoading && (
+        <SettingsGroup label={t.notifications} footnote={t.notificationsNote}>
+          <SettingsRow icon="swords" title={t.attacked} control={switchPlaceholder} />
+          <SettingsRow icon="trending-down" title={t.lostPosition} control={switchPlaceholder} />
+          <SettingsRow
+            icon="vote"
+            title={t.votesDigest}
+            description={t.votesDigestNote}
+            control={switchPlaceholder}
+          />
+          <SettingsRow icon="user-plus" title={t.referralAlert} control={switchPlaceholder} />
         </SettingsGroup>
       )}
 

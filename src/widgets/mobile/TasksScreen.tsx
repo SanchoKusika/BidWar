@@ -1,8 +1,7 @@
 import { EmptyState } from '@/shared/ui/EmptyState';
-import { SkeletonFeed, SkeletonStat } from '@/shared/ui/Skeleton';
 import { SectionLabel } from '@/shared/ui/SectionLabel';
 import { StatBlock } from '@/shared/ui/StatBlock';
-import { TaskListItem } from '@/shared/ui/TaskListItem';
+import { TaskListItem, TaskListItemSkeleton } from '@/shared/ui/TaskListItem';
 import { TASK_ICON, splitTasks, taskCopy, type TaskItem } from '@/entities/task';
 import { strings } from '@/shared/i18n/strings';
 import { PageHeader } from './PageHeader';
@@ -57,7 +56,7 @@ export function TasksScreen({
           voteBalance !== null ? (
             <StatBlock segment="free" value={voteBalance} label={t.yourVotes} showUnit={false} />
           ) : loading ? (
-            <SkeletonStat />
+            <StatBlock segment="free" value={0} label={t.yourVotes} showUnit={false} loading />
           ) : undefined
         }
         action={<HeaderAction icon="gavel" label={strings.rules.chip} onClick={onRules} />}
@@ -73,14 +72,22 @@ export function TasksScreen({
         {daily.length > 0 && <Group label={t.daily} items={daily} onTask={onTask} />}
         {oneTime.length > 0 && <Group label={t.oneTime} items={oneTime} onTask={onTask} />}
 
-        {tasks.length === 0 && (
+        {tasks.length === 0 && loading && (
+          // The board's own shape: a daily group with one row, a one-time group
+          // with two. Project cards stood here before — twice as tall as a task
+          // row, so the list shrank under the finger when it arrived.
+          <>
+            <SkeletonGroup label={t.daily} rows={1} />
+            <SkeletonGroup label={t.oneTime} rows={2} />
+          </>
+        )}
+
+        {tasks.length === 0 && !loading && (
           <Gutter>
             {/* Три разных пустых экрана, а не один: «ещё грузится», «не
                 загрузилось» и «всё сделано» — разные новости, и подменять
                 одну другой значит врать про состояние. */}
-            {loading ? (
-              <SkeletonFeed rows={4} />
-            ) : error ? (
+            {error ? (
               <EmptyState
                 icon="triangle-alert"
                 segment="free"
@@ -103,6 +110,19 @@ export function TasksScreen({
         )}
       </ScreenBody>
     </>
+  );
+}
+
+function SkeletonGroup({ label, rows }: { label: string; rows: number }) {
+  return (
+    <Section>
+      <SectionLabel>{label}</SectionLabel>
+      <Gutter className={styles.list}>
+        {Array.from({ length: rows }, (_, i) => (
+          <TaskListItemSkeleton key={i} />
+        ))}
+      </Gutter>
+    </Section>
   );
 }
 

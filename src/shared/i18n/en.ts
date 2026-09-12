@@ -427,12 +427,12 @@ export const en = {
     support: 'Support',
     terms: 'Terms & privacy',
 
-    removeProjects: 'Remove my projects',
-    removeProjectsNote: 'Frees both slots — you can add projects again',
-    removeTitle: 'Remove my projects?',
+    removeProjects: 'Delete my projects',
+    removeProjectsNote: 'Deletes projects and payment history — a fresh account',
+    removeTitle: 'Delete my projects?',
     removeBody:
-      'Your entries leave both tops and the slots are freed, so you can add projects again. The paid bid is not refunded.',
-    removeConfirm: 'Remove',
+      'Your projects, bids and the whole payment history are deleted for good, and your vote balance goes to zero. Nothing paid is refunded.',
+    removeConfirm: 'Delete',
     removeCancel: 'Keep them',
     removeFailed: 'Could not remove the projects — try again',
     removeDone: (count: number) =>

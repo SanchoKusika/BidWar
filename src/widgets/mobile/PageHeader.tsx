@@ -6,8 +6,9 @@ import styles from './PageHeader.module.css';
 
 export interface PageHeaderProps {
   segment?: ShowcaseType;
-  title: string;
-  meta?: string;
+  /** A node, not just a string: a page still loading puts a placeholder here. */
+  title: ReactNode;
+  meta?: ReactNode;
   right?: ReactNode;
   action?: ReactNode;
   onBack?: () => void;

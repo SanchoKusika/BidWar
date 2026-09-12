@@ -4,8 +4,8 @@ import { EmptyState } from '@/shared/ui/EmptyState';
 import { Icon } from '@/shared/ui/Icon';
 import { KeyRow } from '@/shared/ui/KeyRow';
 import { OgPreview } from '@/shared/ui/OgPreview';
-import { ProjectCard } from '@/shared/ui/ProjectCard';
-import { SkeletonBox, SkeletonCard } from '@/shared/ui/Skeleton';
+import { ProjectCard, ProjectCardSkeleton } from '@/shared/ui/ProjectCard';
+import { SkeletonText } from '@/shared/ui/Skeleton';
 import { ReferralShareCard } from '@/shared/ui/ReferralShareCard';
 import { SectionLabel } from '@/shared/ui/SectionLabel';
 import {
@@ -23,6 +23,9 @@ import { SettingsPanel, type SettingsPanelProps } from './SettingsPanel';
 import styles from './ProfileScreen.module.css';
 
 const t = strings.profile;
+
+/** Placeholder receipt rows: label widths vary so the block does not read as a grid. */
+const RECEIPT_PLACEHOLDERS = [184, 148, 168] as const;
 
 /** Строка чека: что списали, когда и через кого. */
 export interface Receipt {
@@ -49,12 +52,14 @@ export interface ProfileScreenProps {
   joined: string;
   avatarUrl: string | null;
   voteBalance: number | null;
+  /** The session is still on the way: the balance is unknown, not absent. */
+  voteBalanceLoading?: boolean;
   /**
    * Траты: за 30 дней, за всё время и построчно — из функции `my-spending`
    * (у payment_transactions нет политики на чтение, а auth.uid() у мини-аппа
    * не существует, поэтому читать их можно только своей функцией).
    *
-   * Не передан ⇒ ответа ещё нет: блок трат и карточка «PAID» не рисуются.
+   * Не передан и не грузится ⇒ блок трат и карточка «PAID» не рисуются.
    * Ноль тут был бы неправдой — платежи в таблице есть, просто не прочитаны.
    */
   spending?: {
@@ -74,6 +79,8 @@ export interface ProfileScreenProps {
    */
   projectsLoading?: boolean;
   spendingLoading?: boolean;
+  /** Referral numbers come with the task board; until then they are placeholders. */
+  referralLoading?: boolean;
   /**
    * Перечитать свои записи. Витрина обновляется сама после оплаты, но профиль
    * открывают и просто так — а ставка и позиция к этому моменту могли уже
@@ -109,6 +116,11 @@ export interface ProfileScreenProps {
  * Денежного баланса в продукте нет: вторая карточка показывает не «сколько у
  * тебя лежит», а «сколько ты заплатил». Настройки живут здесь же — пятой
  * вкладки под них в мини-аппе нет.
+ *
+ * Every block that waits for an answer is drawn in its final shape from the
+ * first frame, with placeholders only where the values go: the two balance
+ * tiles side by side, the project card, the receipts. A block that appears on
+ * arrival pushes everything under it.
  */
 export function ProfileScreen({
   name,
@@ -116,6 +128,7 @@ export function ProfileScreen({
   joined,
   avatarUrl,
   voteBalance,
+  voteBalanceLoading = false,
   spending,
   projects,
   onRefresh,
@@ -131,6 +144,7 @@ export function ProfileScreen({
   onEarn,
   projectsLoading = false,
   spendingLoading = false,
+  referralLoading = false,
   onAdd,
   onOpenProject,
   onRaise,
@@ -138,6 +152,7 @@ export function ProfileScreen({
 }: ProfileScreenProps) {
   const money = (v: number) => formatMoney(v, { currency, compact: compactAmounts });
   const receiptsRef = useRef<HTMLDivElement>(null);
+  const showSpending = Boolean(spending) || spendingLoading;
 
   return (
     <>
@@ -159,7 +174,13 @@ export function ProfileScreen({
           <Balance
             label={t.votesLabel}
             value={
-              voteBalance !== null ? formatVotes(voteBalance, { compact: compactAmounts }) : '—'
+              voteBalance !== null ? (
+                formatVotes(voteBalance, { compact: compactAmounts })
+              ) : voteBalanceLoading ? (
+                <SkeletonText>000</SkeletonText>
+              ) : (
+                '—'
+              )
             }
             unit={t.votesUnit}
             tone="free"
@@ -169,21 +190,14 @@ export function ProfileScreen({
               </Button>
             }
           />
-          {!spending && spendingLoading && (
-            <SkeletonBox
-              height={96}
-              radius="var(--radius-card)"
-              className={styles.balanceSkeleton}
-            />
-          )}
-          {spending && (
+          {showSpending && (
             // Итог — не чек: он складывает платежи, которые могли пройти в
             // разных валютах, а сложить их можно только в очках. Поэтому здесь
             // пересчёт в валюту зрителя уместен, а строкой ниже, в самих
             // чеках, — запрещён. Граница проходит ровно тут.
             <Balance
               label={t.paidLabel}
-              value={money(spending.total)}
+              value={spending ? money(spending.total) : <SkeletonText>000 000</SkeletonText>}
               unit={CURRENCY_SUFFIX[currency]}
               tone="paid"
               action={<span className={styles.balanceNote}>{t.noWallet}</span>}
@@ -226,7 +240,8 @@ export function ProfileScreen({
 
           <Gutter className={styles.projects}>
             {projectsLoading && projects.length === 0 ? (
-              <SkeletonCard showActions />
+              // Own card: tinted, ranked, one action (Raise or Give votes) plus details.
+              <ProjectCardSkeleton own actions={1} />
             ) : projects.length > 0 ? (
               projects.map(({ project, rank }) => (
                 <ProjectCard
@@ -269,6 +284,7 @@ export function ProfileScreen({
             earned={referralEarned}
             rewardPerInvite={referralReward}
             onShare={onShareReferral}
+            loading={referralLoading}
           />
         </Gutter>
 
@@ -276,25 +292,19 @@ export function ProfileScreen({
           {/* Строка «история платежей» ведёт не на отдельный экран, а к чекам
               ниже по этой же странице: они уже здесь, и заводить ради них
               второй экран значило бы показать то же самое дважды. Нет ответа
-              `my-spending` — нет и строки. */}
+              `my-spending` и он не в пути — нет и строки. */}
           <SettingsPanel
             {...settings}
             onPaymentHistory={
-              spending
+              showSpending
                 ? () => receiptsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 : undefined
             }
           />
         </Gutter>
 
-        {!spending && spendingLoading && (
-          <Gutter>
-            <SkeletonBox height={84} radius="var(--radius-card)" />
-          </Gutter>
-        )}
-
-        {spending && (
-          <div ref={receiptsRef}>
+        {showSpending && (
+          <div ref={receiptsRef} aria-busy={!spending}>
             <Section>
               <SectionLabel>{t.receipts}</SectionLabel>
               <Gutter>
@@ -303,11 +313,25 @@ export function ProfileScreen({
                     второе число, месячное: дублировать одно и то же незачем. */}
                   <KeyRow
                     label={t.paidLast30}
-                    value={`${money(spending.month)} ${CURRENCY_SUFFIX[currency]}`}
+                    value={
+                      spending ? (
+                        `${money(spending.month)} ${CURRENCY_SUFFIX[currency]}`
+                      ) : (
+                        <SkeletonText>000 000 {CURRENCY_SUFFIX[currency]}</SkeletonText>
+                      )
+                    }
                     strong
                     tone="paid"
                   />
-                  {spending.receipts.length > 0 ? (
+                  {!spending ? (
+                    RECEIPT_PLACEHOLDERS.map((width) => (
+                      <KeyRow
+                        key={width}
+                        label={<SkeletonText width={width} />}
+                        value={<SkeletonText>−000 000</SkeletonText>}
+                      />
+                    ))
+                  ) : spending.receipts.length > 0 ? (
                     spending.receipts.map((r) => (
                       <KeyRow
                         key={r.id}
@@ -339,7 +363,7 @@ function Balance({
   action,
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
   unit: string;
   tone: 'free' | 'paid';
   action: ReactNode;

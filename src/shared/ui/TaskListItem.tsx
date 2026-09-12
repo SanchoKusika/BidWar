@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import { Icon, type IconName } from './Icon';
+import { SkeletonBlock, SkeletonText } from './Skeleton';
 import { group } from '@/shared/lib/format';
 import { cx } from '@/shared/lib/cx';
 import { strings } from '@/shared/i18n/strings';
@@ -94,6 +95,35 @@ export function TaskListItem({
         ) : (
           <Icon name="chevron-right" size={16} color="var(--text-muted)" />
         )}
+      </div>
+    </div>
+  );
+}
+
+/** A task row while the board is on the way — the row's own classes, placeholder copy. */
+export function TaskListItemSkeleton({ subtitle = true }: { subtitle?: boolean }) {
+  return (
+    <div aria-busy="true" data-state="locked" className={styles.task} style={{ opacity: 1 }}>
+      <SkeletonBlock width={40} height={40} />
+
+      <div className={styles.body}>
+        <span className={styles.title}>
+          <SkeletonText>Visit projects</SkeletonText>
+        </span>
+        {subtitle && (
+          <span className={styles.subtitle}>
+            <SkeletonText>A short note about the task</SkeletonText>
+          </span>
+        )}
+      </div>
+
+      <div className={styles.trailing}>
+        <span className={styles.reward}>
+          <span className={styles.rewardValue}>
+            <SkeletonText>+00</SkeletonText>
+          </span>
+        </span>
+        <SkeletonBlock width={16} height={16} radius="var(--radius-xs)" />
       </div>
     </div>
   );

@@ -344,6 +344,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
         compactAmounts={compactAmounts}
         minStep={minStep}
         categories={categories.categories}
+        categoriesLoading={categories.loading}
         topProjectName={topProject.name}
         categoryId={showcase.categoryId}
         onCategoryChange={showcase.setCategoryId}

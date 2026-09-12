@@ -4,6 +4,7 @@ import { StatBlock } from './StatBlock';
 import { OgPreview, type Segment } from './OgPreview';
 import { Button } from './Button';
 import { Icon } from './Icon';
+import { SkeletonBlock, SkeletonText } from './Skeleton';
 import { formatCount, type DisplayCurrency } from '@/shared/lib/format';
 import { cx } from '@/shared/lib/cx';
 import { displayUrl } from '@/shared/lib/url';
@@ -254,6 +255,89 @@ export function ProjectCard({
           )}
         </div>
       )}
+    </article>
+  );
+}
+
+/**
+ * The card while its row is on the way. Built from the card's own classes, so
+ * padding, gaps and the two bands stay the card's — only the unknown values are
+ * placeholders.
+ *
+ * `actions` is the number of flexible buttons the real card will get (Raise,
+ * Attack, Give votes); with none the details button takes the whole row, as it
+ * does on the card.
+ */
+export function ProjectCardSkeleton({
+  segment = 'paid',
+  rank = true,
+  spot = false,
+  actions = 0,
+  own = false,
+  className,
+  style,
+}: {
+  segment?: Segment;
+  rank?: boolean;
+  spot?: boolean;
+  actions?: number;
+  own?: boolean;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <article
+      aria-busy="true"
+      data-segment={segment}
+      data-own={own}
+      className={cx(styles.card, className)}
+      style={style}
+    >
+      <div className={styles.identity}>
+        {rank && <SkeletonBlock width={32} height={32} />}
+        <SkeletonBlock width={52} height={52} radius="var(--radius-thumb)" />
+        <div className={styles.info}>
+          <div className={styles.titleRow}>
+            <span className={styles.name}>
+              {/* Sample copy, not a percentage: the name is a shrink-to-fit
+                  flex item, and a percentage of it resolves to nothing. */}
+              <SkeletonText>Project name</SkeletonText>
+            </span>
+          </div>
+          <p className={styles.description}>
+            <SkeletonText block width="92%" />
+            <SkeletonText block width="64%" />
+          </p>
+        </div>
+      </div>
+
+      <div className={styles.numbers}>
+        <StatBlock segment={segment} value={0} size="lg" align="left" label={null} inline loading />
+        <span className={styles.counters}>
+          <span className={styles.counter}>
+            <SkeletonText>0 000</SkeletonText>
+          </span>
+        </span>
+      </div>
+
+      {spot && (
+        <div className={styles.spot}>
+          <span className={styles.spotLabel}>
+            <SkeletonText>Take this spot</SkeletonText>
+          </span>
+          <span className={styles.spotPrice}>
+            <SkeletonText>000 000</SkeletonText>
+          </span>
+        </div>
+      )}
+
+      <div className={styles.actions}>
+        {Array.from({ length: actions }, (_, i) => (
+          <SkeletonBlock key={i} height={36} radius="var(--radius-control)" />
+        ))}
+        {/* Details: icon-only next to actions (15px icon, 11px sides, border). */}
+        <SkeletonBlock width={actions > 0 ? 39 : '100%'} height={36} />
+      </div>
     </article>
   );
 }

@@ -1158,6 +1158,7 @@ export type Database = {
         Args: { p_project_id: number; p_user_id: string }
         Returns: boolean
       }
+      reset_user_data: { Args: { p_user_id: string }; Returns: number }
       resolve_telegram_identity: {
         Args: {
           p_avatar_url: string

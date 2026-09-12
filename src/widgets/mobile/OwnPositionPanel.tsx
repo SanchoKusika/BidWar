@@ -1,5 +1,6 @@
 import { Icon } from '@/shared/ui/Icon';
 import { Button } from '@/shared/ui/Button';
+import { SkeletonBlock, SkeletonText } from '@/shared/ui/Skeleton';
 import type { ShowcaseType } from '@/entities/project';
 import { strings } from '@/shared/i18n/strings';
 import styles from './OwnPositionPanel.module.css';
@@ -20,6 +21,12 @@ export interface OwnPositionPanelProps {
   actionDisabled?: boolean;
   onAdd?: () => void;
   addDisabled?: boolean;
+  /**
+   * The own entry is not known yet. Drawn as the panel with an entry — the
+   * state people who come back every day actually see — with placeholders for
+   * the numbers, the hint and the button.
+   */
+  loading?: boolean;
 }
 
 /**
@@ -38,7 +45,33 @@ export function OwnPositionPanel({
   actionDisabled,
   onAdd,
   addDisabled,
+  loading = false,
 }: OwnPositionPanelProps) {
+  if (loading) {
+    return (
+      <section aria-busy="true" data-segment={segment} className={styles.panel}>
+        <div className={styles.row}>
+          <div className={styles.headBlock}>
+            <span className={styles.label}>{t.position}</span>
+            <span className={styles.rank}>
+              <SkeletonText tone="inverse">#00</SkeletonText>
+            </span>
+          </div>
+          <div className={styles.valueBlock}>
+            <span className={styles.label}>{segment === 'free' ? t.votes : t.bid}</span>
+            <span className={styles.value}>
+              <SkeletonText tone="inverse">000 000</SkeletonText>
+            </span>
+          </div>
+        </div>
+        <span className={styles.hint}>
+          <SkeletonText tone="inverse" block width="80%" />
+        </span>
+        <SkeletonBlock tone="inverse" height={52} radius="var(--radius-control)" />
+      </section>
+    );
+  }
+
   // "Есть запись" решается по value, не по rank: rank считается отдельным
   // запросом и может не прийти при временном сбое сети, пока сам проект
   // уже найден — в этом случае показывать "нет записи" неверно (код-ревью
