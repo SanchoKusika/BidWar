@@ -31,7 +31,7 @@ export interface OgResult {
 
 class BlockedUrlError extends Error {}
 
-function isBlockedIp(ip: string): boolean {
+export function isBlockedIp(ip: string): boolean {
   const v4 = ip.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (v4) {
     const a = Number(v4[1]);
@@ -40,12 +40,18 @@ function isBlockedIp(ip: string): boolean {
     if (a === 172 && b >= 16 && b <= 31) return true;
     if (a === 192 && b === 168) return true;
     if (a === 169 && b === 254) return true; // link-local, включая cloud metadata
+    // Shared address space (CGNAT) — clouds use it for internal networks.
+    if (a === 100 && b >= 64 && b <= 127) return true;
+    if (a === 198 && (b === 18 || b === 19)) return true; // benchmarking, not routable
     return false;
   }
 
   const lower = ip.toLowerCase();
   if (lower === '::1' || lower === '::') return true;
   if (lower.startsWith('::ffff:')) return isBlockedIp(lower.slice('::ffff:'.length));
+  // NAT64 (64:ff9b::/96) carries an IPv4 address inside; through a NAT64
+  // gateway it reaches that address, private ones included.
+  if (lower.startsWith('64:ff9b:')) return true;
   if (
     lower.startsWith('fe80:') ||
     lower.startsWith('fe9') ||

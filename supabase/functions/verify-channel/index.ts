@@ -45,7 +45,9 @@ serve('verify-channel', async (req, ctx) => {
 
   if (error) throw error;
   if (!project) throw notFound('Проект не найден');
-  if (project.user_id !== userId) throw unauthorized('Это не твой проект');
+  // 400, not 401: the client reads 401 as "initData has expired, reopen the
+  // app", and here the caller is signed in fine — just not the owner.
+  if (project.user_id !== userId) throw badRequest('Это не твой проект');
 
   // Задание на подписку висит только на активной платной записи — по ней и
   // ищет `apply_channel_admin`. Без этой проверки ответ мог быть «бот админ»

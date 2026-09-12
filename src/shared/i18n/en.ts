@@ -95,6 +95,8 @@ export const en = {
     loading: 'Working out the numbers…',
     cancel: 'Cancel',
     back: 'Back',
+    /** Any request answered 401: Telegram's signed launch data expired after a day. */
+    sessionExpired: 'The session has expired — close the app and open it again',
     done: 'Done',
     continueToPayment: 'Continue to payment',
     /** Button that fills the amount field to its ceiling. */

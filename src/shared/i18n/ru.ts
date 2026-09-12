@@ -80,6 +80,7 @@ export const ru: PartialStrings = {
     loading: 'Считаем…',
     cancel: 'Отмена',
     back: 'Назад',
+    sessionExpired: 'Сессия устарела — закрой приложение и открой его заново',
     done: 'Готово',
     continueToPayment: 'Перейти к оплате',
     max: 'МАКС',

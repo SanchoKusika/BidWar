@@ -1178,6 +1178,13 @@ export type Database = {
           vote_balance: number
         }[]
       }
+      spending_totals: {
+        Args: { p_user_id: string }
+        Returns: {
+          month: number
+          total: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
