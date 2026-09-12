@@ -48,11 +48,15 @@ serve('tasks', async (req, ctx) => {
       .eq('user_id', userId)
       .eq('status', 'completed'),
     db.from('users').select('id', { count: 'exact', head: true }).eq('referrer_id', userId),
+    // Own projects are left out: a click on them does not count
+    // (register_project_click), so with them in the goal an owner of a paid
+    // project could never finish the day — "4 of 5" forever.
     db
       .from('projects')
       .select('id', { count: 'exact', head: true })
       .eq('type', 'paid')
-      .eq('status', 'active'),
+      .eq('status', 'active')
+      .neq('user_id', userId),
     // Предел переходов — продуктовое число, и живёт там же, где награды.
     db.from('app_config').select('value').eq('key', 'task_limits').maybeSingle(),
   ]);
