@@ -371,12 +371,12 @@ export const uz: PartialStrings = {
     support: "Qo'llab-quvvatlash",
     terms: 'Shartlar va maxfiylik',
 
-    removeProjects: 'Loyihalarimni olib tashlash',
-    removeProjectsNote: "Ikkala joyni bo'shatadi — loyihalarni qaytadan qo'shsa bo'ladi",
-    removeTitle: 'Loyihalaringiz olib tashlansinmi?',
+    removeProjects: "Loyihalarimni o'chirish",
+    removeProjectsNote: "Loyihalar va to'lovlar tarixi o'chadi — akkaunt yangidek bo'ladi",
+    removeTitle: "Loyihalaringiz o'chirilsinmi?",
     removeBody:
-      "Yozuvlaringiz ikkala topdan ketadi va joylar bo'shaydi, ya'ni loyihalarni qaytadan qo'shsa bo'ladi. To'langan stavka qaytarilmaydi.",
-    removeConfirm: 'Olib tashlash',
+      "Loyihalar, stavkalar va butun to'lovlar tarixi butunlay o'chiriladi, ovozlar balansi nolga tushadi. To'langan pul qaytarilmaydi.",
+    removeConfirm: "O'chirish",
     removeCancel: 'Qoldirish',
     removeFailed: "Loyihalarni olib tashlab bo'lmadi — yana urinib ko'ring",
     removeDone: (count: number) =>

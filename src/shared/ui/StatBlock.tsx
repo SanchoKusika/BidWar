@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import { Icon, type IconName } from './Icon';
+import { SkeletonText } from './Skeleton';
 import {
   CURRENCY_SUFFIX,
   formatMoney,
@@ -42,6 +43,8 @@ export interface StatBlockProps {
   showUnit?: boolean;
   showIcon?: boolean;
   inline?: boolean;
+  /** The number is not known yet: caption and unit stay, the value is a placeholder. */
+  loading?: boolean;
   className?: string;
   style?: CSSProperties;
 }
@@ -58,6 +61,7 @@ export function StatBlock({
   showUnit = true,
   showIcon = false,
   inline = false,
+  loading = false,
   className,
   style,
 }: StatBlockProps) {
@@ -94,11 +98,13 @@ export function StatBlock({
             style={{ alignSelf: 'center' }}
           />
         )}
-        <span className={styles.value}>{text}</span>
+        <span className={styles.value}>
+          {loading ? <SkeletonText>{isPaid ? '000 000' : '000'}</SkeletonText> : text}
+        </span>
         {showUnit && <span className={styles.unit}>{unit}</span>}
       </span>
 
-      {d !== 0 && (
+      {!loading && d !== 0 && (
         <span data-dir={d > 0 ? 'up' : 'down'} className={styles.delta}>
           <Icon name={d > 0 ? 'arrow-up' : 'arrow-down'} size={9} />
           {isPaid

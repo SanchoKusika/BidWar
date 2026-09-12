@@ -87,6 +87,8 @@ export function useMySpending(userId: string | null): SpendingState {
 export interface NotificationPrefsState {
   /** null — настройки ещё не получены: группу тумблеров рисовать не на чем. */
   value: Preferences | null;
+  /** Nothing to show yet and the request is on the way. */
+  loading: boolean;
   /** Последнее сохранение не доехало; тумблеры при этом показывают серверное. */
   error: string | null;
   set: (patch: PreferencesPatch) => void;
@@ -159,5 +161,5 @@ export function useNotificationPrefs(userId: string | null): NotificationPrefsSt
     [query],
   );
 
-  return { value: query.data, error, set };
+  return { value: query.data, loading: query.loading, error, set };
 }

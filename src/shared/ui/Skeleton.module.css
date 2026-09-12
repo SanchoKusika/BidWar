@@ -1,12 +1,11 @@
 /*
-  Заглушка загрузки повторяет геометрию ProjectCard, чтобы лента не прыгала в
-  момент прихода данных. Спиннеров в ленте не бывает.
+  Placeholders never carry geometry of their own. Text takes the font of the
+  slot it stands in, blocks take the size of the element they replace, and the
+  card around them is the real component's card — see the *Skeleton exports
+  next to ProjectCard, TaskListItem and CategoryTile.
 */
-.bar {
-  display: block;
-  width: var(--bar-w);
-  height: var(--bar-h);
-  border-radius: var(--bar-r, var(--radius-xs));
+.text,
+.block {
   background: linear-gradient(
     90deg,
     var(--skeleton-base) 8%,
@@ -17,78 +16,38 @@
   animation: ds-skeleton 1.3s linear infinite;
 }
 
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  padding: var(--card-pad);
-  background: var(--surface-card);
-  border: var(--border-w) solid var(--border-subtle);
-  border-radius: var(--radius-card);
+.text {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-xs);
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  white-space: nowrap;
+  user-select: none;
 }
 
-.identity {
-  display: flex;
-  align-items: center;
-  gap: var(--space-6);
+.text[style] {
+  width: var(--skeleton-w);
 }
 
-.lines {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.text[data-block='true'] {
+  display: block;
 }
 
-.numbers {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
+.block {
+  display: block;
+  width: var(--skeleton-w);
+  height: var(--skeleton-h);
+  border-radius: var(--skeleton-r);
 }
 
-.actions {
-  display: flex;
-  gap: var(--space-4);
-  border-top: var(--border-w) solid var(--border-subtle);
-  padding-top: var(--space-5);
+.block[data-fixed='true'] {
+  flex-shrink: 0;
 }
 
-.feed {
-  display: flex;
-  flex-direction: column;
-  gap: var(--stack-gap);
-}
-
-/*
-  Заглушки целых экранов. Геометрия повторяет сам экран, а не ленту: подмена
-  формы и есть тот прыжок, ради которого заглушка ставится.
-*/
-.stat {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
-
-.page {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-}
-
-.pageHead {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--card-pad);
-  background: var(--surface-card);
-  border: var(--border-w) solid var(--border-subtle);
-  border-radius: var(--radius-card);
-}
-
-.pageRow {
-  display: flex;
-  gap: var(--space-4);
+.text[data-tone='inverse'],
+.block[data-tone='inverse'] {
+  --skeleton-base: rgb(255 255 255 / 8%);
+  --skeleton-sheen: rgb(255 255 255 / 16%);
 }

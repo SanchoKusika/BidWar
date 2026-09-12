@@ -3,9 +3,10 @@ import { EmptyState } from '@/shared/ui/EmptyState';
 import { Icon } from '@/shared/ui/Icon';
 import { KeyRow } from '@/shared/ui/KeyRow';
 import { OgPreview } from '@/shared/ui/OgPreview';
-import { ProjectCard } from '@/shared/ui/ProjectCard';
+import { ProjectCard, ProjectCardSkeleton } from '@/shared/ui/ProjectCard';
 import { RankBadge } from '@/shared/ui/RankBadge';
 import { SectionLabel } from '@/shared/ui/SectionLabel';
+import { SkeletonBlock, SkeletonText } from '@/shared/ui/Skeleton';
 import { StatBlock } from '@/shared/ui/StatBlock';
 import {
   CURRENCY_SUFFIX,
@@ -64,6 +65,99 @@ export interface ProjectScreenProps {
   /** Тап по телу карточки второй записи — переход на сам сайт проекта. */
   onOpenOtherLink: () => void;
   onRules: () => void;
+}
+
+/**
+ * The project page while the project loads: the page itself — header with the
+ * back button, the card, the other-entry section — with placeholders for what
+ * is not known. The old placeholder had no header at all, so the header dropped
+ * in on arrival and pushed the whole page down.
+ *
+ * Whether the project is the viewer's own is unknown here; a paid page gets
+ * both buttons, as a stranger's paid project does.
+ */
+export function ProjectScreenSkeleton({
+  segment,
+  onBack,
+  onRules,
+}: {
+  segment: ShowcaseType;
+  onBack: () => void;
+  onRules: () => void;
+}) {
+  const paid = segment === 'paid';
+
+  return (
+    <>
+      <PageHeader
+        segment={segment}
+        title={<SkeletonText width="60%" />}
+        meta={<SkeletonText width="45%" />}
+        onBack={onBack}
+        right={
+          <StatBlock
+            segment={segment}
+            value={0}
+            label={paid ? strings.own.bidShort : strings.own.votesShort}
+            size="md"
+            loading
+          />
+        }
+      />
+
+      <ScreenBody>
+        <Gutter>
+          <Card>
+            <div aria-busy="true" className={styles.identity}>
+              <SkeletonBlock width={32} height={32} />
+              <SkeletonBlock width={52} height={52} radius="var(--radius-thumb)" />
+              <div className={styles.identityText}>
+                <span className={styles.name}>
+                  <SkeletonText>Project name</SkeletonText>
+                </span>
+              </div>
+            </div>
+
+            <p className={styles.description}>
+              <SkeletonText block width="94%" />
+              <SkeletonText block width="68%" />
+            </p>
+
+            <div>
+              <KeyRow label={t.position} value={<SkeletonText>#00</SkeletonText>} />
+              <KeyRow
+                label={paid ? t.currentBid : t.votes}
+                value={<SkeletonText>{paid ? '000 000' : '000'}</SkeletonText>}
+                strong
+                tone={paid ? 'paid' : 'free'}
+              />
+              <KeyRow label={t.clicks} value={<SkeletonText>000</SkeletonText>} />
+            </div>
+
+            <SkeletonBlock height={44} radius="var(--radius-control)" />
+
+            <div className={styles.actions}>
+              <SkeletonBlock height={52} radius="var(--radius-control)" />
+              {paid && <SkeletonBlock height={52} radius="var(--radius-control)" />}
+            </div>
+          </Card>
+        </Gutter>
+
+        <Section>
+          <SectionLabel>{paid ? t.sameAccountFree : t.sameAccountPaid}</SectionLabel>
+          <Gutter className={styles.otherList}>
+            <ProjectCardSkeleton segment={paid ? 'free' : 'paid'} />
+          </Gutter>
+        </Section>
+
+        <Gutter>
+          <Button variant="secondary" size="md" block icon="gavel" onClick={onRules}>
+            {t.rulesButton}
+          </Button>
+        </Gutter>
+      </ScreenBody>
+    </>
+  );
 }
 
 /**

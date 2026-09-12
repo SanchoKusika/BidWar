@@ -1,7 +1,6 @@
-import { CategoryTile } from '@/shared/ui/CategoryTile';
-import { ProjectCard } from '@/shared/ui/ProjectCard';
+import { CategoryTile, CategoryTileSkeleton } from '@/shared/ui/CategoryTile';
+import { ProjectCard, ProjectCardSkeleton } from '@/shared/ui/ProjectCard';
 import { TierDivider } from '@/shared/ui/TierDivider';
-import { SkeletonBox, SkeletonFeed, SkeletonStat } from '@/shared/ui/Skeleton';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Button } from '@/shared/ui/Button';
 import { StatBlock } from '@/shared/ui/StatBlock';
@@ -164,6 +163,8 @@ export interface ShowcaseScreenProps {
   /** Минимальный шаг ставки/голоса — цена «занять место» и подсказки дистанции. */
   minStep: number;
   categories: CategoryStat[];
+  /** Category stats are on the way and nothing is cached: the tile row is held with placeholders. */
+  categoriesLoading?: boolean;
   topProjectName: string | null;
   categoryId: number | null;
   onCategoryChange: (id: number | null) => void;
@@ -270,6 +271,7 @@ export function ShowcaseScreen({
   compactAmounts = false,
   minStep,
   categories,
+  categoriesLoading = false,
   topProjectName,
   categoryId,
   onCategoryChange,
@@ -365,7 +367,14 @@ export function ShowcaseScreen({
                 showUnit={false}
               />
             ) : sessionStatus === 'loading' ? (
-              <SkeletonStat />
+              <StatBlock
+                segment="free"
+                value={0}
+                label={s.yourVotes}
+                size="md"
+                showUnit={false}
+                loading
+              />
             ) : undefined
           ) : undefined
         }
@@ -383,14 +392,18 @@ export function ShowcaseScreen({
           </div>
         )}
 
-        {userId && (
+        {(userId || sessionStatus === 'loading') && (
           <>
-            {ownLoading ? (
-              // Заглушка по высоте самой панели, а не строки ленты: подмена
-              // разной формы — это и есть прыжок, от которого заглушка ставится.
-              <div className={styles.ownSkeleton}>
-                <SkeletonBox height={168} radius="var(--radius-card)" />
-              </div>
+            {ownLoading || !userId ? (
+              // The panel itself with placeholders, not a box of a guessed
+              // height. Held while the session is still on the way too: the
+              // panel belongs to every signed-in viewer, and without the
+              // placeholder it dropped in above the feed once userId landed.
+              <OwnPositionPanel
+                segment={segment}
+                actionLabel={segment === 'paid' ? s.raiseMine : s.voteMine}
+                loading
+              />
             ) : (
               <OwnPositionPanel
                 segment={segment}
@@ -412,6 +425,14 @@ export function ShowcaseScreen({
               />
             )}
           </>
+        )}
+
+        {categories.length === 0 && items.length === 0 && categoriesLoading && (
+          <div className={styles.categoriesScroll}>
+            {[0, 1, 2].map((i) => (
+              <CategoryTileSkeleton key={i} segment={segment} className={styles.categoryTile} />
+            ))}
+          </div>
         )}
 
         {(categories.length > 0 || items.length > 0) && (
@@ -468,7 +489,17 @@ export function ShowcaseScreen({
 
         <section className={styles.feed}>
           {feedLoading ? (
-            <SkeletonFeed rows={6} />
+            // Same parts the rows will have: the spot price in the all-time
+            // view, and as many buttons as this viewer gets on a stranger's row.
+            Array.from({ length: 6 }, (_, i) => (
+              <ProjectCardSkeleton
+                key={i}
+                segment={segment}
+                spot={!todayScope}
+                actions={segment === 'paid' ? (onAttack ? 2 : onBoost ? 1 : 0) : onVote ? 1 : 0}
+                style={{ opacity: 1 - i * 0.14 }}
+              />
+            ))
           ) : error && !todayScope ? (
             <EmptyState
               icon="triangle-alert"

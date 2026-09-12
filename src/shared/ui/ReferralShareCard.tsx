@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Icon } from './Icon';
 import { Button } from './Button';
+import { SkeletonText } from './Skeleton';
 import { group } from '@/shared/lib/format';
 import { haptic } from '@/shared/lib/haptic';
 import { strings } from '@/shared/i18n/strings';
@@ -20,6 +21,8 @@ export interface ReferralShareCardProps {
   rewardPerInvite: number;
   onCopy?: () => void;
   onShare?: () => void;
+  /** The numbers are on the way: the card keeps its shape, the numbers are placeholders. */
+  loading?: boolean;
   className?: string;
   style?: CSSProperties;
 }
@@ -33,6 +36,7 @@ export function ReferralShareCard({
   rewardPerInvite,
   onCopy,
   onShare,
+  loading = false,
   className,
   style,
 }: ReferralShareCardProps) {
@@ -65,7 +69,13 @@ export function ReferralShareCard({
       <div className={styles.head}>
         <div className={styles.headText}>
           <span className={styles.kicker}>{t.kicker}</span>
-          <span className={styles.reward}>{t.reward(group(rewardPerInvite))}</span>
+          <span className={styles.reward}>
+            {loading ? (
+              <SkeletonText tone="inverse">{t.reward('0')}</SkeletonText>
+            ) : (
+              t.reward(group(rewardPerInvite))
+            )}
+          </span>
         </div>
         <span className={styles.gift}>
           <Icon name="gift" size={20} />
@@ -73,9 +83,9 @@ export function ReferralShareCard({
       </div>
 
       <div className={styles.metrics}>
-        <Metric label={t.invited} value={group(invited)} />
+        <Metric label={t.invited} value={group(invited)} loading={loading} />
         <span className={styles.divider} />
-        <Metric label={t.earned} value={group(earned)} accent />
+        <Metric label={t.earned} value={group(earned)} accent loading={loading} />
       </div>
 
       <div className={styles.actions}>
@@ -116,15 +126,19 @@ function Metric({
   label,
   value,
   accent = false,
+  loading = false,
 }: {
   label: string;
   value: string;
   accent?: boolean;
+  loading?: boolean;
 }) {
   return (
     <div className={styles.metric} data-accent={accent}>
       <span className={styles.metricLabel}>{label}</span>
-      <span className={styles.metricValue}>{value}</span>
+      <span className={styles.metricValue}>
+        {loading ? <SkeletonText tone="inverse">00</SkeletonText> : value}
+      </span>
     </div>
   );
 }

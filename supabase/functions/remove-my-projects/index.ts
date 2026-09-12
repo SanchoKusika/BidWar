@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
-import { serve, badRequest, unauthorized } from '../_shared/http.ts';
+import { serve, badRequest, notFound, unauthorized } from '../_shared/http.ts';
+import { mockCommandsAllowed } from '../_shared/payments/registry.ts';
 import { verifyInitData } from '../_shared/telegram.ts';
 import { resolveTelegramUser } from '../_shared/identity.ts';
 import { getAdminClient } from '../_shared/db.ts';
@@ -9,28 +10,19 @@ interface RemoveRequest {
 }
 
 /**
- * «Убрать мои проекты» из профиля: свои записи в обоих топах разом.
+ * "Remove my projects" from the profile: resets the account to zero.
  *
- * Удаления как такового у продукта нет — строка остаётся, статус становится
- * `hidden` (01 Механики, «Правила жизненного цикла»): на неё ссылается леджер
- * платежей, и стирать её значило бы переписывать историю. Оба уникальных
- * индекса активных записей частичные (`where status = 'active'`), поэтому
- * скрытие освобождает и слот топа, и адрес — тот же проект можно завести
- * заново.
+ * Projects, payment history, stakes, votes and task completions are deleted
+ * for real by `reset_user_data` in one transaction, so the profile comes back
+ * empty. The account row stays — the next launch reuses it.
  *
- * Деньги не возвращаются: ставка уже оплачена (04 Платежи и валюты, политика
- * рефандов). Предупреждение об этом стоит в самой шторке подтверждения.
- *
- * `rank1_since` снимается тем же UPDATE: у скрытой строки его быть не должно —
- * иначе `apply_payment` продолжит блокировать её как держателя первого места.
- * Новому лидеру отсчёт проставит ближайший платёж (там же, где он и живёт), а
- * до тех пор корона на витрине просто без времени — врать числом хуже.
- *
- * Блокировок это не путает: за один заход трогаются максимум две строки
- * одного пользователя, из которых в наборе `apply_payment` может оказаться
- * только платная — одна строка цикла не образует.
+ * Money is not refunded; the confirmation sheet says so.
  */
 serve('remove-my-projects', async (req, ctx) => {
+  // Development tool only: the reset rewrites the payment ledger and resets
+  // attack limits and task rewards. It answers only while payments run on the
+  // mock — the same switch that separates the test setup from production.
+  if (!mockCommandsAllowed()) throw notFound();
   if (req.method !== 'POST') throw badRequest('Ожидается POST');
 
   const body = await ctx.body<RemoveRequest>();
@@ -44,15 +36,10 @@ serve('remove-my-projects', async (req, ctx) => {
 
   const { userId } = await resolveTelegramUser(verified.user, verified.startParam);
 
-  const { data, error } = await getAdminClient()
-    .from('projects')
-    .update({ status: 'hidden', rank1_since: null, updated_at: new Date().toISOString() })
-    .eq('user_id', userId)
-    .eq('status', 'active')
-    .select('id, type');
+  const { data, error } = await getAdminClient().rpc('reset_user_data', { p_user_id: userId });
   if (error) throw error;
 
-  const removed = data ?? [];
-  ctx.log('projects removed', { count: removed.length });
-  return { removed: removed.length };
+  const removed = Number(data ?? 0);
+  ctx.log('account reset', { projects: removed });
+  return { removed };
 });

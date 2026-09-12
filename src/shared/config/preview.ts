@@ -39,6 +39,9 @@ export const PREVIEW = {
    *
    * ЭТОТ ФЛАГ ОБЯЗАН БЫТЬ СНЯТ ДО БОЕВОГО ЗАПУСКА. Единственный флаг в файле,
    * который стоит денег, а не рисует заглушку.
+   *
+   * It also gates the development-only "Delete my projects" row in settings,
+   * which wipes the account's projects and payment history for real.
    */
   mockPayments: true,
 } as const;

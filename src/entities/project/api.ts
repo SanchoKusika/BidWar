@@ -368,10 +368,8 @@ export async function createProject(params: CreateProjectParams): Promise<Projec
 }
 
 /**
- * Убрать свои записи из обоих топов. Строки не удаляются, а скрываются
- * (`status = 'hidden'`, 01 Механики) — на них ссылается леджер платежей.
- * Слот топа и адрес освобождаются: оба уникальных индекса смотрят только на
- * активные записи, так что тот же проект можно завести заново.
+ * Reset the account: deletes the user's projects together with the whole
+ * payment history, stakes and votes. Returns the number of removed projects.
  */
 export async function removeMyProjects(initData: string): Promise<number> {
   const { data, error } = await getSupabase().functions.invoke<{ removed: number }>(
