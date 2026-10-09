@@ -1,7 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { serve, badRequest, unauthorized } from '../_shared/http.ts';
 import { botIdFromToken } from '../_shared/bot_api.ts';
-import { verifyTelegramIdToken } from '../_shared/oidc.ts';
+import { checkTelegramIdToken } from '../_shared/oidc.ts';
 import { signLogin } from '../_shared/telegram.ts';
 
 interface AuthWebRequest {
@@ -30,8 +30,12 @@ serve('auth-web', async (req, ctx) => {
   const botId = botIdFromToken(botToken);
   if (!botId) throw new Error('BOT_TOKEN не похож на токен бота');
 
-  const claims = await verifyTelegramIdToken(body.idToken, botId);
-  if (!claims) throw unauthorized('Telegram не подтвердил вход');
+  const check = await checkTelegramIdToken(body.idToken, botId);
+  if (!check.ok) {
+    ctx.log('id token refused', { reason: check.reason, ...check.shape });
+    throw unauthorized('Telegram не подтвердил вход');
+  }
+  const claims = check.claims;
 
   const firstName = claims.given_name || claims.name || claims.preferred_username || 'Telegram';
   const fields: Record<string, string> = {
