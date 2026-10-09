@@ -1,7 +1,7 @@
 import { Button } from '@/shared/ui/Button';
 import { Icon, type IconName } from '@/shared/ui/Icon';
 import { KeyRow } from '@/shared/ui/KeyRow';
-import { brand, getDocs, getRules, type DocId } from '@/shared/content';
+import { brand, getDocs, getRules, ruleHue, type DocId } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
 import { PageBand, PageGrid, RailCard, RailLink } from './Chrome';
 import styles from './InfoPages.module.css';
@@ -35,6 +35,7 @@ export function RulesPage({ anchor, onAnchor, onSupport }: RulesPageProps) {
                 {sections.map((r) => (
                   <RailLink
                     key={r.id}
+                    hue={ruleHue(r.id)}
                     icon={r.icon as IconName}
                     label={r.title}
                     active={r.id === rule.id}
@@ -53,7 +54,7 @@ export function RulesPage({ anchor, onAnchor, onSupport }: RulesPageProps) {
       >
         <section className={styles.card}>
           <div className={styles.head}>
-            <span className={styles.icon}>
+            <span className={styles.icon} data-hue={ruleHue(rule.id)}>
               <Icon name={rule.icon as IconName} size={22} />
             </span>
             <h2 className={styles.title}>{rule.title}</h2>
@@ -84,7 +85,9 @@ export function RulesPage({ anchor, onAnchor, onSupport }: RulesPageProps) {
 
         {next && next.id !== rule.id && (
           <button type="button" className={styles.next} onClick={() => onAnchor(next.id)}>
-            <Icon name={next.icon as IconName} size={18} className={styles.nextIcon} />
+            <span className={styles.nextIcon} data-hue={ruleHue(next.id)}>
+              <Icon name={next.icon as IconName} size={18} />
+            </span>
             <span className={styles.nextText}>
               <span className={styles.nextLabel}>{strings.web.next}</span>
               <span className={styles.nextTitle}>{next.title}</span>

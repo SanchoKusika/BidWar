@@ -28,8 +28,9 @@
   place-items: center;
   flex: 0 0 auto;
   border-radius: var(--radius-md);
-  background: var(--paid-tint);
-  color: var(--paid-accent);
+  /* The section's own hue (shared/content/ruleHue). */
+  background: var(--hue-tint, var(--paid-tint));
+  color: var(--hue-ink, var(--paid-accent));
 }
 
 .title {
@@ -100,7 +101,8 @@
 }
 
 .nextIcon {
-  color: var(--paid-accent);
+  display: inline-flex;
+  color: var(--hue-ink, var(--paid-accent));
 }
 
 .nextText {

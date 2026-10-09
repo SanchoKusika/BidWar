@@ -6,6 +6,7 @@
 // the language of the first launch after a switch (see `locale.ts`).
 export { brand } from './brand';
 export { getRules, getDocs, getPaymentMethods, getPaymentProviders } from './locale';
+export { ruleHue, type RuleHue } from './ruleHue';
 
 export type { DocId } from './docs.en';
 export type {

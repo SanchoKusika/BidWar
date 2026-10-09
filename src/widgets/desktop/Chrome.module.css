@@ -305,6 +305,17 @@
   color: var(--text-inverse);
 }
 
+.railIcon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--hue-ink, currentColor);
+}
+
+/* Neutral ink is the text colour — on the black active row it must flip. */
+.railLink[data-active='true'] .railIcon[data-hue='neutral'] {
+  color: var(--text-inverse);
+}
+
 .feedSection {
   display: flex;
   flex-direction: column;
