@@ -10,6 +10,8 @@ export interface ScopeToggleProps {
   value: Scope;
   onChange: (scope: Scope) => void;
   segment: ShowcaseType;
+  /** `md` — the site's size (ui_kits/web ScopeSwitch): 3px frame, 28px options. */
+  size?: 'sm' | 'md';
 }
 
 /**
@@ -18,9 +20,9 @@ export interface ScopeToggleProps {
  * вход: новый проект может выиграть день за небольшие деньги и при этом быть
  * нигде в общем зачёте.
  */
-export function ScopeToggle({ value, onChange, segment }: ScopeToggleProps) {
+export function ScopeToggle({ value, onChange, segment, size = 'sm' }: ScopeToggleProps) {
   return (
-    <span className={styles.wrap}>
+    <span className={styles.wrap} data-size={size}>
       {(['all', 'today'] as const).map((scope) => (
         <button
           key={scope}

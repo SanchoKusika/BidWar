@@ -33,6 +33,17 @@ export interface BoostRequest {
 }
 
 /**
+ * Votes for a project, asked for on its page. The vote sheet lives on the Free
+ * tab, like Raise and Attack live on Paid, so the request carries the target
+ * there; before this the page's «Give votes» button was disabled and did
+ * nothing.
+ */
+export interface VoteRequest {
+  target: ProjectListItem;
+  rank: number | null;
+}
+
+/**
  * A section of the profile to bring into view on arrival. The tasks tab sends
  * «invite a friend» here: landing at the top of the profile left the person
  * to hunt for the referral link themselves. An object, not a string, so the
@@ -53,6 +64,8 @@ export interface Navigation {
   boostRequest: BoostRequest | null;
   /** Section the profile should scroll to when it opens. */
   profileFocus: ProfileFocusRequest | null;
+  /** An unclaimed vote request — the Free tab reads and marks it its own. */
+  voteRequest: VoteRequest | null;
   setTab: (tab: TabId) => void;
   push: (route: Route) => void;
   back: () => void;
@@ -62,6 +75,8 @@ export interface Navigation {
   requestBoost: (target: ProjectListItem, rank: number | null) => void;
   /** Switches to the profile and asks it to scroll to a section. */
   requestProfileFocus: (section: ProfileFocusRequest['section']) => void;
+  /** Switches to Free and asks it to open the vote sheet for this project. */
+  requestVote: (target: ProjectListItem, rank: number | null) => void;
 }
 
 /**
@@ -81,6 +96,7 @@ export function useNavigation(platform: Platform): Navigation {
   const [attackRequest, setAttackRequest] = useState<AttackRequest | null>(null);
   const [boostRequest, setBoostRequest] = useState<BoostRequest | null>(null);
   const [profileFocus, setProfileFocus] = useState<ProfileFocusRequest | null>(null);
+  const [voteRequest, setVoteRequest] = useState<VoteRequest | null>(null);
 
   const back = useCallback(() => {
     setStack((s) => s.slice(0, -1));
@@ -113,6 +129,12 @@ export function useNavigation(platform: Platform): Navigation {
     setProfileFocus({ section });
   }, []);
 
+  const requestVote = useCallback((target: ProjectListItem, rank: number | null) => {
+    setStack([]);
+    setTabState('free');
+    setVoteRequest({ target, rank });
+  }, []);
+
   // Системная кнопка Telegram — единственный способ выйти назад на телефоне,
   // где жеста «свайп от края» у мини-аппа нет.
   useEffect(() => {
@@ -132,12 +154,14 @@ export function useNavigation(platform: Platform): Navigation {
       attackRequest,
       boostRequest,
       profileFocus,
+      voteRequest,
       setTab,
       push,
       back,
       requestAttack,
       requestBoost,
       requestProfileFocus,
+      requestVote,
     }),
     [
       tab,
@@ -145,12 +169,14 @@ export function useNavigation(platform: Platform): Navigation {
       attackRequest,
       boostRequest,
       profileFocus,
+      voteRequest,
       setTab,
       push,
       back,
       requestAttack,
       requestBoost,
       requestProfileFocus,
+      requestVote,
     ],
   );
 }

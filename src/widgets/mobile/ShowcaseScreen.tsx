@@ -140,7 +140,7 @@ interface PartProps {
 }
 
 /** The vote balance in the header: Free Top only, held while the session is on the way. */
-export function ShowcaseBalance({ props }: PartProps) {
+export function ShowcaseBalance({ props, size = 'md' }: PartProps & { size?: 'md' | 'lg' }) {
   const { segment, voteBalance, sessionStatus } = props;
   if (segment !== 'free') return null;
   // `null` is both «still loading» and «there will be no number»: a guest's
@@ -152,21 +152,33 @@ export function ShowcaseBalance({ props }: PartProps) {
         segment="free"
         value={voteBalance}
         label={s.yourVotes}
-        size="md"
+        size={size}
         showUnit={false}
       />
     );
   }
   if (sessionStatus === 'loading') {
     return (
-      <StatBlock segment="free" value={0} label={s.yourVotes} size="md" showUnit={false} loading />
+      <StatBlock
+        segment="free"
+        value={0}
+        label={s.yourVotes}
+        size={size}
+        showUnit={false}
+        loading
+      />
     );
   }
   return null;
 }
 
 /** The sign-in failure and the «your position» panel. */
-export function ShowcaseOwn({ props, view, className }: PartProps) {
+export function ShowcaseOwn({
+  props,
+  view,
+  className,
+  panelClassName,
+}: PartProps & { panelClassName?: string }) {
   const { segment, userId, sessionStatus, sessionErrorMessage, ownLoading, ownRank } = props;
   const actionLabel = segment === 'paid' ? s.raiseMine : s.voteMine;
 
@@ -188,10 +200,16 @@ export function ShowcaseOwn({ props, view, className }: PartProps) {
             // The panel itself with placeholders, held while the session is
             // on the way too: it belongs to every signed-in viewer, and
             // without the placeholder it dropped in once userId landed.
-            <OwnPositionPanel segment={segment} actionLabel={actionLabel} loading />
+            <OwnPositionPanel
+              segment={segment}
+              actionLabel={actionLabel}
+              className={panelClassName}
+              loading
+            />
           ) : (
             <OwnPositionPanel
               segment={segment}
+              className={panelClassName}
               rank={ownRank}
               value={view.ownValue}
               unit={view.unit}

@@ -1,12 +1,131 @@
-/* Five tiles a row on the full width, as in the kit; narrower screens wrap. */
-.tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: var(--stack-gap);
+/* ---------- category carousel: five tiles in view ---------- */
+
+.carousel {
+  position: relative;
 }
 
-.feedBlock {
+.track {
+  --tiles-in-view: 5;
+
   display: flex;
-  flex-direction: column;
+  gap: var(--stack-gap);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  /* Room for the tile's shadow, which overflow would otherwise clip. */
+  padding: 2px 1px 4px;
+  margin: -2px -1px -4px;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.tile {
+  flex: 0 0 calc((100% - (var(--tiles-in-view) - 1) * var(--stack-gap)) / var(--tiles-in-view));
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  border: var(--border-w) solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  transition: var(--t-control);
+}
+
+.arrow[data-side='start'] {
+  left: -18px;
+}
+
+.arrow[data-side='end'] {
+  right: -18px;
+}
+
+.arrow:hover {
+  border-color: var(--border-strong);
+}
+
+/* ---------- ranking line ---------- */
+
+.rankingHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: var(--space-8);
+}
+
+.rankingLine {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.rankingTitle {
+  font: var(--type-section);
+  letter-spacing: var(--ls-tight);
+  color: var(--text-primary);
+}
+
+.dot {
+  color: var(--border-strong);
+}
+
+.rankingTools {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: var(--radius-pill);
+  border: var(--border-w) solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-secondary);
+  font: var(--type-micro);
+  cursor: pointer;
+}
+
+.clear:hover {
+  color: var(--text-primary);
+}
+
+.todayNote {
+  max-width: 72ch;
+  margin-top: calc(-1 * var(--space-6));
+  font: var(--type-body-sm);
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+/* ---------- feed and rail ---------- */
+
+/* The kit's cards on the site use the larger inner padding. */
+.feed {
+  --card-pad: var(--card-pad-lg);
+}
+
+/* In the mini app the panel carries the page gutter; in the rail it sits flush. */
+.ownPanel {
+  margin: 0;
 }

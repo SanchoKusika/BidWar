@@ -298,7 +298,7 @@ export function ProjectScreen({
                 </Button>
               )}
               {!paid && (
-                <Button variant="free" size="lg" block icon="vote" disabled onClick={onVote}>
+                <Button variant="free" size="lg" block icon="vote" onClick={onVote}>
                   {t.giveVotes}
                 </Button>
               )}

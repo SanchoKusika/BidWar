@@ -26,6 +26,11 @@ export interface Spending {
   /** За всё время. */
   total: number;
   receipts: readonly SpendingReceipt[];
+  /**
+   * Points put into each project's bid by this person — own raises and
+   * raises of others' projects. Attacks are not contributions.
+   */
+  byProject: readonly { projectId: number; total: number }[];
 }
 
 /**

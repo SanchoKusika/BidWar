@@ -100,6 +100,24 @@ export const ru: PartialStrings = {
     howPaidWorks: 'Как устроен платный топ',
     howFreeWorks: 'Как устроен бесплатный топ',
     readRules: 'Читать правила',
+    scrollBack: 'Предыдущие категории',
+    scrollForward: 'Ещё категории',
+    projectsCount: (n: number) => {
+      const tail = n % 100;
+      const last = n % 10;
+      const word =
+        tail >= 11 && tail <= 14
+          ? 'проектов'
+          : last === 1
+            ? 'проект'
+            : last >= 2 && last <= 4
+              ? 'проекта'
+              : 'проектов';
+      return `${n} ${word}`;
+    },
+    lastDay: 'за последние сутки',
+    allTimeLower: 'за всё время',
+    allCategories: 'Все категории',
     backToPaid: 'К платному топу',
     backToFree: 'К бесплатному топу',
     overtakePaid: (bid: string) =>

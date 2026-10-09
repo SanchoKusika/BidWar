@@ -90,6 +90,14 @@ serve('my-spending', async (req, ctx) => {
   const total = Number(sums?.total ?? 0);
   const month = Number(sums?.month ?? 0);
 
+  // What this person has put into each project's bid — own raises and raises
+  // of someone else's project. The project page shows it as «you put in».
+  const contributions = await db.rpc('spending_by_project', { p_user_id: userId });
+  if (contributions.error) throw contributions.error;
+  const byProject = ((contributions.data ?? []) as { project_id: number; total: number }[]).map(
+    (row) => ({ projectId: Number(row.project_id), total: Number(row.total) }),
+  );
+
   const receipts: Receipt[] = rows.map((row) => ({
     id: row.id,
     intent: row.intent,
@@ -108,5 +116,5 @@ serve('my-spending', async (req, ctx) => {
   }));
 
   ctx.log('spending', { receipts: receipts.length });
-  return { month, total, receipts };
+  return { month, total, receipts, byProject };
 });

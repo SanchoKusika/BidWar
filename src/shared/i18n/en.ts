@@ -116,6 +116,12 @@ export const en = {
     howPaidWorks: 'How the paid top works',
     howFreeWorks: 'How the free top works',
     readRules: 'Read the rules',
+    scrollBack: 'Previous categories',
+    scrollForward: 'More categories',
+    projectsCount: (n: number) => `${n} ${n === 1 ? 'project' : 'projects'}`,
+    lastDay: 'last 24 hours',
+    allTimeLower: 'all time',
+    allCategories: 'All categories',
     backToPaid: 'Back to Paid Top',
     backToFree: 'Back to Free Top',
     overtakePaid: (bid: string) =>

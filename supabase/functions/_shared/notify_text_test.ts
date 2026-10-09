@@ -6,11 +6,11 @@ import { localeFromCode, renderNotification } from './notify_text.ts';
 // стоит тонкий пробел — там перенос и так невозможен.
 const NBSP = ' ';
 
-Deno.test('язык берётся по первой части кода, незнакомый — английский', () => {
+Deno.test('по умолчанию русский; английский — только выбранный в приложении', () => {
+  assertEquals(localeFromCode('EN'), 'EN', 'users.language, выбран руками');
+  assertEquals(localeFromCode('en'), 'RU', 'язык оболочки Telegram не переключает');
   assertEquals(localeFromCode('ru-RU'), 'RU');
-  assertEquals(localeFromCode('uz'), 'EN', 'Uzbek left together with the market');
-  assertEquals(localeFromCode('de'), 'EN');
-  assertEquals(localeFromCode(null), 'EN');
+  assertEquals(localeFromCode(null), 'RU');
 });
 
 Deno.test('одиночная атака называет атакующего и падение', () => {

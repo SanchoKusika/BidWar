@@ -8,6 +8,7 @@ import type {
   Navigation,
   ProfileFocusRequest,
   Route,
+  VoteRequest,
 } from '../navigation';
 
 /**
@@ -82,6 +83,7 @@ export function useWebNavigation(): Navigation {
   const [attackRequest, setAttackRequest] = useState<AttackRequest | null>(null);
   const [boostRequest, setBoostRequest] = useState<BoostRequest | null>(null);
   const [profileFocus, setProfileFocus] = useState<ProfileFocusRequest | null>(null);
+  const [voteRequest, setVoteRequest] = useState<VoteRequest | null>(null);
   /** Scroll to restore after the next render; null — start at the top. */
   const pendingScroll = useRef<number | null>(null);
   const tabRef = useRef(location.tab);
@@ -151,6 +153,14 @@ export function useWebNavigation(): Navigation {
     [go],
   );
 
+  const requestVote = useCallback(
+    (target: ProjectListItem, rank: number | null) => {
+      go('free', null);
+      setVoteRequest({ target, rank });
+    },
+    [go],
+  );
+
   const requestProfileFocus = useCallback(
     (section: ProfileFocusRequest['section']) => {
       go('profile', null);
@@ -167,24 +177,28 @@ export function useWebNavigation(): Navigation {
       attackRequest,
       boostRequest,
       profileFocus,
+      voteRequest,
       setTab,
       push,
       back,
       requestAttack,
       requestBoost,
       requestProfileFocus,
+      requestVote,
     }),
     [
       location,
       attackRequest,
       boostRequest,
       profileFocus,
+      voteRequest,
       setTab,
       push,
       back,
       requestAttack,
       requestBoost,
       requestProfileFocus,
+      requestVote,
     ],
   );
 }

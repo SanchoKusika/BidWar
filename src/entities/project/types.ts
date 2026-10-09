@@ -19,6 +19,8 @@ export interface ProjectListItem {
    * показывает саму ставку, а не её изменение.
    */
   todayAmount?: number;
+  /** When the entry joined the top — only on the project page's own fetch. */
+  createdAt?: string;
 }
 
 /**

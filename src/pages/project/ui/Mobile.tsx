@@ -29,6 +29,8 @@ export interface ProjectPageProps {
   onBoost: (target: ProjectListItem, rank: number | null) => void;
   /** Уводит на вкладку Paid и просит открыть шторку атаки на этом проекте. */
   onAttack: (target: ProjectListItem, rank: number | null) => void;
+  /** Goes to the Free tab and asks it to open the vote sheet for this project. */
+  onVote: (target: ProjectListItem, rank: number | null) => void;
   /** Открыть страницу другого проекта — вторую запись того же аккаунта. */
   onOpenProject: (id: number, segment: ShowcaseType) => void;
 }
@@ -44,6 +46,7 @@ export function ProjectPage({
   onGoPaid,
   onBoost,
   onAttack,
+  onVote,
   onOpenProject,
 }: ProjectPageProps) {
   const { userId } = useSession();
@@ -126,7 +129,7 @@ export function ProjectPage({
         userId !== null && project.userId === userId ? onGoPaid() : onBoost(project, rank)
       }
       onAttack={() => onAttack(project, rank)}
-      onVote={() => {}}
+      onVote={() => onVote(project, rank)}
       // Вторая запись того же аккаунта — такой же проект со своей страницей.
       // Оба действия карточки были пустыми функциями: «Подробнее» никуда не
       // вело, тап по телу не открывал ссылку — то есть блок выглядел рабочим и
