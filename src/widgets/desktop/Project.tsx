@@ -126,7 +126,10 @@ export function DesktopProject({
                 <span className={styles.positionRank}>{rank !== null ? `#${rank}` : '—'}</span>
               </span>
               <span className={styles.positionNote}>
-                {paid ? w.overtakePaid(`${exact} ${unit}`) : w.overtakeFree(exact)}
+                {/* No-break spaces: an amount must not wrap halfway across lines. */}
+                {paid
+                  ? w.overtakePaid(`${exact} ${unit}`.replace(/\s/g, '\u00a0'))
+                  : w.overtakeFree(exact.replace(/\s/g, '\u00a0'))}
               </span>
               {paid && (
                 <div className={styles.positionActions}>
