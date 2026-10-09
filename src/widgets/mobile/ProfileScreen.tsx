@@ -115,6 +115,12 @@ export interface ProfileScreenProps {
   settings: SettingsPanelProps;
   onEarn: () => void;
   onAdd?: () => void;
+  /**
+   * Fill a free slot: takes the person to that top, where adding a project
+   * lives. The site shows it as a card beside the one entry an account holds,
+   * so the second column of «my projects» is not just empty.
+   */
+  onAddTo?: (segment: 'paid' | 'free') => void;
   onOpenProject: (project: ProjectListItem) => void;
   /** Raise у платной записи, Give votes у бесплатной — по одной на карточку. */
   onRaise: (project: ProjectListItem) => void;

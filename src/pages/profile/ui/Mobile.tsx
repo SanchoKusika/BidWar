@@ -227,6 +227,7 @@ export function ProfilePage({ nav }: ProfilePageProps) {
         // Голоса отдаются на вкладке Free — там шторка и там же баланс. Пустой
         // обработчик стоял здесь, пока механики не было (Срез 1.7).
         onVote={() => nav.setTab('free')}
+        onAddTo={(segment) => nav.setTab(segment)}
       />
 
       <ConfirmSheet
