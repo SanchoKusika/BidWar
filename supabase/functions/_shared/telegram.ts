@@ -181,6 +181,26 @@ async function verifyLogin(
 }
 
 /**
+ * Mints the site's sign-in in the Login Widget format, signed with the same
+ * key the widget used. The site now signs in through Telegram's OpenID popup,
+ * whose token lives an hour; `auth-web` checks that token and hands back this
+ * thirty-day credential instead — so `verifyInitData` and every function that
+ * relies on it stay as they are. Only the server holds the bot token, so only
+ * the server can mint one.
+ */
+export async function signLogin(fields: Record<string, string>, botToken: string): Promise<string> {
+  const params = new URLSearchParams(fields);
+  params.delete('hash');
+  const dataCheckString = Array.from(params.keys())
+    .sort()
+    .map((key) => `${key}=${params.get(key)}`)
+    .join('\n');
+  const hash = toHex(await hmacSha256(await getLoginKey(botToken), dataCheckString));
+  params.set('hash', hash);
+  return params.toString();
+}
+
+/**
  * Общий секрет в заголовке, сравнение константное по времени. Так доказывают
  * подлинность вызовы без Supabase-сессии: вебхук Telegram и расписание базы,
  * которое будит отправщика уведомлений.
