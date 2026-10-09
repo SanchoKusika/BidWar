@@ -54,6 +54,7 @@ export function DesktopProfile({
   referralLoading = false,
   referralFocus = null,
   onAdd,
+  onAddTo,
   onOpenProject,
   onRaise,
   onVote,
@@ -64,6 +65,10 @@ export function DesktopProfile({
   const showSpending = Boolean(spending) || spendingLoading;
   const referralRef = useRef<HTMLDivElement>(null);
   const handledFocus = useRef<object | null>(null);
+  // One entry per top: with a single project the other top's slot is free —
+  // the second column says so instead of standing blank.
+  const only = projects.length === 1 ? projects[0]?.project : undefined;
+  const openSlot: 'paid' | 'free' | null = only ? (only.type === 'paid' ? 'free' : 'paid') : null;
 
   useEffect(() => {
     if (!referralFocus || handledFocus.current === referralFocus) return;
@@ -245,6 +250,17 @@ export function DesktopProfile({
                 description={t.noProjectsNote}
                 actionLabel={onAdd ? t.addProject : undefined}
                 onAction={onAdd}
+                compact
+              />
+            )}
+            {openSlot && onAddTo && (
+              <EmptyState
+                icon="folder-plus"
+                segment={openSlot}
+                title={openSlot === 'free' ? strings.web.freeSlotOpen : strings.web.paidSlotOpen}
+                description={strings.web.oneSlotEach}
+                actionLabel={t.addProject}
+                onAction={() => onAddTo(openSlot)}
                 compact
               />
             )}

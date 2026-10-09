@@ -129,6 +129,8 @@ export const ru: PartialStrings = {
     holdingFirst: (held: string) => `держит #1 ${held}`,
     youPutIn: 'Ты вложил',
     oneSlotEach: 'У каждого аккаунта по одной записи в каждом топе.',
+    freeSlotOpen: 'Слот в бесплатном топе свободен',
+    paidSlotOpen: 'Слот в платном топе свободен',
     backToPaid: 'К платному топу',
     backToFree: 'К бесплатному топу',
     overtakePaid: (bid: string) =>

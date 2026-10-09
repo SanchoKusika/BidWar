@@ -133,6 +133,8 @@ export const en = {
     holdingFirst: (held: string) => `holding #1 for ${held}`,
     youPutIn: 'You put in',
     oneSlotEach: 'Every account may hold one entry in each top.',
+    freeSlotOpen: 'Your Free Top slot is open',
+    paidSlotOpen: 'Your Paid Top slot is open',
     backToPaid: 'Back to Paid Top',
     backToFree: 'Back to Free Top',
     overtakePaid: (bid: string) =>
