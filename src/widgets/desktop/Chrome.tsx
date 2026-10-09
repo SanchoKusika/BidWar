@@ -197,16 +197,21 @@ export function RailLink({
   icon,
   label,
   active,
+  hue,
   onClick,
 }: {
   icon: Parameters<typeof Icon>[0]['name'];
   label: string;
   active?: boolean;
+  /** Colours the glyph by topic (rule sections); without it the glyph takes the text colour. */
+  hue?: string;
   onClick: () => void;
 }) {
   return (
     <button type="button" className={styles.railLink} data-active={active} onClick={onClick}>
-      <Icon name={icon} size={16} />
+      <span className={styles.railIcon} data-hue={hue}>
+        <Icon name={icon} size={16} />
+      </span>
       {label}
     </button>
   );

@@ -120,6 +120,13 @@
   --attack-tint-border: var(--attack-100);
   --attack-text: var(--attack-700);
 
+  /* Support hues as tint + ink pairs — for icon tiles that name a topic
+     (rule sections): blue for verification, amber for a warning. */
+  --info-tint: var(--info-100);
+  --info-ink: var(--info-700);
+  --warn-tint: var(--warn-100);
+  --warn-ink: var(--warn-700);
+
   /* Movement / rank deltas */
   --delta-up: var(--free-600);
   --delta-down: var(--attack-500);
@@ -246,6 +253,11 @@
   --attack-tint-border: rgba(225, 29, 72, 0.3);
   --attack-text: var(--attack-300);
 
+  --info-tint: rgba(59, 130, 246, 0.16);
+  --info-ink: #93b8fb;
+  --warn-tint: rgba(245, 166, 35, 0.16);
+  --warn-ink: var(--warn-500);
+
   --delta-up: var(--free-400);
   --delta-down: var(--attack-400);
   --delta-flat: #6d7684;
@@ -291,4 +303,37 @@
   --skeleton-sheen: #22293380;
 
   color-scheme: dark;
+}
+
+/* A topic's hue on an icon tile: `data-hue` sets the pair, the tile reads
+   --hue-tint for its background and --hue-ink for the glyph. Money, votes and
+   attacks keep their economy colours; the rest borrow the support hues. */
+[data-hue='paid'] {
+  --hue-tint: var(--paid-tint);
+  --hue-ink: var(--paid-accent);
+}
+
+[data-hue='free'] {
+  --hue-tint: var(--free-tint);
+  --hue-ink: var(--free-accent);
+}
+
+[data-hue='attack'] {
+  --hue-tint: var(--attack-tint);
+  --hue-ink: var(--attack-accent);
+}
+
+[data-hue='info'] {
+  --hue-tint: var(--info-tint);
+  --hue-ink: var(--info-ink);
+}
+
+[data-hue='warn'] {
+  --hue-tint: var(--warn-tint);
+  --hue-ink: var(--warn-ink);
+}
+
+[data-hue='neutral'] {
+  --hue-tint: var(--surface-sunken);
+  --hue-ink: var(--text-primary);
 }

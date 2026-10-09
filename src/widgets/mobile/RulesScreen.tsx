@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/shared/ui/Button';
 import { Icon, type IconName } from '@/shared/ui/Icon';
 import { KeyRow } from '@/shared/ui/KeyRow';
-import { getRules, type RuleSection } from '@/shared/content';
+import { getRules, ruleHue, type RuleSection } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
 import { PageHeader } from './PageHeader';
 import { ChipRow } from './ChipRow';
@@ -45,7 +45,7 @@ export function RulesScreen({ anchor, onBack, onSupport }: RulesScreenProps) {
         <Gutter>
           <Card>
             <div className={styles.head}>
-              <span className={styles.icon}>
+              <span className={styles.icon} data-hue={ruleHue(rule.id)}>
                 <Icon name={rule.icon as IconName} size={19} />
               </span>
               <h2 className={styles.title}>{rule.title}</h2>
