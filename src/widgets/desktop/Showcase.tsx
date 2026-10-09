@@ -4,6 +4,8 @@ import { Icon } from '@/shared/ui/Icon';
 import { KeyRow } from '@/shared/ui/KeyRow';
 import { StatBlock } from '@/shared/ui/StatBlock';
 import { ActivityFeed } from '@/shared/ui/ActivityFeed';
+import { LiveCount } from '@/shared/ui/LiveCount';
+import { useOnlineCount } from '@/shared/lib/online';
 import { getRules, type Fact } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
 import { useSignIn } from '@/shared/lib/signIn';
@@ -181,6 +183,7 @@ export function DesktopShowcase(screenProps: ShowcaseScreenProps) {
         }
       : screenProps;
   const view = useShowcaseView(props);
+  const online = useOnlineCount();
   const { segment, items, minStep, hasMore, activity, onOpenRules } = props;
   const part = { props, view };
   const paid = segment === 'paid';
@@ -236,7 +239,17 @@ export function DesktopShowcase(screenProps: ShowcaseScreenProps) {
               <ShowcaseOwn {...part} panelClassName={styles.ownPanel} />
             )}
             {activity && activity.length > 0 && (
-              <ActivityFeed max={5} title={s.justHappened} items={[...activity]} />
+              <ActivityFeed
+                max={5}
+                title={s.justHappened}
+                items={[...activity]}
+                // Who has BidWar open right now, as in the kit's rail.
+                right={
+                  online !== null ? (
+                    <LiveCount value={online} label={w.online} size="sm" />
+                  ) : undefined
+                }
+              />
             )}
             <RailCard title={paid ? w.howPaidWorks : w.howFreeWorks}>
               <div>

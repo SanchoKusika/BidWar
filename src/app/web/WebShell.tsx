@@ -3,6 +3,7 @@ import { getPlatform, saveLogin, signInWithTelegram } from '@/shared/platform';
 import { exchangeWebLogin, fetchHealth } from '@/shared/api';
 import { dropQueryCache } from '@/shared/lib/query';
 import { SignInContext } from '@/shared/lib/signIn';
+import { useJoinOnline } from '@/shared/lib/online';
 import { strings } from '@/shared/i18n/strings';
 import { setSetting, useSettings } from '@/shared/settings';
 import { LayoutContext } from '@/shared/lib/layout';
@@ -34,6 +35,7 @@ const HTML_LANG: Record<Locale, string> = { RU: 'ru', EN: 'en' };
 export function WebShell() {
   const { language } = useSettings();
   const [signInError, setSignInError] = useState(false);
+  useJoinOnline();
 
   /**
    * Telegram's sign-in popup for the bot the server checks against — its id is

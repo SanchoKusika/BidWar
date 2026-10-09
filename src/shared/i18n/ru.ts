@@ -121,6 +121,7 @@ export const ru: PartialStrings = {
     lastDay: 'за последние сутки',
     allTimeLower: 'за всё время',
     allCategories: 'Все категории',
+    online: 'онлайн',
     facts: 'Факты',
     category: 'Категория',
     top: 'Топ',
@@ -148,7 +149,6 @@ export const ru: PartialStrings = {
     paymentsMade: 'Платежей',
     receiptsNote:
       'Списывает платёжный провайдер. У голосов свой учёт — с деньгами они не смешиваются.',
-    settings: 'Настройки',
     availableNow: 'Доступно сейчас',
     referrals: 'Приглашения',
     referralPitch: (votes: number) =>
