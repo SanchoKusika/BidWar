@@ -14,6 +14,7 @@ import {
   formatMoney,
   formatVotes,
   type DisplayCurrency,
+  DEFAULT_CURRENCY,
 } from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
 import type { ProjectListItem } from '@/entities/project';
@@ -138,7 +139,7 @@ export function ProfileScreen({
   referralEarned,
   referralReward,
   onShareReferral,
-  currency = 'UZS',
+  currency = DEFAULT_CURRENCY,
   compactAmounts = false,
   settings,
   onEarn,

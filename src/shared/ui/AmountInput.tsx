@@ -6,6 +6,7 @@ import {
   fromDisplay,
   group,
   type DisplayCurrency,
+  DEFAULT_CURRENCY,
 } from '@/shared/lib/format';
 import { cx } from '@/shared/lib/cx';
 import { strings } from '@/shared/i18n/strings';
@@ -43,7 +44,7 @@ export function AmountInput({
   value,
   onChange,
   segment = 'paid',
-  currency = 'UZS',
+  currency = DEFAULT_CURRENCY,
   unit,
   step = 10_000,
   min = 0,
@@ -118,7 +119,7 @@ export function AmountInput({
 
         <div className={styles.value}>
           <input
-            inputMode={converts && currency !== 'UZS' ? 'decimal' : 'numeric'}
+            inputMode="numeric"
             className={styles.input}
             value={show(value ?? 0)}
             disabled={disabled}

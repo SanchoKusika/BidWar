@@ -8,7 +8,7 @@ const NBSP = ' ';
 
 Deno.test('язык берётся по первой части кода, незнакомый — английский', () => {
   assertEquals(localeFromCode('ru-RU'), 'RU');
-  assertEquals(localeFromCode('uz'), 'UZ');
+  assertEquals(localeFromCode('uz'), 'EN', 'Uzbek left together with the market');
   assertEquals(localeFromCode('de'), 'EN');
   assertEquals(localeFromCode(null), 'EN');
 });
@@ -153,13 +153,12 @@ Deno.test('приглашённые: один и несколько — разн
   assertStringIncludes(many!, '3 people you invited');
 });
 
-Deno.test('три языка дают три разных текста', () => {
+Deno.test('два языка дают два разных текста', () => {
   const payload = { project_name: 'Mebel', top: 'paid', held_seconds: 7200 };
   const ru = renderNotification({ kind: 'rank_lost', payload }, 'RU');
-  const uz = renderNotification({ kind: 'rank_lost', payload }, 'UZ');
   const en = renderNotification({ kind: 'rank_lost', payload }, 'EN');
 
-  assertEquals(new Set([ru, uz, en]).size, 3);
+  assertEquals(new Set([ru, en]).size, 2);
 });
 
 Deno.test('неизвестный вид не превращается в пустое сообщение', () => {

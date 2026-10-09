@@ -17,7 +17,7 @@ export const docsEn = {
       },
       {
         h: 'Where your money goes',
-        p: 'Every payment is our revenue — raises and attacks alike. What we never do is skim your bid: pay 100 000 so’m and 100 000 so’m lands on it, with no percentage taken off the top. The single exception is repeat attacks on the same rival, where part of the amount does not convert into your bid — deliberately, so that two people cannot trade attacks in a circle for free.',
+        p: 'Every payment is our revenue — raises and attacks alike. What we never do is skim your bid: pay 1 000 ₽ and 1 000 ₽ lands on it, with no percentage taken off the top. The single exception is repeat attacks on the same rival, where part of the amount does not convert into your bid — deliberately, so that two people cannot trade attacks in a circle for free.',
       },
       {
         h: 'Why the numbers are public',
@@ -36,7 +36,7 @@ export const docsEn = {
     facts: [
       ['Response time', 'under 24 h'],
       ['Hours', '09:00 – 21:00 (UTC+5)'],
-      ['Languages', 'RU · UZ · EN'],
+      ['Languages', 'RU · EN'],
     ],
     sections: [
       {
@@ -45,7 +45,7 @@ export const docsEn = {
       },
       {
         h: 'Payment problems',
-        p: 'Send the payment id from Profile → Payment receipts. GlobalPay and Platega ids are enough to trace a charge without any card details.',
+        p: 'Send the payment id from Profile → Payment receipts. A Platega id is enough to trace a charge without any card details.',
       },
       {
         h: 'Disputes between projects',
@@ -73,7 +73,7 @@ export const docsEn = {
       },
       {
         h: 'Payments',
-        p: 'Each raise, attack and opening bid is a separate charge processed by GlobalPay (Uzbekistan) or Platega (Russia and the CIS). We store the payment id and amount, never card data, and never a balance. Money is spent at the moment the provider confirms it.',
+        p: 'Each raise, attack and opening bid is a separate charge in roubles processed by Platega. We store the payment id and amount, never card data, and never a balance. Money is spent at the moment the provider confirms it.',
       },
       {
         h: 'Prohibited',
@@ -97,7 +97,7 @@ export const docsEn = {
     sections: [
       {
         h: 'What we store',
-        p: 'Telegram id and username, your project links, your vote balance, bids, attacks, votes, and payment ids from GlobalPay and Platega.',
+        p: 'Telegram id and username, your project links, your vote balance, bids, attacks, votes, and payment ids from Platega.',
       },
       {
         h: 'What we never store',

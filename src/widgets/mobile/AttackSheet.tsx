@@ -7,6 +7,7 @@ import {
   formatEditable,
   formatMoney,
   type DisplayCurrency,
+  DEFAULT_CURRENCY,
 } from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
 import { creditedFromBp, type AttackQuote } from '@/features/attack';
@@ -50,7 +51,7 @@ export function AttackSheet({
   rank,
   quote,
   quoteError,
-  currency = 'UZS',
+  currency = DEFAULT_CURRENCY,
   onClose,
   onConfirm,
 }: AttackSheetProps) {

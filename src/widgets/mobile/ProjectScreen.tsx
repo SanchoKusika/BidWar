@@ -15,6 +15,7 @@ import {
   formatMoney,
   formatVotes,
   type DisplayCurrency,
+  DEFAULT_CURRENCY,
 } from '@/shared/lib/format';
 import { displayUrl } from '@/shared/lib/url';
 import { PREVIEW } from '@/shared/config/preview';
@@ -174,7 +175,7 @@ export function ProjectScreen({
   rank,
   categoryTitle,
   isOwn,
-  currency = 'UZS',
+  currency = DEFAULT_CURRENCY,
   compactAmounts = false,
   owner,
   activity,

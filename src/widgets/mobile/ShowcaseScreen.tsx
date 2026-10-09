@@ -10,6 +10,7 @@ import {
   formatMoney,
   formatVotes,
   type DisplayCurrency,
+  DEFAULT_CURRENCY,
 } from '@/shared/lib/format';
 import {
   CATEGORY_ICON,
@@ -267,7 +268,7 @@ export interface ShowcaseScreenProps {
  */
 export function ShowcaseScreen({
   segment,
-  currency = 'UZS',
+  currency = DEFAULT_CURRENCY,
   compactAmounts = false,
   minStep,
   categories,

@@ -4,6 +4,7 @@ import {
   formatMoney,
   formatVotes,
   type DisplayCurrency,
+  DEFAULT_CURRENCY,
 } from '@/shared/lib/format';
 import type { ActivityItem } from '@/shared/ui/ActivityFeed';
 import type { StakeEvent, VoteEvent } from './types';
@@ -22,7 +23,7 @@ export interface ActivityFormat {
  */
 export function toActivityItems(
   events: readonly StakeEvent[],
-  { currency = 'UZS', compact = true }: ActivityFormat = {},
+  { currency = DEFAULT_CURRENCY, compact = true }: ActivityFormat = {},
 ): ActivityItem[] {
   return events.map((event) => ({
     id: String(event.id),

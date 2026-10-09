@@ -37,7 +37,7 @@ export function FreeMobile({ nav }: FreeMobileProps) {
     status: sessionStatus,
     errorMessage: sessionErrorMessage,
   } = useSession();
-  const { currency, compactAmounts } = useSettings();
+  const { compactAmounts } = useSettings();
   const showcase = useFreeShowcase();
   const categories = useFreeCategories();
   const own = useFreeOwnPosition(showcase.categoryId, userId);
@@ -96,7 +96,6 @@ export function FreeMobile({ nav }: FreeMobileProps) {
     <>
       <ShowcaseScreen
         segment="free"
-        currency={currency}
         compactAmounts={compactAmounts}
         minStep={1}
         categories={categories.categories}
@@ -141,7 +140,6 @@ export function FreeMobile({ nav }: FreeMobileProps) {
 
       <AddProjectSheet
         open={addOpen}
-        currency={currency}
         onClose={() => setAddOpen(false)}
         categories={categories.categories}
         taken={{ free: Boolean(own.project) }}

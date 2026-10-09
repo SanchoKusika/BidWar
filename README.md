@@ -204,11 +204,11 @@ src/
   shared/
     ui/           дизайн-система на токенах
     content/      правила, легалка, копирайтинг
-    i18n/         строки интерфейса под RU/UZ/EN
+    i18n/         строки интерфейса под RU/EN
     config/       preview-флаги: что нарисовано, но не подключено
     api/          supabase client, вызовы Edge Functions
     platform/     единственное место, знающее про Telegram
-    settings/     тема, валюта показа, компактные суммы, вибрация (localStorage)
+    settings/     тема, компактные суммы, вибрация, язык (localStorage)
     lib/          форматирование сумм и дат, кэш ответов (stale-while-revalidate),
                   тактильный отклик поверх platform.haptic()
 supabase/

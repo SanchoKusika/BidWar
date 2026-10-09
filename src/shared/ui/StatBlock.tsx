@@ -6,6 +6,7 @@ import {
   formatMoney,
   formatVotes,
   type DisplayCurrency,
+  DEFAULT_CURRENCY,
 } from '@/shared/lib/format';
 import { cx } from '@/shared/lib/cx';
 import { strings } from '@/shared/i18n/strings';
@@ -52,7 +53,7 @@ export interface StatBlockProps {
 export function StatBlock({
   segment = 'paid',
   value,
-  currency = 'UZS',
+  currency = DEFAULT_CURRENCY,
   label,
   size = 'md',
   align = 'right',

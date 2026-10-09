@@ -15,7 +15,7 @@ import {
 } from '@/features/raise';
 import { createAttackPayment, fetchAttackQuote, type AttackQuote } from '@/features/attack';
 import { toActivityItems, useRecentActivity } from '@/entities/activity';
-import { CURRENCY_SUFFIX, formatMoney } from '@/shared/lib/format';
+import { CURRENCY_SUFFIX, DEFAULT_CURRENCY, formatMoney } from '@/shared/lib/format';
 import { useSettings } from '@/shared/settings';
 import { haptic } from '@/shared/lib/haptic';
 import { strings } from '@/shared/i18n/strings';
@@ -59,7 +59,7 @@ type Pending =
  */
 export function PaidMobile({ nav }: PaidMobileProps) {
   const { userId, status: sessionStatus, errorMessage: sessionErrorMessage } = useSession();
-  const { currency, compactAmounts } = useSettings();
+  const { compactAmounts } = useSettings();
   const showcase = usePaidShowcase();
   const categories = usePaidCategories();
   const own = usePaidOwnPosition(showcase.categoryId, userId);
@@ -269,7 +269,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
         note: strings.attack.resultNote(
           formatMoney(outcome.pointsGranted, { compact: false }),
           formatMoney(outcome.creditedPoints, { compact: false }),
-          CURRENCY_SUFFIX.UZS,
+          CURRENCY_SUFFIX[DEFAULT_CURRENCY],
         ),
       });
       return;
@@ -285,7 +285,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
         note: strings.raise.boostResultNote(
           pending.project.name,
           formatMoney(pending.amount, { compact: false }),
-          CURRENCY_SUFFIX.UZS,
+          CURRENCY_SUFFIX[DEFAULT_CURRENCY],
         ),
       });
       return;
@@ -298,7 +298,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
       rank: null,
       note: strings.raise.resultNote(
         formatMoney(pending.amount, { compact: false }),
-        CURRENCY_SUFFIX.UZS,
+        CURRENCY_SUFFIX[DEFAULT_CURRENCY],
       ),
     });
   };
@@ -340,7 +340,6 @@ export function PaidMobile({ nav }: PaidMobileProps) {
     <>
       <ShowcaseScreen
         segment="paid"
-        currency={currency}
         compactAmounts={compactAmounts}
         minStep={minStep}
         categories={categories.categories}
@@ -404,7 +403,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
           loading: today.loading,
         }}
         movement={movement}
-        activity={toActivityItems(activity.events, { currency, compact: compactAmounts })}
+        activity={toActivityItems(activity.events, { compact: compactAmounts })}
         onTakeSpot={(item) => {
           const target = item.paidAmount + minStep;
           if (own.project) {
@@ -437,7 +436,6 @@ export function PaidMobile({ nav }: PaidMobileProps) {
         rank={boostTarget ? boostRank : own.rank}
         preset={raisePreset}
         minAmount={minStep}
-        currency={currency}
         onClose={() => {
           setRaiseOpen(false);
           setBoostTarget(null);
@@ -457,7 +455,6 @@ export function PaidMobile({ nav }: PaidMobileProps) {
         rank={attackRank}
         quote={attackQuote}
         quoteError={attackQuoteError}
-        currency={currency}
         onClose={closeAttack}
         onConfirm={(landed, credited) => {
           if (!attackTarget) return;
@@ -469,7 +466,6 @@ export function PaidMobile({ nav }: PaidMobileProps) {
 
       <AddProjectSheet
         open={addOpen}
-        currency={currency}
         onClose={() => {
           setAddOpen(false);
           setTakeSpotBid(null);

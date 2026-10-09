@@ -10,7 +10,12 @@ import {
   categoryTitle,
 } from '@/entities/category';
 import { normalizeUrlInput, tryParseUrl } from '@/shared/lib/url';
-import { CURRENCY_SUFFIX, formatEditable, type DisplayCurrency } from '@/shared/lib/format';
+import {
+  CURRENCY_SUFFIX,
+  formatEditable,
+  type DisplayCurrency,
+  DEFAULT_CURRENCY,
+} from '@/shared/lib/format';
 import type { ShowcaseType } from '@/entities/project';
 import { Sheet } from './Sheet';
 import { SheetHeader } from './SheetHeader';
@@ -78,7 +83,7 @@ export function AddProjectSheet({
   categories,
   taken = {},
   minPaidAmount,
-  currency = 'UZS',
+  currency = DEFAULT_CURRENCY,
   preferredSegment,
   bidPreset,
   onSubmit,

@@ -3,10 +3,8 @@ import type { Locale } from '@/shared/i18n/locale';
 import type { DocPage, PaymentProvider, RuleSection } from './types';
 import { rulesEn } from './rules.en';
 import { rulesRu } from './rules.ru';
-import { rulesUz } from './rules.uz';
 import { docsEn, type DocId } from './docs.en';
 import { docsRu } from './docs.ru';
-import { docsUz } from './docs.uz';
 import { paymentMethods, paymentProviders } from './payments';
 
 /**
@@ -23,13 +21,11 @@ import { paymentMethods, paymentProviders } from './payments';
  */
 const RULES: Record<Locale, readonly RuleSection[]> = {
   RU: rulesRu,
-  UZ: rulesUz,
   EN: rulesEn,
 };
 
 const DOCS: Record<Locale, Record<DocId, DocPage>> = {
   RU: docsRu,
-  UZ: docsUz,
   EN: docsEn,
 };
 

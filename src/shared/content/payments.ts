@@ -2,37 +2,26 @@ import { PREVIEW } from '@/shared/config/preview';
 import type { Locale } from '@/shared/i18n/locale';
 import type { PaymentProvider } from './types';
 
-// Комиссии не указаны намеренно: фактические ставки известны только после
-// подключения провайдера, а выдуманная цифра на странице оплаты — обещание.
+// Fees are left out on purpose: the real rates are known only once the
+// provider is connected, and a made-up number on a payment page is a promise.
 //
-// По той же причине в списке карт GlobalPay нет «Мир»: проводят они его или
-// нет — открытый вопрос, а не факт. Появится в списке, когда подтвердится.
-//
-// Имена провайдеров и названия карт не переводятся ни на один язык: Uzcard и
-// Humo так и называются везде. Переводится только то, что сказано словами, —
-// «только сумы», «Россия и СНГ».
-const DESC: Record<Locale, { globalpay: string; platega: string; mock: string }> = {
+// Platega is the only provider while the product is Russia-only. GlobalPay
+// (Uzbekistan) lived next to it until the pivot — see the `archive/multi-market`
+// tag. Provider and card names are not translated: Mir is Mir everywhere.
+const DESC: Record<Locale, { platega: string; mock: string }> = {
   EN: {
-    globalpay: 'Uzcard, Humo, Visa, MC, UnionPay — Uzbekistan',
-    platega: 'Mir, Visa, MC — Russia & CIS',
+    platega: 'SBP, Mir, Visa, MC — Russia',
     mock: 'Confirms instantly — no money moves',
   },
   RU: {
-    globalpay: 'Uzcard, Humo, Visa, MC, UnionPay — Узбекистан',
-    platega: 'Мир, Visa, MC — Россия и СНГ',
+    platega: 'СБП, Мир, Visa, MC — Россия',
     mock: 'Подтверждается мгновенно — деньги не двигаются',
-  },
-  UZ: {
-    globalpay: "Uzcard, Humo, Visa, MC, UnionPay — O'zbekiston",
-    platega: 'Mir, Visa, MC — Rossiya va MDH',
-    mock: 'Darhol tasdiqlanadi — pul harakatlanmaydi',
   },
 };
 
-const UNIT: Record<Locale, { uzsOnly: string; rubOnly: string; uzs: string }> = {
-  EN: { uzsOnly: 'UZS only', rubOnly: 'RUB only', uzs: 'UZS' },
-  RU: { uzsOnly: 'только UZS', rubOnly: 'только RUB', uzs: 'UZS' },
-  UZ: { uzsOnly: 'faqat UZS', rubOnly: 'faqat RUB', uzs: 'UZS' },
+const UNIT: Record<Locale, { rubOnly: string; rub: string }> = {
+  EN: { rubOnly: 'RUB only', rub: 'RUB' },
+  RU: { rubOnly: 'только RUB', rub: 'RUB' },
 };
 
 /**
@@ -48,17 +37,9 @@ export function paymentProviders(locale: Locale): readonly [PaymentProvider, ...
 
   return [
     {
-      id: 'globalpay',
-      name: 'GlobalPay',
-      icon: 'credit-card',
-      desc: desc.globalpay,
-      unit: unit.uzsOnly,
-      currency: 'UZS',
-    },
-    {
       id: 'platega',
       name: 'Platega',
-      icon: 'globe',
+      icon: 'credit-card',
       desc: desc.platega,
       unit: unit.rubOnly,
       currency: 'RUB',
@@ -67,13 +48,13 @@ export function paymentProviders(locale: Locale): readonly [PaymentProvider, ...
 }
 
 /**
- * Способы оплаты, доступные прямо сейчас, — то, что предлагает платёжное окно.
- * Непустой кортеж, а не просто массив: окно обязано кого-то предложить по
- * умолчанию, и это требование продукта, а не удобство типов.
+ * Payment methods available right now — what the payment sheet offers. A
+ * non-empty tuple rather than an array: the sheet must have a default to
+ * offer, and that is a product requirement, not a typing convenience.
  *
- * Пока платежи идут через мок, показывать здесь GlobalPay и Platega нельзя: имя
- * настоящего провайдера под мгновенным бесплатным подтверждением — прямая
- * неправда. Мок называет себя моком. Список меняется в Срезе 1.10.
+ * While payments go through the mock, Platega must not be shown here: a real
+ * provider's name over an instant free confirmation is a plain lie. The mock
+ * calls itself the mock. The list changes in slice 1.10.
  */
 export function paymentMethods(locale: Locale): readonly [PaymentProvider, ...PaymentProvider[]] {
   if (!PREVIEW.mockPayments) return paymentProviders(locale);
@@ -84,8 +65,8 @@ export function paymentMethods(locale: Locale): readonly [PaymentProvider, ...Pa
       name: 'Test payment',
       icon: 'credit-card',
       desc: DESC[locale].mock,
-      unit: UNIT[locale].uzs,
-      currency: 'UZS',
+      unit: UNIT[locale].rub,
+      currency: 'RUB',
     },
   ];
 }

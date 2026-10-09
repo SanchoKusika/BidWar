@@ -2,7 +2,12 @@ import { useState } from 'react';
 import { Button } from '@/shared/ui/Button';
 import { Icon, type IconName } from '@/shared/ui/Icon';
 import { KeyRow, type KeyRowTone } from '@/shared/ui/KeyRow';
-import { CURRENCY_SUFFIX, formatMoney, type DisplayCurrency } from '@/shared/lib/format';
+import {
+  CURRENCY_SUFFIX,
+  formatMoney,
+  type DisplayCurrency,
+  DEFAULT_CURRENCY,
+} from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
 import { getPaymentMethods } from '@/shared/content';
 import { Sheet } from './Sheet';
@@ -54,7 +59,13 @@ function title(kind: PayPayload['kind']): string {
  * здесь один раз, на странице самого провайдера, сразу в ту позицию, которую
  * покупает. Поэтому в шторке нет ни пополнения, ни остатка.
  */
-export function PaySheet({ open, payload, currency = 'UZS', onClose, onConfirm }: PaySheetProps) {
+export function PaySheet({
+  open,
+  payload,
+  currency = DEFAULT_CURRENCY,
+  onClose,
+  onConfirm,
+}: PaySheetProps) {
   const methods = getPaymentMethods();
   const [providerId, setProviderId] = useState(methods[0].id);
   // Находка I4 финального ревью: без своего "в полёте" второй тап по Pay на

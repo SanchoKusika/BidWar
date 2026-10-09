@@ -8,7 +8,7 @@
 
 export interface CreatePaymentParams {
   initData: string;
-  /** Сумма в очках: для UZS это и есть сумы (04 Платежи и валюты). */
+  /** Amount in points, which are roubles one to one (04 Платежи и валюты). */
   amount: number;
   /** Довзнос к своей ставке. Взаимоисключим с парой categoryId + url. */
   projectId?: number;

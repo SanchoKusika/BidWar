@@ -36,7 +36,7 @@ async function seed(tx: postgres.TransactionSql, points: number) {
     insert into payment_transactions
       (user_id, project_id, intent, provider, original_currency, original_amount,
        fx_rate_used, points_granted, status)
-    values (${user.id}, ${project.id}, 'raise', 'mock', 'UZS', ${points}, 1, ${points}, 'pending')
+    values (${user.id}, ${project.id}, 'raise', 'mock', 'RUB', ${points}, 1, ${points}, 'pending')
     returning id`;
   return { userId: user.id, projectId: project.id, paymentId: payment.id };
 }
@@ -98,7 +98,7 @@ Deno.test('initial_stake фиксируется первым платежом и
       insert into payment_transactions
         (user_id, project_id, intent, provider, original_currency, original_amount,
          fx_rate_used, points_granted, status)
-      values (${userId}, ${projectId}, 'raise', 'mock', 'UZS', 50000, 1, 50000, 'pending')
+      values (${userId}, ${projectId}, 'raise', 'mock', 'RUB', 50000, 1, 50000, 'pending')
       returning id`;
     await tx`select * from apply_payment(${second.id}, 'evt-2', true)`;
 
@@ -382,7 +382,7 @@ Deno.test(
         insert into payment_transactions
           (user_id, project_id, intent, provider, original_currency, original_amount,
            fx_rate_used, points_granted, status)
-        values (${userC.id}, ${challenger.id}, 'raise', 'mock', 'UZS', ${challengerPoints}, 1,
+        values (${userC.id}, ${challenger.id}, 'raise', 'mock', 'RUB', ${challengerPoints}, 1,
                 ${challengerPoints}, 'pending')
         returning id`;
       cleanup.paymentId = payment.id;

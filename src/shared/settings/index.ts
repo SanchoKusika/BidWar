@@ -14,15 +14,12 @@
 import { useSyncExternalStore } from 'react';
 import { getPlatform } from '@/shared/platform';
 import { LOCALES, localeFromLanguageCode, type Locale } from '@/shared/i18n/locale';
-import type { DisplayCurrency } from '@/shared/lib/format';
 
 export type ThemeChoice = 'auto' | 'light' | 'dark';
 
 export interface AppSettings {
   /** `auto` — тема оболочки (Telegram или prefers-color-scheme). */
   theme: ThemeChoice;
-  /** Валюта показа. Списывается всё равно в валюте провайдера. */
-  currency: DisplayCurrency;
   /**
    * «12.5 mln» вместо «12 500 000». Касается только чисел, на которые смотрят:
    * суммы платежа, цена «занять это место» и «сколько нужно, чтобы обойти»
@@ -52,7 +49,6 @@ export interface AppSettings {
  */
 const DEFAULTS: AppSettings = {
   theme: 'auto',
-  currency: 'UZS',
   compactAmounts: true,
   haptics: true,
   language: localeFromLanguageCode(getPlatform().getLanguageCode()),
@@ -61,7 +57,6 @@ const DEFAULTS: AppSettings = {
 const STORAGE_KEY = 'bidwar.settings.v1';
 
 const THEMES: readonly ThemeChoice[] = ['auto', 'light', 'dark'];
-const CURRENCIES: readonly DisplayCurrency[] = ['UZS', 'USD', 'RUB'];
 
 /**
  * Чужая/устаревшая запись в localStorage не должна ронять приложение: каждое
@@ -76,9 +71,6 @@ function parse(raw: string | null): AppSettings {
       theme: THEMES.includes(stored.theme as ThemeChoice)
         ? (stored.theme as ThemeChoice)
         : DEFAULTS.theme,
-      currency: CURRENCIES.includes(stored.currency as DisplayCurrency)
-        ? (stored.currency as DisplayCurrency)
-        : DEFAULTS.currency,
       compactAmounts:
         typeof stored.compactAmounts === 'boolean'
           ? stored.compactAmounts

@@ -90,7 +90,7 @@ export const ru: PartialStrings = {
     title: 'Добавить проект',
     subtitle: 'Хватит одной ссылки — остальное подтянем',
     linkLabel: 'ССЫЛКА НА ПРОЕКТ',
-    linkPlaceholder: 't.me/вашканал или вашсайт.uz',
+    linkPlaceholder: 't.me/вашканал или вашсайт.ru',
     destinationLabel: 'ГДЕ УЧАСТВУЕТ',
     categoryLabel: 'КАТЕГОРИЯ',
     free: { label: 'Бесплатный топ', sub: 'Голоса за задания' },
@@ -345,8 +345,6 @@ export const ru: PartialStrings = {
     themeDark: 'Тёмная',
     vibration: 'Вибрация',
     vibrationNote: 'Короткий отклик, когда ставка, атака или голос прошли',
-    currency: 'Валюта',
-    currencyNote: 'Только для показа — списывается всегда в сумах',
     compact: 'Компактные суммы',
     compactNote: '12,5 млн вместо 12 500 000',
 

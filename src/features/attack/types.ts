@@ -32,7 +32,7 @@ export interface AttackQuoteParams {
 
 export interface CreateAttackParams {
   initData: string;
-  /** Сумма в очках: для UZS это и есть сумы (04 Платежи и валюты). */
+  /** Amount in points, which are roubles one to one (04 Платежи и валюты). */
   amount: number;
   targetProjectId: number;
 }

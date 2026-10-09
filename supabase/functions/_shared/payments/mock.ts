@@ -33,7 +33,7 @@ export function createMockProvider(
   return {
     id: 'mock',
     mode: 'telegram_native',
-    currency: 'UZS',
+    currency: 'RUB',
 
     async createPayment(
       input: CreatePaymentInput & { paymentId: string },

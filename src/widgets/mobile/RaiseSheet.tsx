@@ -8,6 +8,7 @@ import {
   formatEditable,
   formatMoney,
   type DisplayCurrency,
+  DEFAULT_CURRENCY,
 } from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
 import type { ProjectListItem } from '@/entities/project';
@@ -49,7 +50,7 @@ export function RaiseSheet({
   rank,
   preset,
   minAmount,
-  currency = 'UZS',
+  currency = DEFAULT_CURRENCY,
   onClose,
   onConfirm,
 }: RaiseSheetProps) {

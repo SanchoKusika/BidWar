@@ -4,7 +4,7 @@ import { verifyInitData } from '../_shared/telegram.ts';
 import { resolveTelegramUser } from '../_shared/identity.ts';
 import { getAdminClient } from '../_shared/db.ts';
 import { fetchOg } from '../_shared/og.ts';
-import { fetchFxRates, toPoints } from '../_shared/payments/fx.ts';
+import { toPoints } from '../_shared/payments/fx.ts';
 import { getProvider, mockCommandsAllowed } from '../_shared/payments/registry.ts';
 import { assertAttackAllowed, loadAttackQuote } from '../_shared/attack_quote.ts';
 import type { MockCommand } from '../_shared/payments/mock.ts';
@@ -193,18 +193,7 @@ serve('create-payment', async (req, ctx) => {
     mockCommandsAllowed() ? (body.mockCommand as MockCommand | undefined) : undefined,
   );
 
-  // fetchFxRates бросает, если строки app_config.fx_rates или нужного в ней
-  // ключа нет (см. комментарий в fx.ts) — это осознанно: молчаливый хардкод
-  // курса уже чинили по ревью. Но мок работает в UZS, а toPoints для UZS в
-  // rates вообще не заглядывает (курс 1:1 — якорь), поэтому звать
-  // fetchFxRates безусловно значило бы ронять платёж мока пустым/неполным
-  // fx_rates без всякой причины. Курс запрашивается только когда валюта
-  // провайдера правда в нём нуждается.
-  // NaN — не 0: если toPoints когда-нибудь начнёт заглядывать в rates для UZS,
-  // тест на согласованность points/rate сразу заметит порчу, а не тихо посчитает по нулевому курсу.
-  const rates =
-    provider.currency === 'UZS' ? { rubToUzs: NaN, usdToUzs: NaN } : await fetchFxRates();
-  const { points, rate } = toPoints(parsed.amount, provider.currency, rates);
+  const { points, rate } = toPoints(parsed.amount, provider.currency);
 
   const { data: payment, error: paymentError } = await db
     .from('payment_transactions')

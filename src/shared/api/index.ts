@@ -1,7 +1,7 @@
 export { getSupabase } from './client';
 export { fetchHealth } from './health';
 export { authenticate } from './auth';
-export { fetchPaidLimits, fetchFxRates } from './config';
+export { fetchPaidLimits } from './config';
 export { fetchMySpending } from './spending';
 export { fetchPreferences, savePreferences } from './preferences';
 export {

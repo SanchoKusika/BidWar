@@ -5,7 +5,7 @@ import { useTaskBoard } from '@/entities/task';
 import { brand } from '@/shared/content';
 import { PREVIEW } from '@/shared/config/preview';
 import { getPlatform } from '@/shared/platform';
-import { formatFullDate, formatReceiptDate, type DisplayCurrency } from '@/shared/lib/format';
+import { formatFullDate, formatReceiptDate } from '@/shared/lib/format';
 import { dropQueryCache } from '@/shared/lib/query';
 import { strings } from '@/shared/i18n/strings';
 import { setSetting, useSettings, type ThemeChoice } from '@/shared/settings';
@@ -160,7 +160,6 @@ export function ProfilePage({ nav }: ProfilePageProps) {
         // прямо в карточке и объясняет, почему «приглашено 5, получено 9».
         referralEarned={referral.rewarded * referral.reward}
         referralReward={referral.reward}
-        currency={settings.currency}
         compactAmounts={settings.compactAmounts}
         settings={{
           value: settings,
@@ -169,7 +168,6 @@ export function ProfilePage({ nav }: ProfilePageProps) {
           // значения подтверждается здесь по одной ветке на настройку.
           onChange: (key, next) => {
             if (key === 'theme') setSetting('theme', next as ThemeChoice);
-            else if (key === 'currency') setSetting('currency', next as DisplayCurrency);
             else if (key === 'compactAmounts') setSetting('compactAmounts', next as boolean);
             else if (key === 'haptics') setSetting('haptics', next as boolean);
             else if (key === 'language') {

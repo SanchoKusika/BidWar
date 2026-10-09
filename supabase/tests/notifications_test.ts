@@ -81,7 +81,7 @@ async function attack(
       (user_id, project_id, target_project_id, intent, provider, original_currency,
        original_amount, fx_rate_used, points_granted, status)
     values (${attacker.userId}, ${attacker.projectId}, ${targetProjectId}, 'attack', 'mock',
-            'UZS', ${points}, 1, ${points}, 'pending')
+            'RUB', ${points}, 1, ${points}, 'pending')
     returning id`;
   const [result] = await tx`select * from apply_payment(${payment.id}, ${eventId}, true)`;
   return result;

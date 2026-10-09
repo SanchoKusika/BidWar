@@ -80,7 +80,7 @@ async function newAttack(
     insert into payment_transactions
       (user_id, project_id, target_project_id, intent, provider, original_currency,
        original_amount, fx_rate_used, points_granted, status)
-    values (${userId}, ${projectId}, ${targetProjectId}, 'attack', 'mock', 'UZS',
+    values (${userId}, ${projectId}, ${targetProjectId}, 'attack', 'mock', 'RUB',
             ${ATTACK}, 1, ${ATTACK}, 'pending')
     returning id`;
   return row.id as string;
