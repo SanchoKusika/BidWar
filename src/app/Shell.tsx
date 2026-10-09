@@ -3,7 +3,7 @@ import { getPlatform } from '@/shared/platform';
 import { useSettings } from '@/shared/settings';
 import { useJoinOnline } from '@/shared/lib/online';
 import type { Locale } from '@/shared/i18n/locale';
-import { SessionProvider } from '@/entities/user';
+import { SessionProvider, useSession } from '@/entities/user';
 import { TabBar } from '@/shared/ui/TabBar';
 import { PaidMobile } from '@/pages/paid/ui/Mobile';
 import { FreeMobile } from '@/pages/free/ui/Mobile';
@@ -34,7 +34,6 @@ export function Shell() {
   // бы вкладку и прокрутку — человек менял язык, а не уходил с экрана.
   const { language } = useSettings();
   const board = useTaskBoard();
-  useJoinOnline();
   const availableTasks = board.data ? availableCount(board.data.tasks) : 0;
 
   useEffect(() => {
@@ -91,6 +90,7 @@ export function Shell() {
 
   return (
     <SessionProvider>
+      <OnlinePresence />
       <div className={styles.app}>
         <main
           className={styles.content}
@@ -144,4 +144,10 @@ export function Shell() {
       </div>
     </SessionProvider>
   );
+}
+
+/** Joins the online counter as this account — or this browser, for a guest. */
+function OnlinePresence() {
+  useJoinOnline(useSession().userId);
+  return null;
 }

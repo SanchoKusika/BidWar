@@ -35,7 +35,6 @@ const HTML_LANG: Record<Locale, string> = { RU: 'ru', EN: 'en' };
 export function WebShell() {
   const { language } = useSettings();
   const [signInError, setSignInError] = useState(false);
-  useJoinOnline();
 
   /**
    * Telegram's sign-in popup for the bot the server checks against — its id is
@@ -65,6 +64,7 @@ export function WebShell() {
     <LayoutContext.Provider value="desktop">
       <SignInContext.Provider value={signIn}>
         <SessionProvider>
+          <OnlinePresence />
           <Site onSignIn={signIn} />
           <Dialog open={signInError} onClose={() => setSignInError(false)}>
             <p className={styles.dialogText}>{strings.web.signInFailed}</p>
@@ -174,4 +174,10 @@ function Site({ onSignIn }: { onSignIn: () => void }) {
       <SiteFooter onDoc={(id) => nav.push({ name: 'doc', id })} />
     </div>
   );
+}
+
+/** Joins the online counter as this account — or this browser, for a guest. */
+function OnlinePresence() {
+  useJoinOnline(useSession().userId);
+  return null;
 }
