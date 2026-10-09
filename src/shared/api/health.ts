@@ -6,6 +6,8 @@ export interface Health {
   version: string;
   region: string | null;
   time: string;
+  /** The bot behind the server's BOT_TOKEN — the one the site signs in with. */
+  botId: number | null;
 }
 
 /** Дозвон до Edge Function `health`. Бросает, если функция недоступна. */

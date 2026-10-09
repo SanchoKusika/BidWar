@@ -11,6 +11,14 @@
 
 const AUTH_DATE_MAX_AGE_SECONDS = 24 * 60 * 60;
 
+/**
+ * A sign-in on the site lives longer than a mini app launch: Telegram signs
+ * the Login Widget answer once, and the site keeps it on the device as its
+ * session. Thirty days, like an ordinary «remember me»; after that the
+ * person signs in again.
+ */
+const LOGIN_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
+
 export interface TelegramUser {
   id: number;
   first_name: string;
@@ -59,6 +67,18 @@ async function getSecretKey(botToken: string): Promise<Uint8Array<ArrayBuffer>> 
   return key;
 }
 
+/** The Login Widget's key is a plain SHA-256 of the token, not an HMAC. */
+const loginKeyCache = new Map<string, Uint8Array<ArrayBuffer>>();
+
+async function getLoginKey(botToken: string): Promise<Uint8Array<ArrayBuffer>> {
+  let key = loginKeyCache.get(botToken);
+  if (!key) {
+    key = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(botToken)));
+    loginKeyCache.set(botToken, key);
+  }
+  return key;
+}
+
 function toHex(bytes: Uint8Array): string {
   return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, '0'))
@@ -74,9 +94,15 @@ function timingSafeEqual(a: string, b: string): boolean {
 }
 
 /**
- * Возвращает разобранные данные, если подпись верна, `auth_date` не старше 24ч
- * и поле `user` присутствует и разбирается — иначе `null`. Ничего не бросает:
- * подделанный/протухший initData — ожидаемый случай, а не исключительная ошибка.
+ * Returns the parsed data when the signature holds and the data is fresh,
+ * otherwise `null`. Never throws: forged or stale data is an expected case.
+ *
+ * Two signed formats arrive here. The mini app sends Telegram's `initData`
+ * (a `user` field, the «WebAppData» key, 24 hours). The site sends the Login
+ * Widget's answer as the same kind of query string (the user's fields at the
+ * top level, a SHA-256 key, 30 days) — so every function that already checks
+ * `initData` accepts a site sign-in without a line changed. The keys differ,
+ * so one format can never pass as the other.
  */
 export async function verifyInitData(
   initData: string,
@@ -91,6 +117,8 @@ export async function verifyInitData(
     .sort()
     .map((key) => `${key}=${params.get(key)}`)
     .join('\n');
+
+  if (!params.has('user')) return verifyLogin(params, hash, dataCheckString, botToken);
 
   const secretKey = await getSecretKey(botToken);
   const computedHash = toHex(await hmacSha256(secretKey, dataCheckString));
@@ -113,6 +141,43 @@ export async function verifyInitData(
   if (typeof user.id !== 'number') return null;
 
   return { user, authDate, startParam: params.get('start_param') };
+}
+
+/**
+ * The Login Widget's answer (https://core.telegram.org/widgets/login):
+ *   secret_key = SHA256(bot_token)
+ *   hash       = hex(HMAC_SHA256(key = secret_key, message = data_check_string))
+ * There is no referral parameter on the site: an invite works through the bot.
+ */
+async function verifyLogin(
+  params: URLSearchParams,
+  hash: string,
+  dataCheckString: string,
+  botToken: string,
+): Promise<VerifiedInitData | null> {
+  const computedHash = toHex(await hmacSha256(await getLoginKey(botToken), dataCheckString));
+  if (!timingSafeEqual(computedHash, hash)) return null;
+
+  const authDate = Number(params.get('auth_date'));
+  if (!Number.isFinite(authDate)) return null;
+  if (Date.now() / 1000 - authDate > LOGIN_MAX_AGE_SECONDS) return null;
+
+  const id = Number(params.get('id'));
+  const firstName = params.get('first_name');
+  if (!Number.isSafeInteger(id) || id <= 0 || !firstName) return null;
+
+  const lastName = params.get('last_name');
+  const username = params.get('username');
+  const photoUrl = params.get('photo_url');
+  const user: TelegramUser = {
+    id,
+    first_name: firstName,
+    ...(lastName ? { last_name: lastName } : {}),
+    ...(username ? { username } : {}),
+    ...(photoUrl ? { photo_url: photoUrl } : {}),
+  };
+
+  return { user, authDate, startParam: null };
 }
 
 /**

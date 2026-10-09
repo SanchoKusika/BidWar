@@ -8,6 +8,8 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { getPlatform } from '@/shared/platform';
+import { useLayout } from '@/shared/lib/layout';
+import { Dialog } from '@/widgets/desktop/Dialog';
 import styles from './Sheet.module.css';
 
 export interface SheetProps {
@@ -39,7 +41,13 @@ function sheetDurationMs(): number {
  * не гарантирует, что шторка перекроет TabBar — портал снимает вопрос совсем,
  * встав над всем документом через position: fixed.
  */
-export function Sheet({ open, onClose, children }: SheetProps) {
+export function Sheet(props: SheetProps) {
+  // On the desktop site the same sheet bodies open as a centred dialog
+  // (ui_kits/web): the content is one, only the frame differs.
+  return useLayout() === 'desktop' ? <Dialog {...props} /> : <BottomSheet {...props} />;
+}
+
+function BottomSheet({ open, onClose, children }: SheetProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   /** Единственный реально скроллящийся блок — см. комментарий у .content в Sheet.module.css. */
   const contentRef = useRef<HTMLDivElement>(null);

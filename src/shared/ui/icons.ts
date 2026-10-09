@@ -64,6 +64,7 @@ import {
   Vibrate,
   Vote,
   Wrench,
+  X,
 } from 'lucide-react';
 
 /**
@@ -137,6 +138,7 @@ export const ICONS = {
   vibrate: Vibrate,
   vote: Vote,
   wrench: Wrench,
+  x: X,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

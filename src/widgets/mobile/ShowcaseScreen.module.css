@@ -32,12 +32,16 @@
   width: 158px;
 }
 
+.gutter {
+  padding-left: var(--page-gutter);
+  padding-right: var(--page-gutter);
+}
+
 .rankingHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-5);
-  padding: 0 var(--page-gutter);
 }
 
 .rankingLines {
@@ -64,7 +68,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--stack-gap);
-  padding: 0 var(--page-gutter);
 }
 
 .row {
@@ -79,7 +82,6 @@
 
 /* Примечание под шапкой ленты, когда выбраны последние сутки. */
 .todayNote {
-  padding: 0 var(--page-gutter);
   font: var(--type-caption);
   color: var(--text-secondary);
   text-wrap: pretty;

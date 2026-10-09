@@ -1,0 +1,19 @@
+.site {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font: var(--type-body);
+}
+
+.page {
+  flex: 1;
+}
+
+.dialogText {
+  margin: 0;
+  padding-right: var(--space-16);
+  font: var(--type-body);
+  color: var(--text-primary);
+}

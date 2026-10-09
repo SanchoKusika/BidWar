@@ -1,0 +1,12 @@
+/* Five tiles a row on the full width, as in the kit; narrower screens wrap. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--stack-gap);
+}
+
+.feedBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}

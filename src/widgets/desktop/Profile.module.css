@@ -1,0 +1,41 @@
+.projects {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--stack-gap);
+}
+
+.sectionActions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.textButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-link);
+  font: var(--type-micro);
+  cursor: pointer;
+}
+
+.textButton:disabled {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.note {
+  font: var(--type-caption);
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+/* Settings groups in two columns, as in the kit's profile. */
+.settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  align-items: start;
+}

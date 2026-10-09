@@ -81,6 +81,8 @@
   --text-secondary: var(--n-600);
   --text-muted: var(--tg-theme-hint-color, var(--n-400));
   --text-inverse: var(--n-0);
+  /* Secondary ink on an inverse surface (own-position panels). */
+  --text-inverse-muted: rgba(255, 255, 255, 0.6);
   --text-link: var(--tg-theme-link-color, var(--paid-600));
   --text-link-hover: var(--paid-700);
 

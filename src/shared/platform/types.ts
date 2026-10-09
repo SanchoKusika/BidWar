@@ -57,8 +57,9 @@ export interface Platform {
   readonly name: PlatformName;
 
   /**
-   * Подписанные данные Telegram. На сервере проверяются заново — доверять
-   * содержимому на клиенте нельзя. В вебе всегда null.
+   * Signed Telegram data, checked again on the server — never trusted on the
+   * client. In the mini app it is the launch data; on the site, the kept
+   * Login Widget answer, or null for a guest.
    */
   getInitData(): string | null;
 

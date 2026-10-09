@@ -1,4 +1,5 @@
 import { strings } from '@/shared/i18n/strings';
+import { clearLogin, getPlatform } from '@/shared/platform';
 
 /**
  * Соединение оборвалось до ответа create-payment — неизвестно, успел ли
@@ -31,6 +32,13 @@ export async function functionErrorMessage(error: unknown, fallback: string): Pr
     // the background far longer — then every action fails. The server's text
     // ("initData не прошёл проверку") tells the person nothing; reopening does.
     if (context instanceof Response && context.status === 401) {
+      // On the site the same 401 means the kept sign-in is no longer
+      // accepted: drop it, so the site shows the sign-in instead of
+      // failing every action with it.
+      if (getPlatform().name === 'web') {
+        clearLogin();
+        return strings.web.signInExpired;
+      }
       return strings.common.sessionExpired;
     }
     if (context instanceof Response) {

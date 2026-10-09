@@ -11,6 +11,7 @@ export type {
   SystemButton,
 } from './types';
 export { isTelegramMiniApp };
+export { clearLogin, signInWithTelegram, storedLogin } from './webLogin';
 
 let instance: Platform | null = null;
 

@@ -1,4 +1,5 @@
 import type { BackButton, InvoiceStatus, Platform, SystemButton } from './types';
+import { storedLogin } from './webLogin';
 
 /** Системных кнопок в вебе нет — их роль играет обычная разметка. */
 const noopBackButton: BackButton = {
@@ -17,7 +18,9 @@ export function createWebPlatform(): Platform {
   return {
     name: 'web',
 
-    getInitData: () => null,
+    // The site's sign-in (Telegram Login Widget), checked by the server the
+    // same way as the mini app's launch data. Null for a guest.
+    getInitData: storedLogin,
 
     getColorScheme: () => (media.matches ? 'dark' : 'light'),
 
@@ -44,9 +47,10 @@ export function createWebPlatform(): Platform {
 
     haptic: () => {},
 
-    // `navigator.language` говорит про браузер, а не про человека, и на общей
-    // машине уводит в чужой язык. Лучше честно не знать.
-    getLanguageCode: () => null,
+    // The browser's language is a guess about the person, not a fact — but
+    // with nothing at all a Russian site greeted everyone in English. It is
+    // only the starting point: a choice made in settings wins and is kept.
+    getLanguageCode: () => navigator.language || null,
 
     backButton: noopBackButton,
     mainButton: noopButton,

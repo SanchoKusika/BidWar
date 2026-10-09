@@ -13,6 +13,8 @@ import {
   ProjectScreenSkeleton,
   type ActivityEntry,
 } from '@/widgets/mobile/ProjectScreen';
+import { DesktopProject, DesktopProjectSkeleton } from '@/widgets/desktop/Project';
+import { useLayout } from '@/shared/lib/layout';
 import { useProject } from '../model';
 import styles from './Mobile.module.css';
 
@@ -51,8 +53,11 @@ export function ProjectPage({
   // Хук стоит до ранних возвратов ниже и потому берёт id из пропа, а не из
   // загруженного проекта: порядок хуков обязан быть одинаковым на каждый рендер.
   const events = useProjectActivity(id);
+  const desktop = useLayout() === 'desktop';
+  const Screen = desktop ? DesktopProject : ProjectScreen;
 
   if (status === 'loading') {
+    if (desktop) return <DesktopProjectSkeleton segment={segment} onBack={onBack} />;
     return (
       <ProjectScreenSkeleton
         segment={segment}
@@ -96,7 +101,7 @@ export function ProjectPage({
   }));
 
   return (
-    <ProjectScreen
+    <Screen
       project={project}
       segment={project.type}
       rank={rank}

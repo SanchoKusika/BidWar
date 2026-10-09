@@ -28,5 +28,13 @@
   --tabbar-h: 64px;
   --tabbar-safe: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
   --content-bottom-pad: calc(var(--tabbar-safe) + var(--space-12));
+
+  /* Desktop site (ui_kits/web): one 1240px column, a 340px sticky rail from
+     1060px, a 68px top bar. */
+  --web-max: 1240px;
+  --web-gutter: var(--space-16);
+  --web-rail: 340px;
+  --web-gap: var(--space-14);
+  --web-bar-h: 68px;
   --hit-min: 44px; /* never smaller */
 }

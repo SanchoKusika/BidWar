@@ -91,6 +91,55 @@ export const en = {
     profile: 'Profile',
   },
 
+  /** The desktop site's own chrome (ui_kits/web) — everything else is shared. */
+  web: {
+    rules: 'Rules',
+    theme: 'Theme',
+    signIn: 'Sign in with Telegram',
+    signInTitle: 'Sign in to play',
+    signInNote:
+      'The same Telegram account as in the mini app — your projects, votes and payments are already there. Browsing needs no account.',
+    signInTasks: 'Tasks pay votes to an account. Sign in with Telegram and they appear here.',
+    signInProfile: 'Your projects, votes, receipts and settings live in your account.',
+    signInRail: 'Add a project, raise bids and give votes from your Telegram account.',
+    signInExpired: 'Your sign-in has expired — reload the page and sign in with Telegram again.',
+    signInFailed: 'Telegram sign-in did not open. Try again in a moment.',
+    profile: 'Profile',
+    footerTagline: 'Two independent tops. Money never becomes votes, votes never become money.',
+    next: 'NEXT',
+    atAGlance: 'At a glance',
+    topBid: 'TOP BID',
+    topProject: 'TOP PROJECT',
+    moneyInPlay: 'MONEY IN PLAY',
+    votesInPlay: 'VOTES IN PLAY',
+    entryFrom: 'ENTRY FROM',
+    howPaidWorks: 'How the paid top works',
+    howFreeWorks: 'How the free top works',
+    readRules: 'Read the rules',
+    backToPaid: 'Back to Paid Top',
+    backToFree: 'Back to Free Top',
+    overtakePaid: (bid: string) =>
+      `Overtaking this project needs a bid above ${bid}, or an attack that lowers it.`,
+    overtakeFree: (votes: string) =>
+      `Overtaking needs more votes than ${votes}. Votes come from tasks only.`,
+    copyLink: 'Copy link',
+    linkCopied: 'Link copied',
+    today: 'Today',
+    votesFootnote:
+      'Votes are the only balance in the product — earned from tasks, never bought, never cashed out.',
+    moneyPaid: 'Money paid',
+    allTime: 'All time',
+    settings: 'Settings',
+    availableNow: 'Available now',
+    referrals: 'Referrals',
+    referralPitch: (votes: number) =>
+      `Invites are the fastest source of votes: +${votes} for every friend, no cap.`,
+    inviteFriends: 'Invite friends',
+    voteRules: 'Vote rules',
+    clicksNote:
+      'Every open from this page is counted for the project — that counter is what a position buys.',
+  },
+
   common: {
     loading: 'Working out the numbers…',
     cancel: 'Cancel',
@@ -101,6 +150,7 @@ export const en = {
     continueToPayment: 'Continue to payment',
     /** Button that fills the amount field to its ceiling. */
     max: 'MAX',
+    close: 'Close',
   },
 
   /**
@@ -394,6 +444,7 @@ export const en = {
   },
 
   settings: {
+    signOut: 'Sign out',
     appearance: 'Appearance',
     appearanceNote: 'Language and theme apply to the bot and the site too.',
     language: 'Language',
