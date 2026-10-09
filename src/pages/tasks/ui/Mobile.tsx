@@ -5,6 +5,8 @@ import { getPlatform } from '@/shared/platform';
 import { haptic } from '@/shared/lib/haptic';
 import { strings } from '@/shared/i18n/strings';
 import { TasksScreen } from '@/widgets/mobile/TasksScreen';
+import { DesktopTasks } from '@/widgets/desktop/Tasks';
+import { useLayout } from '@/shared/lib/layout';
 import type { TaskItem } from '@/entities/task';
 import type { Navigation } from '@/app/navigation';
 import { useTaskBoard } from '../model';
@@ -36,6 +38,7 @@ export function TasksPage({ nav }: TasksPageProps) {
   const board = useTaskBoard();
   const [notice, setNotice] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  const Screen = useLayout() === 'desktop' ? DesktopTasks : TasksScreen;
 
   const verifySubscription = async (task: TaskItem) => {
     const initData = getPlatform().getInitData();
@@ -83,7 +86,7 @@ export function TasksPage({ nav }: TasksPageProps) {
   };
 
   return (
-    <TasksScreen
+    <Screen
       tasks={board.data?.tasks ?? []}
       voteBalance={board.data?.voteBalance ?? session.voteBalance}
       loading={board.loading}

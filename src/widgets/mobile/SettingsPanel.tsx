@@ -6,6 +6,8 @@ import type { AppSettings, ThemeChoice } from '@/shared/settings';
 import { brand, getPaymentProviders, type DocId } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
 import { LOCALES, type Locale } from '@/shared/i18n/locale';
+import { getPlatform } from '@/shared/platform';
+import { cx } from '@/shared/lib/cx';
 import styles from './SettingsPanel.module.css';
 
 const t = strings.settings;
@@ -65,6 +67,9 @@ export interface SettingsPanelProps {
    * строки нет: пока `my-spending` не ответил, прокручивать не к чему.
    */
   onPaymentHistory?: () => void;
+  /** Present on the site, where a sign-in is kept on the device and can be dropped. */
+  onSignOut?: () => void;
+  className?: string;
 }
 
 // Функция, а не константа: словарь читает язык в момент обращения, и массив,
@@ -100,11 +105,16 @@ export function SettingsPanel({
   onDoc,
   onRemoveProjects,
   onPaymentHistory,
+  onSignOut,
+  className,
 }: SettingsPanelProps) {
+  // A browser has nothing to vibrate with — the platform's haptic is a no-op
+  // there, and a switch that changes nothing is hidden, not shown dead.
+  const haptics = getPlatform().name !== 'web';
   const switchPlaceholder = <SkeletonBlock width={46} height={28} radius="var(--radius-pill)" />;
 
   return (
-    <div className={styles.panel}>
+    <div className={cx(styles.panel, className)}>
       <SettingsGroup label={t.appearance} footnote={t.appearanceNote}>
         <SettingsRow
           icon="languages"
@@ -131,18 +141,20 @@ export function SettingsPanel({
             />
           }
         />
-        <SettingsRow
-          icon="vibrate"
-          title={t.vibration}
-          description={t.vibrationNote}
-          control={
-            <Switch
-              checked={value.haptics}
-              onChange={(v) => onChange('haptics', v)}
-              label={t.vibration}
-            />
-          }
-        />
+        {haptics && (
+          <SettingsRow
+            icon="vibrate"
+            title={t.vibration}
+            description={t.vibrationNote}
+            control={
+              <Switch
+                checked={value.haptics}
+                onChange={(v) => onChange('haptics', v)}
+                label={t.vibration}
+              />
+            }
+          />
+        )}
         <SettingsRow
           icon="hash"
           title={t.compact}
@@ -255,6 +267,7 @@ export function SettingsPanel({
             onPress={onRemoveProjects}
           />
         )}
+        {onSignOut && <SettingsRow icon="log-out" title={t.signOut} onPress={onSignOut} />}
       </SettingsGroup>
     </div>
   );

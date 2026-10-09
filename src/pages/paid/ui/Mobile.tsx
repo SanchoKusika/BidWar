@@ -20,6 +20,8 @@ import { useSettings } from '@/shared/settings';
 import { haptic } from '@/shared/lib/haptic';
 import { strings } from '@/shared/i18n/strings';
 import { ShowcaseScreen } from '@/widgets/mobile/ShowcaseScreen';
+import { DesktopShowcase } from '@/widgets/desktop/Showcase';
+import { useLayout } from '@/shared/lib/layout';
 import { AddProjectSheet } from '@/widgets/mobile/AddProjectSheet';
 import { RaiseSheet } from '@/widgets/mobile/RaiseSheet';
 import { AttackSheet } from '@/widgets/mobile/AttackSheet';
@@ -58,6 +60,8 @@ type Pending =
  * друг о друге.
  */
 export function PaidMobile({ nav }: PaidMobileProps) {
+  // One page, two compositions: the mini app's screen or the desktop site's.
+  const Screen = useLayout() === 'desktop' ? DesktopShowcase : ShowcaseScreen;
   const { userId, status: sessionStatus, errorMessage: sessionErrorMessage } = useSession();
   const { compactAmounts } = useSettings();
   const showcase = usePaidShowcase();
@@ -338,7 +342,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
 
   return (
     <>
-      <ShowcaseScreen
+      <Screen
         segment="paid"
         compactAmounts={compactAmounts}
         minStep={minStep}

@@ -4,14 +4,7 @@ import { TierDivider } from '@/shared/ui/TierDivider';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Button } from '@/shared/ui/Button';
 import { StatBlock } from '@/shared/ui/StatBlock';
-import {
-  CURRENCY_SUFFIX,
-  formatHeldDuration,
-  formatMoney,
-  formatVotes,
-  type DisplayCurrency,
-  DEFAULT_CURRENCY,
-} from '@/shared/lib/format';
+import { formatHeldDuration, type DisplayCurrency, DEFAULT_CURRENCY } from '@/shared/lib/format';
 import {
   CATEGORY_ICON,
   allCategoriesTitle,
@@ -27,134 +20,23 @@ import type {
 import type { SessionStatus } from '@/entities/user';
 import { ActivityFeed, type ActivityItem } from '@/shared/ui/ActivityFeed';
 import { strings } from '@/shared/i18n/strings';
+import { cx } from '@/shared/lib/cx';
 import { PageHeader } from './PageHeader';
 import { HeaderAction } from './HeaderAction';
 import { OwnPositionPanel } from './OwnPositionPanel';
 import { ScopeToggle, type Scope } from './ScopeToggle';
 import { Gutter, Section } from './ScreenLayout';
+import {
+  catLeaderOf,
+  metricOf,
+  spotFor,
+  tierFor,
+  useShowcaseView,
+  type ShowcaseView,
+} from './showcaseView';
 import styles from './ShowcaseScreen.module.css';
 
 const s = strings.showcase;
-
-// Ярусы делят длинный список на цели, к которым тянуться — чисто читательская
-// подсказка, механики за ней нет (design/components/board/TierDivider.jsx).
-// end — последний ранг яруса: у первых двух по 10 строк, у третьего — 30
-// (21..50), поэтому цену "от" нужно брать со строки end, не rank+9 — на
-// фиксированном шаге третий ярус называл "Top 50" цену 30-й строки.
-const TIER_BANDS: Record<number, { end: number }> = {
-  1: { end: 10 },
-  11: { end: 20 },
-  21: { end: 50 },
-};
-
-function metricOf(item: Pick<ProjectListItem, 'type' | 'paidAmount' | 'votes'>): number {
-  return item.type === 'paid' ? item.paidAmount : item.votes;
-}
-
-/**
- * Валюта показа и «сокращать ли суммы» — обе из настроек профиля, и ходят
- * вместе везде, где число попадает на экран.
- */
-interface MoneyFormat {
-  currency: DisplayCurrency;
-  compact: boolean;
-}
-
-function formatMetric(value: number, segment: ShowcaseType, money: MoneyFormat): string {
-  return segment === 'paid' ? formatMoney(value, money) : formatVotes(value, money);
-}
-
-function unitOf(segment: ShowcaseType, currency: DisplayCurrency): string {
-  return segment === 'paid' ? CURRENCY_SUFFIX[currency] : strings.vote.unit;
-}
-
-type CategoryById = Map<number, CategoryStat>;
-
-interface ScopedTotals {
-  count: number;
-  pool: number;
-}
-
-function totalsFor(
-  categories: CategoryStat[],
-  byId: CategoryById,
-  categoryId: number | null,
-): ScopedTotals {
-  if (categoryId != null) {
-    const cat = byId.get(categoryId);
-    return { count: cat?.projectCount ?? 0, pool: cat?.pool ?? 0 };
-  }
-  return categories.reduce(
-    (acc, c) => ({ count: acc.count + c.projectCount, pool: acc.pool + c.pool }),
-    { count: 0, pool: 0 },
-  );
-}
-
-function catLeaderOf(item: ProjectListItem, byId: CategoryById): string | undefined {
-  // Сверка по id, не по имени — у projects.name нет уникальности, два
-  // проекта с одинаковым названием в категории иначе получали бы корону
-  // оба или не тот (код-ревью PR #10).
-  const cat = byId.get(item.categoryId);
-  return cat && cat.leaderId === item.id ? categoryTitle(cat.slug, cat.title) : undefined;
-}
-
-function tierFor(
-  rank: number,
-  items: ProjectListItem[],
-  segment: ShowcaseType,
-  money: MoneyFormat,
-  unit: string,
-): { label: string; note?: string } | null {
-  const band = TIER_BANDS[rank];
-  if (!band) return null;
-
-  const last = items[Math.min(items.length, band.end) - 1];
-  const note = last
-    ? s.tierFrom(`${formatMetric(metricOf(last), segment, money)} ${unit}`)
-    : undefined;
-
-  return { label: s.tier(band.end), note };
-}
-
-function spotFor(
-  item: ProjectListItem,
-  segment: ShowcaseType,
-  money: MoneyFormat,
-  minStep: number,
-  unit: string,
-): { price: string; unit: string } {
-  const price = metricOf(item) + minStep;
-  return { price: formatMetric(price, segment, money), unit };
-}
-
-/**
- * rank и neighborAbove — два независимых запроса (useOwnPosition ловит сбой
- * каждого отдельно, см. код-ревью PR #10), поэтому "первое место" здесь
- * решается по факту rank === 1, а не по отсутствию neighborAbove — иначе
- * сбой второго запроса при rank === 5 показал бы «ты держишь первое место».
- * Когда соседа сверху посчитать не удалось, а рангов 1 тоже нет — подсказки
- * не показываем вообще: врать числом не выйти, а без числа хинт бессмыслен.
- */
-function gapHint(
-  rank: number | null,
-  neighborAbove: NeighborProject | null,
-  mine: ProjectListItem,
-  segment: ShowcaseType,
-  money: MoneyFormat,
-  minStep: number,
-  unit: string,
-): string | undefined {
-  if (rank === 1) {
-    return segment === 'paid' ? s.holdFirstPaid : s.holdFirstFree;
-  }
-  // Без своего ранга нельзя назвать и позицию соседа — врать числом не станем.
-  if (!neighborAbove || rank === null) return undefined;
-  const diff = neighborAbove.metric - metricOf(mine) + minStep;
-  const amount = formatMetric(diff, segment, money);
-  return segment === 'paid'
-    ? s.gapPaid(`${amount} ${unit}`, neighborAbove.name, rank - 1)
-    : s.gapFree(amount, neighborAbove.name, rank - 1);
-}
 
 export interface ShowcaseScreenProps {
   segment: ShowcaseType;
@@ -251,393 +133,353 @@ export interface ShowcaseScreenProps {
   activity?: readonly ActivityItem[];
 }
 
+interface PartProps {
+  props: ShowcaseScreenProps;
+  view: ShowcaseView;
+  className?: string;
+}
+
+/** The vote balance in the header: Free Top only, held while the session is on the way. */
+export function ShowcaseBalance({ props }: PartProps) {
+  const { segment, voteBalance, sessionStatus } = props;
+  if (segment !== 'free') return null;
+  // `null` is both «still loading» and «there will be no number»: a guest's
+  // balance stays empty for good. The placeholder stands only while the
+  // session is on the way.
+  if (voteBalance !== null) {
+    return (
+      <StatBlock
+        segment="free"
+        value={voteBalance}
+        label={s.yourVotes}
+        size="md"
+        showUnit={false}
+      />
+    );
+  }
+  if (sessionStatus === 'loading') {
+    return (
+      <StatBlock segment="free" value={0} label={s.yourVotes} size="md" showUnit={false} loading />
+    );
+  }
+  return null;
+}
+
+/** The sign-in failure and the «your position» panel. */
+export function ShowcaseOwn({ props, view, className }: PartProps) {
+  const { segment, userId, sessionStatus, sessionErrorMessage, ownLoading, ownRank } = props;
+  const actionLabel = segment === 'paid' ? s.raiseMine : s.voteMine;
+
+  return (
+    <>
+      {sessionStatus === 'error' && (
+        <div className={className}>
+          <EmptyState
+            icon="triangle-alert"
+            title={s.signInFailed}
+            description={sessionErrorMessage ?? s.signInNote}
+          />
+        </div>
+      )}
+
+      {(userId || sessionStatus === 'loading') && (
+        <div className={className}>
+          {ownLoading || !userId ? (
+            // The panel itself with placeholders, held while the session is
+            // on the way too: it belongs to every signed-in viewer, and
+            // without the placeholder it dropped in once userId landed.
+            <OwnPositionPanel segment={segment} actionLabel={actionLabel} loading />
+          ) : (
+            <OwnPositionPanel
+              segment={segment}
+              rank={ownRank}
+              value={view.ownValue}
+              unit={view.unit}
+              hint={view.ownHint}
+              entryHint={view.entryHint}
+              actionLabel={actionLabel}
+              // No handler — no action: the button is inactive rather than lying.
+              actionDisabled={!props.onAction}
+              onAction={props.onAction}
+              addDisabled={!props.onAddProject}
+              onAdd={props.onAddProject}
+            />
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+/** «All» plus one tile per category; a tile filters the feed. */
+export function ShowcaseCategories({
+  props,
+  view,
+  className,
+  tileClassName,
+}: PartProps & { tileClassName?: string }) {
+  const { segment, categories, categoriesLoading, items, categoryId, onCategoryChange } = props;
+
+  if (categories.length === 0 && items.length === 0) {
+    if (!categoriesLoading) return null;
+    return (
+      <div className={className}>
+        {[0, 1, 2].map((i) => (
+          <CategoryTileSkeleton key={i} segment={segment} className={tileClassName} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className={className}>
+      <CategoryTile
+        name={allCategoriesTitle()}
+        icon="layout-grid"
+        segment={segment}
+        pool={view.format(view.globalTotals.pool)}
+        unit={view.unit}
+        projects={view.globalTotals.count}
+        leader={props.topProjectName ?? undefined}
+        active={categoryId === null}
+        onPress={() => onCategoryChange(null)}
+        className={tileClassName}
+      />
+      {categories.map((cat) => (
+        <CategoryTile
+          key={cat.categoryId}
+          name={categoryTitle(cat.slug, cat.title)}
+          icon={CATEGORY_ICON[cat.slug] ?? 'folder'}
+          segment={segment}
+          pool={view.format(cat.pool)}
+          unit={view.unit}
+          projects={cat.projectCount}
+          leader={cat.leaderName ?? undefined}
+          active={categoryId === cat.categoryId}
+          onPress={() => onCategoryChange(categoryId === cat.categoryId ? null : cat.categoryId)}
+          className={tileClassName}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Which list this is, how much is in play, and the all-time / today switch. */
+export function ShowcaseRankingHead({ props, view, className }: PartProps) {
+  const { segment, today } = props;
+  return (
+    <>
+      <div className={cx(styles.rankingHead, className)}>
+        <span className={styles.rankingLines}>
+          <span className={styles.rankingTitle}>
+            {view.scopeLabel} · {view.todayScope ? view.rows.length : view.scopedTotals.count}
+          </span>
+          <span className={styles.rankingSub}>
+            {/* For the day, «in play» is what actually moved, not the pool. */}
+            {s.inPlay(view.format(view.todayPool ?? view.scopedTotals.pool), view.unit)}
+          </span>
+        </span>
+        {today && (
+          <ScopeToggle value={today.scope} onChange={today.onScopeChange} segment={segment} />
+        )}
+      </div>
+      {view.todayScope && (
+        <span className={cx(styles.todayNote, className)}>{s.todayNote(segment)}</span>
+      )}
+    </>
+  );
+}
+
+/** The ranked list itself, with tier dividers, spot prices and «load more». */
+export function ShowcaseFeed({ props, view, className }: PartProps) {
+  const {
+    segment,
+    currency = DEFAULT_CURRENCY,
+    compactAmounts = false,
+    minStep,
+    categoryId,
+    userId,
+    items,
+    loadingMore,
+    hasMore,
+    error,
+    onLoadMore,
+    onRetry,
+    onOpenProject,
+    onOpenDetails,
+    onTakeSpot,
+    onAttack,
+    onBoost,
+    onVote,
+    movement,
+    onAddProject,
+  } = props;
+  const { todayScope, rows } = view;
+
+  return (
+    <section className={cx(styles.feed, className)}>
+      {view.feedLoading ? (
+        // Same parts the rows will have: the spot price in the all-time view,
+        // and as many buttons as this viewer gets on a stranger's row.
+        Array.from({ length: 6 }, (_, i) => (
+          <ProjectCardSkeleton
+            key={i}
+            segment={segment}
+            spot={!todayScope}
+            actions={segment === 'paid' ? (onAttack ? 2 : onBoost ? 1 : 0) : onVote ? 1 : 0}
+            style={{ opacity: 1 - i * 0.14 }}
+          />
+        ))
+      ) : error && !todayScope ? (
+        <EmptyState
+          icon="triangle-alert"
+          title={s.errorTitle}
+          description={s.errorNote}
+          actionLabel={s.retry}
+          onAction={onRetry}
+        />
+      ) : rows.length === 0 ? (
+        todayScope ? (
+          <EmptyState
+            segment={segment}
+            icon="clock"
+            title={s.todayEmptyTitle}
+            description={s.todayEmptyNote}
+            compact
+          />
+        ) : (
+          <EmptyState
+            segment={segment}
+            icon={segment === 'paid' ? 'coins' : 'vote'}
+            title={segment === 'paid' ? s.emptyPaidTitle : s.emptyFreeTitle}
+            description={segment === 'paid' ? s.emptyPaidNote : s.emptyFreeNote}
+            actionLabel={onAddProject ? strings.profile.addProject : undefined}
+            onAction={onAddProject}
+            compact
+          />
+        )
+      ) : (
+        <>
+          {rows.map((item, index) => {
+            const rank = index + 1;
+            // Tiers make sense only in the all-time view of the whole top:
+            // inside a category positions are already 1..N of its own list,
+            // and for the day «Top 10» would name the day's movement.
+            const tier =
+              categoryId === null && !todayScope
+                ? tierFor(rank, items, segment, view.money, view.unit)
+                : null;
+            const isOwn = userId !== null && item.userId === userId;
+            // A row below your own is an offer that gives nothing: compared by
+            // the bid, not the rank — ranks inside a filter are the filter's.
+            const worthTaking = view.ownMetric === null || view.ownMetric < metricOf(item);
+            // Both arrows stay silent for the day: there the rank and the
+            // number are the day's movement already.
+            const moved = todayScope ? undefined : movement?.get(item.id);
+            const pastRank = moved && (categoryId === null ? moved.rank : moved.categoryRank);
+            const spot =
+              !isOwn && !todayScope && worthTaking
+                ? spotFor(item, segment, view.exact, minStep, view.unit)
+                : null;
+
+            return (
+              <div key={item.id} className={styles.row}>
+                {tier && (
+                  <TierDivider
+                    label={tier.label}
+                    note={tier.note}
+                    icon={rank === 1 ? 'trophy' : undefined}
+                  />
+                )}
+                <ProjectCard
+                  segment={segment}
+                  rank={rank}
+                  rankDelta={pastRank === undefined ? undefined : pastRank - rank}
+                  name={item.name}
+                  url={item.url}
+                  description={item.ogDescription ?? undefined}
+                  ogImage={item.ogImageUrl ?? undefined}
+                  value={todayScope ? (item.todayAmount ?? 0) : metricOf(item)}
+                  valueDelta={moved?.amountDelta}
+                  currency={currency}
+                  compactAmounts={compactAmounts}
+                  clicks={item.clicks}
+                  heldFor={
+                    !todayScope && rank === 1 && item.rank1Since
+                      ? formatHeldDuration(item.rank1Since)
+                      : undefined
+                  }
+                  catLeader={todayScope ? undefined : catLeaderOf(item, view.categoryById)}
+                  spotPrice={spot?.price}
+                  spotUnit={spot?.unit}
+                  isOwn={isOwn}
+                  onPress={() => onOpenProject(item)}
+                  onDetails={onOpenDetails ? () => onOpenDetails(item) : undefined}
+                  onTakeSpot={spot && onTakeSpot ? () => onTakeSpot(item) : undefined}
+                  onRaise={
+                    !isOwn && onBoost && segment === 'paid' ? () => onBoost(item, rank) : undefined
+                  }
+                  onAttack={
+                    !isOwn && onAttack && segment === 'paid'
+                      ? () => onAttack(item, rank)
+                      : undefined
+                  }
+                  onVote={
+                    !isOwn && onVote && segment === 'free' ? () => onVote(item, rank) : undefined
+                  }
+                />
+              </div>
+            );
+          })}
+
+          {hasMore && !todayScope && (
+            <Button
+              variant="secondary"
+              onClick={onLoadMore}
+              loading={loadingMore}
+              block
+              className={styles.loadMore}
+            >
+              {s.loadMore}
+            </Button>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 /**
  * Общая композиция Paid/Free для мобильного мини-аппа — сверено с
  * design/ui_kits/mini_app/TopFeed.jsx: шапка → «твоя позиция» → плитки
  * категорий (All + по одной на категорию) → сводка топа → лента с ярусами.
- *
- * Переключатель «Today/All-time» и лента «Just happened» читают настоящие
- * события ставок (вьюхи `paid_today_top` и `stake_activity`). Флагов у них
- * больше нет: источник либо передан вызывающей страницей, либо блока нет
- * вовсе — у бесплатного топа своих событий не будет до среза 1.7.
- *
- * Raise и Attack подключены (Срезы 1.5–1.6): Raise на своей карточке
- * поднимает свою ставку, на чужой — донатит в чужую (01 Механики), Attack
- * доступен только при своей платной записи. Give votes подключён в 1.7 и
- * устроен как Raise чужой строки: своей записи не требует.
+ * The blocks are shared with the desktop site, which lays them out around a
+ * rail instead of in one column.
  */
-export function ShowcaseScreen({
-  segment,
-  currency = DEFAULT_CURRENCY,
-  compactAmounts = false,
-  minStep,
-  categories,
-  categoriesLoading = false,
-  topProjectName,
-  categoryId,
-  onCategoryChange,
-  ownProject,
-  ownRank,
-  ownNeighborAbove,
-  ownLoading,
-  voteBalance,
-  userId,
-  sessionStatus,
-  sessionErrorMessage,
-  items,
-  loading,
-  loadingMore,
-  hasMore,
-  error,
-  onLoadMore,
-  onRetry,
-  onOpenProject,
-  onOpenDetails,
-  onTakeSpot,
-  onAttack,
-  onBoost,
-  onVote,
-  movement,
-  today,
-  onAddProject,
-  onAction,
-  onOpenRules,
-  activity,
-}: ShowcaseScreenProps) {
-  // Витрина без суточного борда всегда показывает всё время: иначе оставшийся
-  // от прошлой вкладки разрез нарисовал бы пустой список без переключателя.
-  const todayScope = today?.scope === 'today';
-  const rows = todayScope && today ? today.items : items;
-  const feedLoading = todayScope && today ? today.loading : loading;
-  const todayPool = todayScope
-    ? rows.reduce((sum, item) => sum + (item.todayAmount ?? 0), 0)
-    : null;
-  /** Своя ставка/голоса — по ней решается, есть ли смысл занимать чужое место. */
-  const ownMetric = ownProject ? metricOf(ownProject) : null;
-  const money: MoneyFormat = { currency, compact: compactAmounts };
-  // Цена «занять это место» и «сколько нужно, чтобы обойти» — числа, по
-  // которым человек платит: сокращение здесь заставит недоплатить.
-  const exact: MoneyFormat = { currency, compact: false };
-  const categoryById: CategoryById = new Map(categories.map((c) => [c.categoryId, c]));
-  const globalTotals = totalsFor(categories, categoryById, null);
-  const scopedTotals = totalsFor(categories, categoryById, categoryId);
-  const unit = unitOf(segment, currency);
-
-  const activeCategory = categoryId != null ? categoryById.get(categoryId) : undefined;
-  const scopeLabel =
-    categoryId === null
-      ? segment === 'paid'
-        ? s.paidRanking
-        : s.freeRanking
-      : activeCategory
-        ? categoryTitle(activeCategory.slug, activeCategory.title)
-        : '';
-
-  const meta = segment === 'paid' ? s.paidMeta(globalTotals.count) : s.freeMeta(globalTotals.count);
-
-  // Точная цена последней позиции честна, только когда список догружен целиком —
-  // иначе последняя ЗАГРУЖЕННАЯ строка не обязательно последняя РЕАЛЬНАЯ.
-  const lastItem = items.at(-1);
-  const cheapest = !hasMore && lastItem ? spotFor(lastItem, segment, exact, minStep, unit) : null;
-  const entryHint =
-    segment === 'paid'
-      ? cheapest
-        ? s.entryHintPaid(`${cheapest.price} ${cheapest.unit}`)
-        : s.entryHintPaidUnknown
-      : s.entryHintFree;
+export function ShowcaseScreen(props: ShowcaseScreenProps) {
+  const view = useShowcaseView(props);
+  const { segment, onOpenRules, activity } = props;
+  const part = { props, view };
 
   return (
     <div className={styles.screen}>
       <PageHeader
         segment={segment}
         title={segment === 'paid' ? s.paidTitle : s.freeTitle}
-        meta={meta}
-        right={
-          // Место под число держится с первого кадра: иначе шапка подрастала в
-          // момент ответа и толкала вниз всё, что под ней.
-          // `null` — это и «ещё грузится», и «числа не будет»: у гостя и после
-          // неудачной авторизации оно остаётся пустым навсегда. Заглушка стоит
-          // только пока сессия в пути.
-          segment === 'free' ? (
-            voteBalance !== null ? (
-              <StatBlock
-                segment="free"
-                value={voteBalance}
-                label={s.yourVotes}
-                size="md"
-                showUnit={false}
-              />
-            ) : sessionStatus === 'loading' ? (
-              <StatBlock
-                segment="free"
-                value={0}
-                label={s.yourVotes}
-                size="md"
-                showUnit={false}
-                loading
-              />
-            ) : undefined
-          ) : undefined
-        }
+        meta={view.meta}
+        right={<ShowcaseBalance {...part} />}
         action={<HeaderAction icon="gavel" label={strings.rules.chip} onClick={onOpenRules} />}
       />
 
       <div className={styles.body}>
-        {sessionStatus === 'error' && (
-          <div className={styles.ownSkeleton}>
-            <EmptyState
-              icon="triangle-alert"
-              title={s.signInFailed}
-              description={sessionErrorMessage ?? s.signInNote}
-            />
-          </div>
-        )}
-
-        {(userId || sessionStatus === 'loading') && (
-          <>
-            {ownLoading || !userId ? (
-              // The panel itself with placeholders, not a box of a guessed
-              // height. Held while the session is still on the way too: the
-              // panel belongs to every signed-in viewer, and without the
-              // placeholder it dropped in above the feed once userId landed.
-              <OwnPositionPanel
-                segment={segment}
-                actionLabel={segment === 'paid' ? s.raiseMine : s.voteMine}
-                loading
-              />
-            ) : (
-              <OwnPositionPanel
-                segment={segment}
-                rank={ownRank}
-                value={ownProject ? formatMetric(metricOf(ownProject), segment, money) : undefined}
-                unit={unit}
-                hint={
-                  ownProject
-                    ? gapHint(ownRank, ownNeighborAbove, ownProject, segment, exact, minStep, unit)
-                    : undefined
-                }
-                entryHint={entryHint}
-                actionLabel={segment === 'paid' ? s.raiseMine : s.voteMine}
-                // Без обработчика действия нет — кнопка неактивна, а не врёт.
-                actionDisabled={!onAction}
-                onAction={onAction}
-                addDisabled={!onAddProject}
-                onAdd={onAddProject}
-              />
-            )}
-          </>
-        )}
-
-        {categories.length === 0 && items.length === 0 && categoriesLoading && (
-          <div className={styles.categoriesScroll}>
-            {[0, 1, 2].map((i) => (
-              <CategoryTileSkeleton key={i} segment={segment} className={styles.categoryTile} />
-            ))}
-          </div>
-        )}
-
-        {(categories.length > 0 || items.length > 0) && (
-          <div className={styles.categoriesScroll}>
-            <CategoryTile
-              name={allCategoriesTitle()}
-              icon="layout-grid"
-              segment={segment}
-              pool={formatMetric(globalTotals.pool, segment, money)}
-              unit={unit}
-              projects={globalTotals.count}
-              leader={topProjectName ?? undefined}
-              active={categoryId === null}
-              onPress={() => onCategoryChange(null)}
-              className={styles.categoryTile}
-            />
-            {categories.map((cat) => (
-              <CategoryTile
-                key={cat.categoryId}
-                name={categoryTitle(cat.slug, cat.title)}
-                icon={CATEGORY_ICON[cat.slug] ?? 'folder'}
-                segment={segment}
-                pool={formatMetric(cat.pool, segment, money)}
-                unit={unit}
-                projects={cat.projectCount}
-                leader={cat.leaderName ?? undefined}
-                active={categoryId === cat.categoryId}
-                onPress={() =>
-                  onCategoryChange(categoryId === cat.categoryId ? null : cat.categoryId)
-                }
-                className={styles.categoryTile}
-              />
-            ))}
-          </div>
-        )}
-
-        <div className={styles.rankingHead}>
-          <span className={styles.rankingLines}>
-            <span className={styles.rankingTitle}>
-              {scopeLabel} · {todayScope ? rows.length : scopedTotals.count}
-            </span>
-            <span className={styles.rankingSub}>
-              {/* За сутки «в игре» — не весь пул категории, а то, что за них
-                  реально сдвинулось: пул тут был бы числом не про этот список. */}
-              {s.inPlay(formatMetric(todayPool ?? scopedTotals.pool, segment, money), unit)}
-            </span>
-          </span>
-          {today && (
-            <ScopeToggle value={today.scope} onChange={today.onScopeChange} segment={segment} />
-          )}
-        </div>
-
-        {todayScope && <span className={styles.todayNote}>{s.todayNote(segment)}</span>}
-
-        <section className={styles.feed}>
-          {feedLoading ? (
-            // Same parts the rows will have: the spot price in the all-time
-            // view, and as many buttons as this viewer gets on a stranger's row.
-            Array.from({ length: 6 }, (_, i) => (
-              <ProjectCardSkeleton
-                key={i}
-                segment={segment}
-                spot={!todayScope}
-                actions={segment === 'paid' ? (onAttack ? 2 : onBoost ? 1 : 0) : onVote ? 1 : 0}
-                style={{ opacity: 1 - i * 0.14 }}
-              />
-            ))
-          ) : error && !todayScope ? (
-            <EmptyState
-              icon="triangle-alert"
-              title={s.errorTitle}
-              description={s.errorNote}
-              actionLabel={s.retry}
-              onAction={onRetry}
-            />
-          ) : rows.length === 0 ? (
-            todayScope ? (
-              <EmptyState
-                segment={segment}
-                icon="clock"
-                title={s.todayEmptyTitle}
-                description={s.todayEmptyNote}
-                compact
-              />
-            ) : (
-              <EmptyState
-                segment={segment}
-                icon={segment === 'paid' ? 'coins' : 'vote'}
-                title={segment === 'paid' ? s.emptyPaidTitle : s.emptyFreeTitle}
-                description={segment === 'paid' ? s.emptyPaidNote : s.emptyFreeNote}
-                actionLabel={onAddProject ? strings.profile.addProject : undefined}
-                onAction={onAddProject}
-                compact
-              />
-            )
-          ) : (
-            <>
-              {rows.map((item, index) => {
-                const rank = index + 1;
-                // Ярусы имеют смысл только в общем разрезе всего времени:
-                // внутри категории позиции уже пересчитаны как 1..N её
-                // списка, а за сутки «Top 10» назвал бы ярусом суточное
-                // движение — совсем другое число.
-                const tier =
-                  categoryId === null && !todayScope
-                    ? tierFor(rank, items, segment, money, unit)
-                    : null;
-                const isOwn = userId !== null && item.userId === userId;
-                // «Занять это место» и корона держателя #1 привязаны к ставке,
-                // а не к суточному движению: в разрезе суток обе строки
-                // называли бы цену позиции, которой в этом списке нет.
-                //
-                // Строка ниже своей — предложение, которое ничего не даёт:
-                // держатель #1 видел «займи это место» на КАЖДОЙ карточке
-                // топа, хотя он уже выше их всех. Сравниваем по ставке, а не
-                // по рангу: ранги внутри фильтра свои (1..N категории), а
-                // ставка одна и та же в любом разрезе.
-                const worthTaking = ownMetric === null || ownMetric < metricOf(item);
-                // Стрелка изменения позиции: где строка стояла сутки назад
-                // минус где стоит сейчас, поэтому подъём положителен. В
-                // разрезе категории обе позиции берутся категорийные — на
-                // карточке при фильтре стоит 1..N этой категории.
-                //
-                // Обе стрелки молчат в суточном разрезе: там и ранг, и число
-                // на карточке уже про движение за сутки, а «изменение за сутки
-                // этого изменения» не значит ничего.
-                const moved = todayScope ? undefined : movement?.get(item.id);
-                const pastRank = moved && (categoryId === null ? moved.rank : moved.categoryRank);
-                const spot =
-                  !isOwn && !todayScope && worthTaking
-                    ? spotFor(item, segment, exact, minStep, unit)
-                    : null;
-
-                return (
-                  <div key={item.id} className={styles.row}>
-                    {tier && (
-                      <TierDivider
-                        label={tier.label}
-                        note={tier.note}
-                        icon={rank === 1 ? 'trophy' : undefined}
-                      />
-                    )}
-                    <ProjectCard
-                      segment={segment}
-                      rank={rank}
-                      rankDelta={pastRank === undefined ? undefined : pastRank - rank}
-                      name={item.name}
-                      url={item.url}
-                      description={item.ogDescription ?? undefined}
-                      ogImage={item.ogImageUrl ?? undefined}
-                      value={todayScope ? (item.todayAmount ?? 0) : metricOf(item)}
-                      // Сколько прибавилось или убавилось за сутки: полученная
-                      // атака делает число отрицательным, свой Raise и чужой
-                      // донат — положительным. Ноль StatBlock не рисует сам.
-                      valueDelta={moved?.amountDelta}
-                      currency={currency}
-                      compactAmounts={compactAmounts}
-                      clicks={item.clicks}
-                      heldFor={
-                        !todayScope && rank === 1 && item.rank1Since
-                          ? formatHeldDuration(item.rank1Since)
-                          : undefined
-                      }
-                      catLeader={todayScope ? undefined : catLeaderOf(item, categoryById)}
-                      spotPrice={spot?.price}
-                      spotUnit={spot?.unit}
-                      isOwn={isOwn}
-                      onPress={() => onOpenProject(item)}
-                      onDetails={onOpenDetails ? () => onOpenDetails(item) : undefined}
-                      onTakeSpot={spot && onTakeSpot ? () => onTakeSpot(item) : undefined}
-                      onRaise={
-                        !isOwn && onBoost && segment === 'paid'
-                          ? () => onBoost(item, rank)
-                          : undefined
-                      }
-                      onAttack={
-                        !isOwn && onAttack && segment === 'paid'
-                          ? () => onAttack(item, rank)
-                          : undefined
-                      }
-                      onVote={
-                        !isOwn && onVote && segment === 'free'
-                          ? () => onVote(item, rank)
-                          : undefined
-                      }
-                    />
-                  </div>
-                );
-              })}
-
-              {hasMore && !todayScope && (
-                <Button
-                  variant="secondary"
-                  onClick={onLoadMore}
-                  loading={loadingMore}
-                  block
-                  className={styles.loadMore}
-                >
-                  {s.loadMore}
-                </Button>
-              )}
-            </>
-          )}
-        </section>
+        <ShowcaseOwn {...part} className={styles.ownSkeleton} />
+        <ShowcaseCategories
+          {...part}
+          className={styles.categoriesScroll}
+          tileClassName={styles.categoryTile}
+        />
+        <ShowcaseRankingHead {...part} className={styles.gutter} />
+        <ShowcaseFeed {...part} className={styles.gutter} />
 
         {activity && activity.length > 0 && (
           <Section>

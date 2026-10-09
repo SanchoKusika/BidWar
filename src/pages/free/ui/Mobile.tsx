@@ -8,6 +8,8 @@ import { toVoteActivityItems, useRecentVotes } from '@/entities/activity';
 import { castVotes } from '@/features/vote';
 import { haptic } from '@/shared/lib/haptic';
 import { ShowcaseScreen } from '@/widgets/mobile/ShowcaseScreen';
+import { DesktopShowcase } from '@/widgets/desktop/Showcase';
+import { useLayout } from '@/shared/lib/layout';
 import { AddProjectSheet } from '@/widgets/mobile/AddProjectSheet';
 import { VoteSheet } from '@/widgets/mobile/VoteSheet';
 import type { Scope } from '@/widgets/mobile/ScopeToggle';
@@ -30,6 +32,8 @@ interface VoteTarget {
 }
 
 export function FreeMobile({ nav }: FreeMobileProps) {
+  // One page, two compositions: the mini app's screen or the desktop site's.
+  const Screen = useLayout() === 'desktop' ? DesktopShowcase : ShowcaseScreen;
   const {
     userId,
     voteBalance,
@@ -94,7 +98,7 @@ export function FreeMobile({ nav }: FreeMobileProps) {
 
   return (
     <>
-      <ShowcaseScreen
+      <Screen
         segment="free"
         compactAmounts={compactAmounts}
         minStep={1}

@@ -4,13 +4,15 @@ import { removeMyProjects } from '@/entities/project';
 import { useTaskBoard } from '@/entities/task';
 import { brand } from '@/shared/content';
 import { PREVIEW } from '@/shared/config/preview';
-import { getPlatform } from '@/shared/platform';
+import { clearLogin, getPlatform, storedLogin } from '@/shared/platform';
 import { formatFullDate, formatReceiptDate } from '@/shared/lib/format';
 import { dropQueryCache } from '@/shared/lib/query';
 import { strings } from '@/shared/i18n/strings';
 import { setSetting, useSettings, type ThemeChoice } from '@/shared/settings';
 import type { Locale } from '@/shared/i18n/locale';
 import { ProfileScreen, type Receipt } from '@/widgets/mobile/ProfileScreen';
+import { DesktopProfile } from '@/widgets/desktop/Profile';
+import { useLayout } from '@/shared/lib/layout';
 import { ConfirmSheet } from '@/widgets/mobile/ConfirmSheet';
 import type { Navigation } from '@/app/navigation';
 import { useMyProjects, useMySpending, useNotificationPrefs } from '../model';
@@ -82,6 +84,7 @@ export function ProfilePage({ nav }: ProfilePageProps) {
   const mine = useMyProjects(userId);
   const { spending, loading: spendingLoading, retry: retrySpending } = useMySpending(userId);
   const referral = useReferralNumbers();
+  const Screen = useLayout() === 'desktop' ? DesktopProfile : ProfileScreen;
 
   const [removeOpen, setRemoveOpen] = useState(false);
   const [removing, setRemoving] = useState(false);
@@ -117,7 +120,7 @@ export function ProfilePage({ nav }: ProfilePageProps) {
 
   return (
     <>
-      <ProfileScreen
+      <Screen
         name={displayName ?? '—'}
         username={username}
         joined={joinedAt ? formatFullDate(joinedAt) : '—'}
@@ -191,6 +194,16 @@ export function ProfilePage({ nav }: ProfilePageProps) {
           notificationsLoading: sessionLoading || prefs.loading,
           onRules: () => nav.push({ name: 'rules', anchor: 'bidding' }),
           onDoc: (id) => nav.push({ name: 'doc', id }),
+          // Only the site keeps a sign-in to drop; the mini app is signed in
+          // by Telegram itself and has nothing to sign out of.
+          onSignOut:
+            getPlatform().name === 'web' && storedLogin()
+              ? () => {
+                  clearLogin();
+                  dropQueryCache();
+                  window.location.assign('/');
+                }
+              : undefined,
           // Development tool: wipes projects and payment history for real. Shown
           // only while payments run on the mock, the same boundary the server
           // function checks; in production this lives in the admin panel.

@@ -76,6 +76,54 @@ export const ru: PartialStrings = {
     dateLocale: 'ru-RU',
   },
 
+  web: {
+    rules: 'Правила',
+    theme: 'Тема',
+    signIn: 'Войти через Telegram',
+    signInTitle: 'Войди, чтобы играть',
+    signInNote:
+      'Тот же Telegram-аккаунт, что и в мини-аппе: твои проекты, голоса и платежи уже там. Смотреть сайт можно и без входа.',
+    signInTasks: 'Задания начисляют голоса аккаунту. Войди через Telegram — и они появятся здесь.',
+    signInProfile: 'Твои проекты, голоса, чеки и настройки живут в аккаунте.',
+    signInRail: 'Добавляй проект, поднимай ставки и отдавай голоса из своего Telegram-аккаунта.',
+    signInExpired: 'Вход устарел — обнови страницу и войди через Telegram ещё раз.',
+    signInFailed: 'Вход через Telegram не открылся. Попробуй ещё раз через минуту.',
+    profile: 'Профиль',
+    footerTagline: 'Два независимых топа. Деньги не становятся голосами, голоса — деньгами.',
+    next: 'ДАЛЕЕ',
+    atAGlance: 'Коротко',
+    topBid: 'ВЫСШАЯ СТАВКА',
+    topProject: 'ЛИДЕР',
+    moneyInPlay: 'ДЕНЕГ В ИГРЕ',
+    votesInPlay: 'ГОЛОСОВ В ИГРЕ',
+    entryFrom: 'ВХОД ОТ',
+    howPaidWorks: 'Как устроен платный топ',
+    howFreeWorks: 'Как устроен бесплатный топ',
+    readRules: 'Читать правила',
+    backToPaid: 'К платному топу',
+    backToFree: 'К бесплатному топу',
+    overtakePaid: (bid: string) =>
+      `Чтобы обойти этот проект, нужна ставка выше ${bid} — или атака, которая её снизит.`,
+    overtakeFree: (votes: string) =>
+      `Чтобы обойти, нужно больше ${votes} голосов. Голоса дают только задания.`,
+    copyLink: 'Скопировать ссылку',
+    linkCopied: 'Ссылка скопирована',
+    today: 'Сегодня',
+    votesFootnote:
+      'Голоса — единственный баланс в продукте: зарабатываются заданиями, не покупаются и не выводятся.',
+    moneyPaid: 'Заплачено',
+    allTime: 'За всё время',
+    settings: 'Настройки',
+    availableNow: 'Доступно сейчас',
+    referrals: 'Приглашения',
+    referralPitch: (votes: number) =>
+      `Приглашения — самый быстрый источник голосов: +${votes} за каждого друга, без потолка.`,
+    inviteFriends: 'Пригласить друзей',
+    voteRules: 'Правила голосов',
+    clicksNote:
+      'Каждый переход отсюда засчитывается проекту — ради этого счётчика позицию и покупают.',
+  },
+
   common: {
     loading: 'Считаем…',
     cancel: 'Отмена',
@@ -84,6 +132,7 @@ export const ru: PartialStrings = {
     done: 'Готово',
     continueToPayment: 'Перейти к оплате',
     max: 'МАКС',
+    close: 'Закрыть',
   },
 
   addProject: {
@@ -335,6 +384,7 @@ export const ru: PartialStrings = {
   },
 
   settings: {
+    signOut: 'Выйти',
     appearance: 'Оформление',
     appearanceNote: 'Язык и тема применяются и к боту, и к сайту.',
     language: 'Язык',

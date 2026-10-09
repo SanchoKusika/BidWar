@@ -1,0 +1,190 @@
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { TabId } from '@/shared/ui/TabBar';
+import type { DocId } from '@/shared/content';
+import type { ProjectListItem, ShowcaseType } from '@/entities/project';
+import type {
+  AttackRequest,
+  BoostRequest,
+  Navigation,
+  ProfileFocusRequest,
+  Route,
+} from '../navigation';
+
+/**
+ * The site's navigation: the same `Navigation` the pages already take, backed
+ * by real addresses instead of an in-memory stack. A project page or a rule
+ * can be linked, bookmarked and opened in a new tab, and the browser's own
+ * back and forward buttons work.
+ *
+ *   /             Paid Top          /project/42?top=free   a project
+ *   /free         Free Top          /rules, /rules/attacks the rules
+ *   /tasks        Tasks             /docs/terms            a legal page
+ *   /profile      Profile
+ */
+
+const DOC_IDS: readonly DocId[] = ['about', 'support', 'terms', 'privacy', 'bot'];
+
+interface Location {
+  tab: TabId;
+  route: Route | null;
+}
+
+const TAB_PATHS: Record<TabId, string> = {
+  paid: '/',
+  free: '/free',
+  tasks: '/tasks',
+  profile: '/profile',
+};
+
+export function pathOf(tab: TabId, route: Route | null): string {
+  if (!route) return TAB_PATHS[tab];
+  if (route.name === 'project') {
+    return `/project/${route.id}${route.segment === 'free' ? '?top=free' : ''}`;
+  }
+  if (route.name === 'rules') return route.anchor ? `/rules/${route.anchor}` : '/rules';
+  return `/docs/${route.id}`;
+}
+
+function parse(pathname: string, search: string, fallbackTab: TabId): Location {
+  const parts = pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+  const [head, arg] = parts;
+
+  if (head === 'free') return { tab: 'free', route: null };
+  if (head === 'tasks') return { tab: 'tasks', route: null };
+  if (head === 'profile') return { tab: 'profile', route: null };
+
+  if (head === 'project' && arg && /^\d+$/.test(arg)) {
+    const segment: ShowcaseType =
+      new URLSearchParams(search).get('top') === 'free' ? 'free' : 'paid';
+    return { tab: segment, route: { name: 'project', id: Number(arg), segment } };
+  }
+  if (head === 'rules') {
+    return { tab: fallbackTab, route: { name: 'rules', ...(arg ? { anchor: arg } : {}) } };
+  }
+  if (head === 'docs' && DOC_IDS.includes(arg as DocId)) {
+    return { tab: fallbackTab, route: { name: 'doc', id: arg as DocId } };
+  }
+  return { tab: 'paid', route: null };
+}
+
+const current = (fallbackTab: TabId): Location =>
+  parse(window.location.pathname, window.location.search, fallbackTab);
+
+/** Scroll position kept on the history entry, so back lands where it left. */
+interface EntryState {
+  scroll?: number;
+  /** Set on entries the site pushed itself — «back» from them stays on the site. */
+  inApp?: boolean;
+}
+
+export function useWebNavigation(): Navigation {
+  const [location, setLocation] = useState<Location>(() => current('paid'));
+  const [attackRequest, setAttackRequest] = useState<AttackRequest | null>(null);
+  const [boostRequest, setBoostRequest] = useState<BoostRequest | null>(null);
+  const [profileFocus, setProfileFocus] = useState<ProfileFocusRequest | null>(null);
+  /** Scroll to restore after the next render; null — start at the top. */
+  const pendingScroll = useRef<number | null>(null);
+  const tabRef = useRef(location.tab);
+
+  useEffect(() => {
+    tabRef.current = location.tab;
+  }, [location.tab]);
+
+  useEffect(() => {
+    window.history.scrollRestoration = 'manual';
+    const onPop = (event: PopStateEvent) => {
+      pendingScroll.current = (event.state as EntryState | null)?.scroll ?? 0;
+      setLocation(current(tabRef.current));
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  // A new address starts at the top; back and forward return to the scroll
+  // the entry was left at. Retried for a few frames: the page underneath is
+  // remounted and may still be filling in from the cache.
+  useLayoutEffect(() => {
+    const target = pendingScroll.current ?? 0;
+    pendingScroll.current = null;
+    let frames = 0;
+    let raf = 0;
+    const restore = () => {
+      window.scrollTo(0, target);
+      if (window.scrollY < target - 1 && frames++ < 30) raf = requestAnimationFrame(restore);
+    };
+    restore();
+    return () => cancelAnimationFrame(raf);
+  }, [location]);
+
+  const go = useCallback((tab: TabId, route: Route | null) => {
+    const here = (window.history.state ?? {}) as EntryState;
+    window.history.replaceState({ ...here, scroll: window.scrollY } satisfies EntryState, '');
+    window.history.pushState({ inApp: true } satisfies EntryState, '', pathOf(tab, route));
+    setLocation({ tab, route });
+  }, []);
+
+  const setTab = useCallback((tab: TabId) => go(tab, null), [go]);
+  const push = useCallback((route: Route) => go(tabRef.current, route), [go]);
+
+  /** Back within the site; a page opened straight from a link goes to its top. */
+  const back = useCallback(() => {
+    if ((window.history.state as EntryState | null)?.inApp) {
+      window.history.back();
+      return;
+    }
+    go(tabRef.current, null);
+  }, [go]);
+
+  const requestAttack = useCallback(
+    (target: ProjectListItem, rank: number | null) => {
+      go('paid', null);
+      setAttackRequest({ target, rank });
+    },
+    [go],
+  );
+
+  const requestBoost = useCallback(
+    (target: ProjectListItem, rank: number | null) => {
+      go('paid', null);
+      setBoostRequest({ target, rank });
+    },
+    [go],
+  );
+
+  const requestProfileFocus = useCallback(
+    (section: ProfileFocusRequest['section']) => {
+      go('profile', null);
+      setProfileFocus({ section });
+    },
+    [go],
+  );
+
+  return useMemo(
+    () => ({
+      tab: location.tab,
+      current: location.route,
+      depth: location.route ? 1 : 0,
+      attackRequest,
+      boostRequest,
+      profileFocus,
+      setTab,
+      push,
+      back,
+      requestAttack,
+      requestBoost,
+      requestProfileFocus,
+    }),
+    [
+      location,
+      attackRequest,
+      boostRequest,
+      profileFocus,
+      setTab,
+      push,
+      back,
+      requestAttack,
+      requestBoost,
+      requestProfileFocus,
+    ],
+  );
+}

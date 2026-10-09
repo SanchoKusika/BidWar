@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Shell } from './app/Shell';
+import { Root } from './app/Root';
 import '@/shared/ui/tokens/index.css';
 
 const root = document.getElementById('root');
@@ -8,6 +8,6 @@ if (!root) throw new Error('#root not found');
 
 createRoot(root).render(
   <StrictMode>
-    <Shell />
+    <Root />
   </StrictMode>,
 );

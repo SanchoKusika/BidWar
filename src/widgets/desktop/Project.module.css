@@ -1,0 +1,173 @@
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 32px;
+  padding: 0 var(--space-6) 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  border: var(--border-w) solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-secondary);
+  font: var(--type-micro);
+  cursor: pointer;
+}
+
+.back:hover {
+  color: var(--text-primary);
+}
+
+/* ---------- rail: the position, inverse like the mini app's own panel ---------- */
+
+.position {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--card-pad-lg);
+  border-radius: var(--radius-panel);
+  background: var(--surface-inverse);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-lg);
+}
+
+.positionHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.positionLabel {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  color: var(--text-inverse-muted);
+}
+
+.positionRank {
+  font: var(--type-amount-hero);
+  letter-spacing: var(--ls-tighter);
+  font-variant-numeric: tabular-nums;
+}
+
+.positionNote {
+  font: var(--type-caption);
+  color: var(--text-inverse-muted);
+  text-wrap: pretty;
+}
+
+.positionActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ---------- main card ---------- */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--card-pad-lg);
+  background: var(--surface-card);
+  border: var(--border-w) solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-xs);
+}
+
+.identity {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+}
+
+.media {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.description {
+  margin: 0;
+  max-width: 58ch;
+  font: var(--type-body);
+  color: var(--text-primary);
+  text-wrap: pretty;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: var(--border-w) solid var(--border-subtle);
+}
+
+.stat {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.statLabel {
+  font: var(--type-label);
+  letter-spacing: var(--ls-caps);
+  color: var(--text-muted);
+}
+
+.statValue {
+  font: var(--type-amount-md);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tight);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statValue[data-tone='paid'] {
+  color: var(--paid-text);
+}
+
+.statValue[data-tone='free'] {
+  color: var(--free-text);
+}
+
+.linkRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding-top: var(--space-6);
+  border-top: var(--border-w) solid var(--border-subtle);
+}
+
+.linkNote {
+  margin-left: auto;
+  max-width: 34ch;
+  font: var(--type-caption);
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-20);
+  align-items: start;
+}
+
+.rows {
+  padding: var(--space-2) var(--card-pad);
+  background: var(--surface-card);
+  border: var(--border-w) solid var(--border-subtle);
+  border-radius: var(--radius-card);
+}

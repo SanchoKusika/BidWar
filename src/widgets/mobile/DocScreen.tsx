@@ -2,6 +2,7 @@ import { Button } from '@/shared/ui/Button';
 import type { IconName } from '@/shared/ui/Icon';
 import { KeyRow } from '@/shared/ui/KeyRow';
 import { brand, getDocs, type DocId } from '@/shared/content';
+import { getPlatform } from '@/shared/platform';
 import { strings } from '@/shared/i18n/strings';
 import { PageHeader } from './PageHeader';
 import { ChipRow } from './ChipRow';
@@ -63,7 +64,14 @@ export function DocScreen({ id, onBack, onDoc }: DocScreenProps) {
 
         {id === 'bot' && (
           <Gutter>
-            <Button variant="primary" size="lg" block icon="send">
+            {/* Had no handler and did nothing — a button that lies (CLAUDE.md). */}
+            <Button
+              variant="primary"
+              size="lg"
+              block
+              icon="send"
+              onClick={() => getPlatform().openLink(brand.botLink)}
+            >
               {t.openBot(brand.bot)}
             </Button>
           </Gutter>
