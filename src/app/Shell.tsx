@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { getPlatform } from '@/shared/platform';
 import { useSettings } from '@/shared/settings';
+import { useJoinOnline } from '@/shared/lib/online';
 import type { Locale } from '@/shared/i18n/locale';
 import { SessionProvider } from '@/entities/user';
 import { TabBar } from '@/shared/ui/TabBar';
@@ -33,6 +34,7 @@ export function Shell() {
   // бы вкладку и прокрутку — человек менял язык, а не уходил с экрана.
   const { language } = useSettings();
   const board = useTaskBoard();
+  useJoinOnline();
   const availableTasks = board.data ? availableCount(board.data.tasks) : 0;
 
   useEffect(() => {

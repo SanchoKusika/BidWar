@@ -125,6 +125,7 @@ export const en = {
     lastDay: 'last 24 hours',
     allTimeLower: 'all time',
     allCategories: 'All categories',
+    online: 'online',
     facts: 'Facts',
     category: 'Category',
     top: 'Top',
@@ -151,7 +152,6 @@ export const en = {
     attacksPaid: 'Attacks paid for',
     paymentsMade: 'Payments made',
     receiptsNote: 'Charged by the payment provider. Votes have their own ledger — they never mix.',
-    settings: 'Settings',
     availableNow: 'Available now',
     referrals: 'Referrals',
     referralPitch: (votes: number) =>

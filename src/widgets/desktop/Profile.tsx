@@ -278,9 +278,7 @@ export function DesktopProfile({
           />
         </div>
 
-        <FeedSection label={strings.web.settings}>
-          <SettingsPanel {...settings} className={styles.settings} />
-        </FeedSection>
+        <SettingsPanel {...settings} className={styles.settings} />
       </PageGrid>
     </>
   );
