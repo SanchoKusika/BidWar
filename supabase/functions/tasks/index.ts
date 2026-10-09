@@ -35,7 +35,7 @@ serve('tasks', async (req, ctx) => {
   const { userId } = await resolveTelegramUser(verified.user, verified.startParam);
   const db = getAdminClient();
 
-  const [tasks, user, completions, invited, paidCount, limits] = await Promise.all([
+  const [tasks, user, completions, paidCount, limits] = await Promise.all([
     db
       .from('tasks')
       .select('id, type, title, description, reward_votes, target_project_id, target_url')
@@ -47,7 +47,6 @@ serve('tasks', async (req, ctx) => {
       .select('task_id, period_day')
       .eq('user_id', userId)
       .eq('status', 'completed'),
-    db.from('users').select('id', { count: 'exact', head: true }).eq('referrer_id', userId),
     // Own projects are left out: a click on them does not count
     // (register_project_click), so with them in the goal an owner of a paid
     // project could never finish the day — "4 of 5" forever.
@@ -61,7 +60,7 @@ serve('tasks', async (req, ctx) => {
     db.from('app_config').select('value').eq('key', 'task_limits').maybeSingle(),
   ]);
 
-  for (const result of [tasks, user, completions, invited, paidCount, limits]) {
+  for (const result of [tasks, user, completions, paidCount, limits]) {
     if (result.error) throw result.error;
   }
 
@@ -92,14 +91,24 @@ serve('tasks', async (req, ctx) => {
         : (urls.get(task.target_project_id) ?? null),
   }));
 
+  const taskLimits = (limits.data?.value ?? {}) as {
+    visit_per_day?: number;
+    referral_milestones?: number[];
+    referral_milestone_step?: number;
+  };
+
   const payload = buildTaskBoard(rows, completions.data ?? [], {
     // Дата в том же виде, в каком её пишет `current_date` на сервере базы.
     today: new Date().toISOString().slice(0, 10),
-    invited: invited.count ?? 0,
     paidProjects: paidCount.count ?? 0,
-    visitPerDay: Number(
-      (limits.data?.value as { visit_per_day?: number } | null)?.visit_per_day ?? 10,
-    ),
+    visitPerDay: Number(taskLimits.visit_per_day ?? 10),
+    // Falls back to the same goals the migration seeds: a missing key should
+    // still give a ladder, not a single goal of one friend forever.
+    referralMilestones: (taskLimits.referral_milestones ?? [1, 3, 5, 10])
+      .map(Number)
+      .filter((n) => Number.isFinite(n) && n > 0)
+      .sort((a, b) => a - b),
+    referralStep: Number(taskLimits.referral_milestone_step ?? 10),
   });
 
   ctx.log('tasks listed', { userId, count: payload.length });

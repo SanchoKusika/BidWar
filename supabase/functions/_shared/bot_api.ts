@@ -183,6 +183,12 @@ export async function sendMessage(
       {
         chat_id: chatId,
         text,
+        // notify_text.ts escapes every payload value; HTML is there so a
+        // project can be a link on its own name.
+        parse_mode: 'HTML',
+        // A hyperlinked site would otherwise unfold into a preview card under
+        // the message, larger than the news itself.
+        link_preview_options: { is_disabled: true },
         reply_markup: {
           inline_keyboard: [[{ text: button.text, web_app: { url: button.url } }]],
         },

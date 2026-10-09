@@ -1,5 +1,5 @@
 import { assertEquals } from 'jsr:@std/assert@1';
-import { buildTaskBoard, type CompletionRow, type TaskRow } from './tasks.ts';
+import { buildTaskBoard, nextReferralGoal, type CompletionRow, type TaskRow } from './tasks.ts';
 
 const TODAY = '2026-09-10';
 
@@ -19,9 +19,10 @@ const done = (taskId: number, day: string | null = null): CompletionRow => ({
 
 const ctx = (over: Partial<Parameters<typeof buildTaskBoard>[2]> = {}) => ({
   today: TODAY,
-  invited: 0,
   paidProjects: 3,
   visitPerDay: 10,
+  referralMilestones: [1, 3, 5, 10],
+  referralStep: 10,
   ...over,
 });
 
@@ -58,16 +59,26 @@ Deno.test('visit: платных проектов нет — задание не
   assertEquals(item.progress, { current: 0, total: 0 });
 });
 
-Deno.test('referral: никого не пригласил — прогресса нет вовсе', () => {
+Deno.test('referral: первая цель — один друг', () => {
   const [item] = buildTaskBoard([task(2, 'referral', 3)], [], ctx());
   assertEquals(item.state, 'available');
-  assertEquals(item.progress, undefined);
+  assertEquals(item.progress, { current: 0, total: 1 });
 });
 
-Deno.test('referral: прогресс — дошедшие до первого задания из всех пришедших', () => {
-  const [item] = buildTaskBoard([task(2, 'referral', 3)], [done(2), done(2)], ctx({ invited: 5 }));
-  assertEquals(item.progress, { current: 2, total: 5 });
-  assertEquals(item.state, 'available', 'пригласить можно ещё — задание не закрывается');
+Deno.test('referral: достигнутая цель сменяется следующей', () => {
+  const [one] = buildTaskBoard([task(2, 'referral', 3)], [done(2)], ctx());
+  assertEquals(one.progress, { current: 1, total: 3 });
+  const [three] = buildTaskBoard([task(2, 'referral', 3)], [done(2), done(2), done(2)], ctx());
+  assertEquals(three.progress, { current: 3, total: 5 });
+  assertEquals(three.state, 'available', 'пригласить можно ещё — задание не закрывается');
+});
+
+Deno.test('referral: после последней ступени цель растёт шагом', () => {
+  const milestones = [1, 3, 5, 10];
+  assertEquals(nextReferralGoal(9, milestones, 10), 10);
+  assertEquals(nextReferralGoal(10, milestones, 10), 20);
+  assertEquals(nextReferralGoal(19, milestones, 10), 20);
+  assertEquals(nextReferralGoal(20, milestones, 10), 30);
 });
 
 Deno.test('subscribe: засчитывается навсегда', () => {

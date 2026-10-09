@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Icon } from '@/shared/ui/Icon';
@@ -83,6 +83,13 @@ export interface ProfileScreenProps {
   /** Referral numbers come with the task board; until then they are placeholders. */
   referralLoading?: boolean;
   /**
+   * A request to bring the referral card into view (from the «invite a
+   * friend» task). Handled once per request object, after the blocks above
+   * the card have their final height — scrolling earlier would aim at a spot
+   * the card is about to leave.
+   */
+  referralFocus?: object | null;
+  /**
    * Перечитать свои записи. Витрина обновляется сама после оплаты, но профиль
    * открывают и просто так — а ставка и позиция к этому моменту могли уже
    * измениться от чужого Raise или Attack.
@@ -146,6 +153,7 @@ export function ProfileScreen({
   projectsLoading = false,
   spendingLoading = false,
   referralLoading = false,
+  referralFocus = null,
   onAdd,
   onOpenProject,
   onRaise,
@@ -153,6 +161,15 @@ export function ProfileScreen({
 }: ProfileScreenProps) {
   const money = (v: number) => formatMoney(v, { currency, compact: compactAmounts });
   const receiptsRef = useRef<HTMLDivElement>(null);
+  const referralRef = useRef<HTMLDivElement>(null);
+  const handledFocus = useRef<object | null>(null);
+
+  useEffect(() => {
+    if (!referralFocus || handledFocus.current === referralFocus) return;
+    if (projectsLoading || referralLoading) return;
+    handledFocus.current = referralFocus;
+    referralRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [referralFocus, projectsLoading, referralLoading]);
   const showSpending = Boolean(spending) || spendingLoading;
 
   return (
@@ -278,7 +295,7 @@ export function ProfileScreen({
           </Gutter>
         </Section>
 
-        <Gutter>
+        <Gutter ref={referralRef}>
           <ReferralShareCard
             link={referralLink}
             invited={referralInvited}

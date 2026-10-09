@@ -123,6 +123,9 @@ Deno.test('атака кладёт жертве уведомление с ран
     assertEquals(Number(payload.rank_after), 2, 'после — атакующий выше');
     assertEquals(payload.attacker, 'attacker', 'имя атакующего раскрывается только здесь');
     assertEquals(Number(payload.count), 1);
+    const [own] = await tx`select name, url from projects where id = ${attacker.projectId}`;
+    assertEquals(payload.attacker_project, own.name, 'проект атакующего — для ссылки в сообщении');
+    assertEquals(payload.attacker_url, own.url);
     assertEquals(rows[0].group_key, String(victim.projectId));
   });
 });
@@ -200,6 +203,9 @@ Deno.test('потеря первого места несёт срок удерж
     const payload = rows[0].payload as Record<string, unknown>;
     assertEquals(payload.top, 'paid');
     assertAlmostEquals(Number(payload.held_seconds), 7200, 60, 'держал два часа');
+    const [winner] = await tx`select name, url from projects where id = ${attacker.projectId}`;
+    assertEquals(payload.winner_project, winner.name);
+    assertEquals(payload.winner_url, winner.url, 'ссылка занявшего — для гиперссылки в сообщении');
   });
 });
 

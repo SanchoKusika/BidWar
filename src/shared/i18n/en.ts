@@ -318,7 +318,8 @@ export const en = {
      */
     visitTitle: 'Push a paid project',
     visitNote: 'Open projects from the Paid Top. One vote per project, ten a day.',
-    referralTitle: 'Invite friends',
+    /** The goal grows as it is reached: 1 → 3 → 5 → 10 → +10 (app_config). */
+    referralTitle: (goal: number) => (goal === 1 ? 'Invite a friend' : `Invite ${goal} friends`),
     referralNote:
       'Votes land when the friend finishes their first task, not when they open the app.',
     subscribeTitle: (channel: string) => `Subscribe to ${channel}`,

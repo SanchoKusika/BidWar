@@ -41,8 +41,6 @@ export interface TaskPayload {
 export interface BoardContext {
   /** Сегодня в том же виде, в каком лежит `task_completions.period_day`. */
   today: string;
-  /** Сколько человек пришло по ссылке — знаменатель прогресса рефералки. */
-  invited: number;
   /** Активных платных проектов: больше них за сутки взять visit неоткуда. */
   paidProjects: number;
   /**
@@ -51,6 +49,30 @@ export interface BoardContext {
    * пять, значит рисовать недостижимую полосу.
    */
   visitPerDay: number;
+  /**
+   * Referral goals in friends who reached their first task
+   * (`app_config.task_limits.referral_milestones`), ascending.
+   */
+  referralMilestones: readonly number[];
+  /** Past the last milestone the goal keeps moving up by this much. */
+  referralStep: number;
+}
+
+/**
+ * The next referral goal above what is already reached: 1 → 3 → 5 → 10, then
+ * +step for good. The task never closes — every friend still pays — so there
+ * is always a next number to aim at instead of a finished «10 of 10».
+ */
+export function nextReferralGoal(
+  reached: number,
+  milestones: readonly number[],
+  step: number,
+): number {
+  const next = milestones.find((goal) => goal > reached);
+  if (next !== undefined) return next;
+  const last = milestones.at(-1) ?? 0;
+  const size = Math.max(1, step);
+  return last + size * (Math.floor(Math.max(0, reached - last) / size) + 1);
 }
 
 export function buildTaskBoard(
@@ -86,14 +108,17 @@ export function buildTaskBoard(
     }
 
     if (task.type === 'referral') {
+      // A friend counts once they finish their first task — that is when the
+      // reward is paid (01 Механики), so the bar moves with the votes. The
+      // goal steps up as each one is reached; `current` stays the true count,
+      // the profile multiplies it by the reward.
       return {
         ...base,
-        // Пригласить можно ещё, сколько угодно — задание не закрывается никогда.
         state: 'available',
-        // Никого ещё не пригласил — знаменателя нет, и полоса «0 из 0» сказала
-        // бы о задании неправду. Разрыв между числами — это те, кто пришёл по
-        // ссылке и не сделал ничего: за них награды нет (01 Механики).
-        ...(ctx.invited > 0 ? { progress: { current: done.length, total: ctx.invited } } : {}),
+        progress: {
+          current: done.length,
+          total: nextReferralGoal(done.length, ctx.referralMilestones, ctx.referralStep),
+        },
       };
     }
 

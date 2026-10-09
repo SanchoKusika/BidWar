@@ -76,7 +76,7 @@ export function TasksPage({ nav }: TasksPageProps) {
       return;
     }
     if (task.type === 'referral') {
-      nav.setTab('profile');
+      nav.requestProfileFocus('referral');
       return;
     }
     void verifySubscription(task);

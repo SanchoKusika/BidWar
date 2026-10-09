@@ -14,6 +14,8 @@
  * `language_code` Telegram.
  */
 
+import { channelUsername } from './bot_api.ts';
+
 export type NotifyLocale = 'RU' | 'EN';
 
 export function localeFromCode(code: string | null | undefined): NotifyLocale {
@@ -32,7 +34,38 @@ const num = (value: unknown): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const str = (value: unknown): string => (typeof value === 'string' ? value : '');
+const raw = (value: unknown): string => (typeof value === 'string' ? value : '');
+
+/**
+ * Messages go out with `parse_mode: 'HTML'` so a project can be a link, which
+ * makes every name a potential markup injection: «<b>» in a project name
+ * would either break the message or style it. All payload text passes here.
+ */
+export function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+const str = (value: unknown): string => escapeHtml(raw(value));
+
+/**
+ * The project that moved you, the way a person would point at it. A Telegram
+ * channel or profile is its @username — Telegram links that by itself. Any
+ * other site is its name with the link hidden under it: «Google», not
+ * «https://google.com». Without project data (rows queued before the payload
+ * carried it) the owner's handle is the fallback.
+ */
+export function projectMention(name: string, url: string, fallback: string): string {
+  const username = url ? channelUsername(url) : null;
+  if (username) return `@${username}`;
+  if (name && /^https?:\/\//i.test(url)) {
+    return `<a href="${escapeHtml(url)}">${escapeHtml(name)}</a>`;
+  }
+  return escapeHtml(fallback || name);
+}
 
 /**
  * Amounts in a message are points, that is roubles: the bot reports a moving
@@ -89,7 +122,7 @@ function topName(top: string, locale: NotifyLocale): string {
 
 function attacked(p: Record<string, unknown>, locale: NotifyLocale): string {
   const project = str(p.project_name);
-  const attacker = str(p.attacker);
+  const attacker = projectMention(raw(p.attacker_project), raw(p.attacker_url), raw(p.attacker));
   const count = Math.max(1, num(p.count));
   const lost = money(num(p.amount));
   const before = num(p.rank_before);
@@ -130,7 +163,7 @@ function rankLost(p: Record<string, unknown>, locale: NotifyLocale): string {
   const project = str(p.project_name);
   const where = topName(str(p.top), locale);
   const kept = held(num(p.held_seconds), locale);
-  const winner = str(p.winner);
+  const winner = projectMention(raw(p.winner_project), raw(p.winner_url), raw(p.winner));
 
   if (locale === 'RU') {
     const head = `👑 Ты больше не первый в ${where}: «${project}» держал корону ${kept}.`;

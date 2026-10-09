@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties, type PointerEvent } from 'react';
 import { Icon, type IconName } from './Icon';
 import {
   CURRENCY_SUFFIX,
@@ -66,9 +66,22 @@ export function AmountInput({
    */
   const converts = segment !== 'free' && unit === undefined;
 
-  const clamp = (n: number) => Math.max(min, max !== undefined ? Math.min(max, n) : n);
+  const clampMax = (n: number) => (max !== undefined ? Math.min(max, n) : n);
+  const clamp = (n: number) => Math.max(min, clampMax(n));
+
+  /**
+   * What the person is typing, while the field has focus. Without it every
+   * keystroke went through `clamp`, so the field could never hold less than
+   * the minimum: erasing «300» to type «301» snapped straight back to 300.
+   * While typing, only the maximum applies; the minimum is shown as an error
+   * by the caller and enforced when the field loses focus.
+   */
+  const [draft, setDraft] = useState<string | null>(null);
+
   const set = (n: number) => {
-    if (!disabled) onChange?.(clamp(Math.round(n)));
+    if (disabled) return;
+    setDraft(null);
+    onChange?.(clamp(Math.round(n)));
   };
 
   /**
@@ -94,6 +107,23 @@ export function AmountInput({
     return fromDisplay(Number.parseFloat(cleaned) || 0, currency);
   };
 
+  const type = (raw: string) => {
+    const digits = raw.replace(converts ? /[^\d.,]/g : /\D/g, '');
+    const next = clampMax(parse(digits));
+    setDraft(digits === '' ? '' : show(next));
+    onChange?.(next);
+  };
+
+  const commit = () => {
+    setDraft(null);
+    if (value < min) onChange?.(min);
+  };
+
+  // Steppers and presets must not take focus from the field: a blur would
+  // commit the half-typed number first and the tap would add to a stale one.
+  const keepFocus = (e: PointerEvent) => e.preventDefault();
+
+  const text = draft ?? show(value ?? 0);
   const atMin = value <= min;
   const atMax = max !== undefined && value >= max;
 
@@ -115,23 +145,48 @@ export function AmountInput({
       </div>
 
       <div className={styles.control}>
-        <StepButton icon="minus" onClick={() => set(value - step)} disabled={disabled || atMin} />
+        <StepButton
+          icon="minus"
+          onClick={() => set(value - step)}
+          onPointerDown={keepFocus}
+          disabled={disabled || atMin}
+        />
 
-        <div className={styles.value}>
-          <input
-            inputMode="numeric"
-            className={styles.input}
-            value={show(value ?? 0)}
-            disabled={disabled}
-            onChange={(e) => set(parse(e.target.value))}
-          />
+        {/* A label, so a tap on the unit focuses the number too. */}
+        <label className={styles.value} data-long={text.length > 7}>
+          {/* The input sizes itself to its text through a hidden twin in the
+              same grid cell: a fixed-width input left the number off-centre
+              against the unit next to it. */}
+          <span className={styles.fit}>
+            <span className={styles.sizer} aria-hidden="true">
+              {text || '0'}
+            </span>
+            <input
+              inputMode="numeric"
+              enterKeyHint="done"
+              className={styles.input}
+              value={text}
+              placeholder="0"
+              disabled={disabled}
+              onFocus={(e) => {
+                setDraft(show(value ?? 0));
+                e.currentTarget.select();
+              }}
+              onChange={(e) => type(e.target.value)}
+              onBlur={commit}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') e.currentTarget.blur();
+              }}
+            />
+          </span>
           <span className={styles.suffix}>{suffix}</span>
-        </div>
+        </label>
 
         <StepButton
           icon="plus"
           accent
           onClick={() => set(value + step)}
+          onPointerDown={keepFocus}
           disabled={disabled || atMax}
         />
       </div>
@@ -144,6 +199,7 @@ export function AmountInput({
               type="button"
               className={styles.preset}
               disabled={disabled}
+              onPointerDown={keepFocus}
               onClick={() => {
                 // Отклик только если число правда сдвинулось: пресет на уже
                 // максимальной сумме ничего не меняет, и вибрация там означала
@@ -160,6 +216,7 @@ export function AmountInput({
               data-accent="true"
               className={styles.preset}
               disabled={disabled}
+              onPointerDown={keepFocus}
               onClick={() => nudge(max)}
             >
               {strings.common.max}
@@ -181,11 +238,13 @@ export function AmountInput({
 function StepButton({
   icon,
   onClick,
+  onPointerDown,
   disabled,
   accent = false,
 }: {
   icon: IconName;
   onClick: () => void;
+  onPointerDown: (e: PointerEvent) => void;
   disabled: boolean;
   accent?: boolean;
 }) {
@@ -195,6 +254,7 @@ function StepButton({
       data-accent={accent}
       className={styles.step}
       onClick={onClick}
+      onPointerDown={onPointerDown}
       disabled={disabled}
     >
       <Icon name={icon} size={20} />

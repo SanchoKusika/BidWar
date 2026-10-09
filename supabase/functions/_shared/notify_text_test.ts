@@ -181,3 +181,66 @@ Deno.test('русское числительное согласуется с ч�
   assertStringIncludes(text(21), '21 раз подряд');
   assertStringIncludes(text(22), '22 раза подряд');
 });
+
+Deno.test('сайт, занявший место, — гиперссылка на его имени, а не голый адрес', () => {
+  const text = renderNotification(
+    {
+      kind: 'rank_lost',
+      payload: {
+        project_name: 'Mebel',
+        top: 'paid',
+        held_seconds: 900,
+        winner: '@owner',
+        winner_project: 'Google',
+        winner_url: 'https://google.com',
+      },
+    },
+    'RU',
+  );
+
+  assertStringIncludes(text!, 'Место занял <a href="https://google.com">Google</a>.');
+  assertEquals(text!.includes('@owner'), false, 'хендл владельца не нужен, когда есть проект');
+});
+
+Deno.test('канал или профиль в Telegram называется своим @username', () => {
+  const text = renderNotification(
+    {
+      kind: 'attacked',
+      payload: {
+        project_name: 'Mebel',
+        attacker: '@owner',
+        attacker_project: 'Durov',
+        attacker_url: 'https://t.me/durov',
+        amount: 500,
+        count: 1,
+        rank_before: 1,
+        rank_after: 2,
+      },
+    },
+    'EN',
+  );
+
+  assertStringIncludes(text!, '@durov attacked you');
+});
+
+Deno.test('имена из базы экранируются — разметка в названии не ломает сообщение', () => {
+  const text = renderNotification(
+    {
+      kind: 'rank_lost',
+      payload: {
+        project_name: '<b>Mebel</b> & Co',
+        top: 'paid',
+        held_seconds: 900,
+        winner_project: 'A "quoted" <site>',
+        winner_url: 'https://example.com/?a=1&b=2',
+      },
+    },
+    'EN',
+  );
+
+  assertStringIncludes(text!, '&lt;b&gt;Mebel&lt;/b&gt; &amp; Co');
+  assertStringIncludes(
+    text!,
+    '<a href="https://example.com/?a=1&amp;b=2">A &quot;quoted&quot; &lt;site&gt;</a>',
+  );
+});

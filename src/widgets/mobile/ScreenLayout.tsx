@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 import { cx } from '@/shared/lib/cx';
 import styles from './ScreenLayout.module.css';
 
@@ -12,8 +12,20 @@ export function ScreenBody({ children }: { children: ReactNode }) {
 }
 
 /** Боковые поля страницы для блоков, которым не нужен скролл до края. */
-export function Gutter({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cx(styles.gutter, className)}>{children}</div>;
+export function Gutter({
+  children,
+  className,
+  ref,
+}: {
+  children: ReactNode;
+  className?: string;
+  ref?: Ref<HTMLDivElement>;
+}) {
+  return (
+    <div ref={ref} className={cx(styles.gutter, className)}>
+      {children}
+    </div>
+  );
 }
 
 /** Секция с заголовком и своим внутренним ритмом. */

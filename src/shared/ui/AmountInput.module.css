@@ -84,28 +84,65 @@
   flex: 1;
   min-width: 0;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  justify-content: center;
+  align-items: baseline;
+  gap: var(--space-2);
+  cursor: text;
 }
 
-.input {
-  width: 100%;
+/* The number and its unit sit on one baseline, centred as a pair. Long
+   amounts drop a size step rather than overflow between the steppers. */
+.fit {
+  display: inline-grid;
   min-width: 0;
+  font: var(--type-amount-hero);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tighter);
+}
+
+.value[data-long='true'] .fit {
+  font: var(--type-amount-lg);
+}
+
+.sizer,
+.input {
+  grid-area: 1 / 1;
+  font: inherit;
+  letter-spacing: inherit;
+  white-space: pre;
+}
+
+.sizer {
+  visibility: hidden;
+}
+
+/* Width 0 keeps the input out of the column sizing — the hidden twin alone
+   decides it — and min-width stretches the input back over the column. */
+.input {
+  width: 0;
+  min-width: 100%;
   padding: 0;
   border: none;
   background: transparent;
   text-align: center;
-  font: var(--type-amount-lg);
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
-  letter-spacing: var(--ls-tighter);
   outline: none;
 }
 
+/* The whole control already lights up on focus; a second ring around the
+   bare number would draw a box inside the box. */
+.input:focus-visible {
+  box-shadow: none;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
 .suffix {
-  font: var(--type-label);
-  letter-spacing: var(--ls-caps);
-  text-transform: uppercase;
+  flex: 0 0 auto;
+  font: var(--type-amount-md);
   color: var(--text-muted);
 }
 
