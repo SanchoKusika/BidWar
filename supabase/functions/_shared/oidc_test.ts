@@ -101,3 +101,15 @@ Deno.test('выданный сервером вход проходит ту же
   const foreign = await signLogin({ id: '1', first_name: 'X', auth_date: String(now()) }, '1:x');
   assertEquals(await verifyInitData(foreign, BOT_TOKEN), null);
 });
+
+Deno.test('id пользователя строкой принимается — так его и присылает Telegram', async () => {
+  // The docs show a number, the live tokens carried a string: until this was
+  // accepted every real sign-in was refused as «Telegram did not confirm».
+  const { jwks, sign } = await issuer();
+  const verified = await verifyTelegramIdToken(
+    await sign(claims({ id: '987654321' })),
+    BOT_ID,
+    jwks,
+  );
+  assertEquals(verified?.id, 987654321);
+});

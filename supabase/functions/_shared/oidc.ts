@@ -93,26 +93,49 @@ async function importKey(jwk: Jwk, alg: string): Promise<CryptoKey | null> {
   return null;
 }
 
+export type IdTokenCheck =
+  | { ok: true; claims: TelegramIdClaims }
+  | {
+      ok: false;
+      /** Which check failed — logged, so a refusal can be told apart from a bug. */
+      reason: string;
+      /** Non-identifying facts about the token, for the same log line. */
+      shape?: Record<string, unknown>;
+    };
+
 /**
- * The verified claims, or null — a forged, foreign, expired or malformed
- * token is an expected case, not an error. Throws only when Telegram's keys
- * cannot be fetched: that is our failure, not the person's.
+ * Checks the token and says why when it fails. A forged, foreign, expired or
+ * malformed token is an expected case, not an error. Throws only when
+ * Telegram's keys cannot be fetched: that is our failure, not the person's.
  */
-export async function verifyTelegramIdToken(
+export async function checkTelegramIdToken(
   token: string,
   botId: number,
   jwks: JwksSource = fetchTelegramJwks,
-): Promise<TelegramIdClaims | null> {
+): Promise<IdTokenCheck> {
   const parts = token.split('.');
-  if (parts.length !== 3) return null;
+  if (parts.length !== 3) return { ok: false, reason: 'not a JWT' };
   const [headerPart, payloadPart, signaturePart] = parts as [string, string, string];
 
   const header = decodeJson<{ alg?: string; kid?: string }>(headerPart);
   const claims = decodeJson<TelegramIdClaims>(payloadPart);
-  if (!header?.alg || !claims) return null;
+  if (!header?.alg || !claims) return { ok: false, reason: 'undecodable header or payload' };
+
+  const now = Date.now() / 1000;
+  const shape = {
+    alg: header.alg,
+    kid: header.kid ?? null,
+    iss: claims.iss,
+    aud: claims.aud,
+    expIn: typeof claims.exp === 'number' ? Math.round(claims.exp - now) : null,
+    iatAgo: typeof claims.iat === 'number' ? Math.round(now - claims.iat) : null,
+    idType: typeof claims.id,
+    claimKeys: Object.keys(claims).sort(),
+  };
 
   const { keys } = await jwks();
   const candidates = keys.filter((key) => !header.kid || key.kid === header.kid);
+  if (candidates.length === 0) return { ok: false, reason: 'no key with this kid', shape };
   const data = new TextEncoder().encode(`${headerPart}.${payloadPart}`);
   const signature = base64UrlDecode(signaturePart);
 
@@ -127,16 +150,33 @@ export async function verifyTelegramIdToken(
       break;
     }
   }
-  if (!valid) return null;
+  if (!valid) return { ok: false, reason: 'signature', shape };
 
-  if (claims.iss !== TELEGRAM_ISSUER) return null;
+  if (claims.iss !== TELEGRAM_ISSUER) return { ok: false, reason: 'issuer', shape };
   const audiences = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
-  if (!audiences.map(String).includes(String(botId))) return null;
+  if (!audiences.map(String).includes(String(botId)))
+    return { ok: false, reason: 'audience', shape };
 
-  const now = Date.now() / 1000;
-  if (typeof claims.exp !== 'number' || claims.exp + CLOCK_SKEW_SECONDS < now) return null;
-  if (typeof claims.iat === 'number' && claims.iat - CLOCK_SKEW_SECONDS > now) return null;
-  if (!Number.isSafeInteger(claims.id) || claims.id <= 0) return null;
+  if (typeof claims.exp !== 'number' || claims.exp + CLOCK_SKEW_SECONDS < now) {
+    return { ok: false, reason: 'expired', shape };
+  }
+  if (typeof claims.iat === 'number' && claims.iat - CLOCK_SKEW_SECONDS > now) {
+    return { ok: false, reason: 'issued in the future', shape };
+  }
 
-  return claims;
+  // The user id may come as a number or a numeric string; either is the same id.
+  const id = Number(claims.id);
+  if (!Number.isSafeInteger(id) || id <= 0) return { ok: false, reason: 'no user id', shape };
+
+  return { ok: true, claims: { ...claims, id } };
+}
+
+/** The verified claims, or null — see `checkTelegramIdToken` for the reason. */
+export async function verifyTelegramIdToken(
+  token: string,
+  botId: number,
+  jwks: JwksSource = fetchTelegramJwks,
+): Promise<TelegramIdClaims | null> {
+  const result = await checkTelegramIdToken(token, botId, jwks);
+  return result.ok ? result.claims : null;
 }
