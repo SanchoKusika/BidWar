@@ -263,7 +263,7 @@ export const ru: PartialStrings = {
     yourVotes: 'ТВОИ ГОЛОСА',
     visitTitle: 'Подтолкни платный проект',
     visitNote: 'Открывай проекты из платного топа. Голос за проект, десять в сутки.',
-    referralTitle: 'Приглашай друзей',
+    referralTitle: (goal: number) => (goal === 1 ? 'Пригласи друга' : `Пригласи ${goal} друзей`),
     referralNote:
       'Голоса приходят, когда друг выполнит первое задание, а не когда откроет приложение.',
     subscribeTitle: (channel: string) => `Подпишись на ${channel}`,

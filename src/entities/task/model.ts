@@ -49,7 +49,9 @@ export function taskCopy(task: TaskItem): { title: string; note: string | null }
   const t = strings.tasks;
 
   if (task.type === 'visit') return { title: t.visitTitle, note: t.visitNote };
-  if (task.type === 'referral') return { title: t.referralTitle, note: t.referralNote };
+  if (task.type === 'referral') {
+    return { title: t.referralTitle(task.progress?.total ?? 1), note: t.referralNote };
+  }
 
   const handle = channelHandle(task.targetUrl);
   return {
