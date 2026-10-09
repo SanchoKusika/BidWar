@@ -13,6 +13,7 @@ import {
   DEFAULT_CURRENCY,
   formatCount,
   formatFullDate,
+  formatShortDate,
   formatHeldDuration,
   formatMoney,
   formatVotes,
@@ -87,6 +88,8 @@ export function DesktopProject({
   const exact = paid ? formatMoney(metric, { currency, compact: false }) : formatVotes(metric);
   const held = rank === 1 && project.rank1Since ? formatHeldDuration(project.rank1Since) : null;
   const since = project.createdAt ? formatFullDate(project.createdAt) : null;
+  // The stat tile and the tags are narrow; the facts card has room for the full date.
+  const sinceShort = project.createdAt ? formatShortDate(project.createdAt) : null;
   const topName = paid ? strings.showcase.paidTitle : strings.showcase.freeTitle;
   const [copied, setCopied] = useState(false);
 
@@ -111,19 +114,19 @@ export function DesktopProject({
     [t.clicks, formatCount(project.clicks), undefined],
     ...(held
       ? [[t.heldAt1, held, undefined] as [string, string, undefined]]
-      : since
-        ? [[w.inTopSince, since, undefined] as [string, string, undefined]]
+      : sinceShort
+        ? [[w.inTopSince, sinceShort, undefined] as [string, string, undefined]]
         : []),
   ];
 
-  const tags = [categoryTitle, topName, since ? w.inTopSinceShort(since) : null].filter(
+  const tags = [categoryTitle, topName, sinceShort ? w.inTopSinceShort(sinceShort) : null].filter(
     (tag): tag is string => Boolean(tag),
   );
 
   const meta = [
     displayUrl(project.url),
     categoryTitle,
-    since ? w.inTopSinceShort(since) : null,
+    sinceShort ? w.inTopSinceShort(sinceShort) : null,
     held ? w.holdingFirst(held) : null,
   ]
     .filter(Boolean)

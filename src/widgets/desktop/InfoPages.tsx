@@ -43,9 +43,9 @@ export function RulesPage({ anchor, onAnchor, onSupport }: RulesPageProps) {
                 ))}
               </div>
             </RailCard>
-            <RailCard title={strings.web.stillUnclear} footnote={strings.web.supportLanguages}>
+            <RailCard footnote={t.askSupport}>
               <Button variant="secondary" size="md" block icon="life-buoy" onClick={onSupport}>
-                {strings.web.askSupport}
+                {strings.docs.tabs.support}
               </Button>
             </RailCard>
           </>
