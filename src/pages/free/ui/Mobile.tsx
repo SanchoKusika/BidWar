@@ -13,7 +13,7 @@ import { useLayout } from '@/shared/lib/layout';
 import { AddProjectSheet } from '@/widgets/mobile/AddProjectSheet';
 import { VoteSheet } from '@/widgets/mobile/VoteSheet';
 import type { Scope } from '@/widgets/mobile/ScopeToggle';
-import type { Navigation } from '@/app/navigation';
+import type { Navigation, VoteRequest } from '@/app/navigation';
 import {
   useFreeCategories,
   useFreeOwnPosition,
@@ -74,6 +74,15 @@ export function FreeMobile({ nav }: FreeMobileProps) {
     setVoteError(null);
     setVoteTarget({ project, rank });
   };
+
+  // A vote asked for on a project's page — the same compare-in-render pattern
+  // as the Paid tab's attack and boost requests. It waits for the session:
+  // without a balance the sheet has nothing to give from.
+  const [handledVoteRequest, setHandledVoteRequest] = useState<VoteRequest | null>(null);
+  if (canVote && nav.voteRequest && nav.voteRequest !== handledVoteRequest) {
+    setHandledVoteRequest(nav.voteRequest);
+    openVote(nav.voteRequest.target, nav.voteRequest.rank);
+  }
 
   const confirmVote = async (amount: number) => {
     if (!voteTarget) return;

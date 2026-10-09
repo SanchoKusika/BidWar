@@ -12,6 +12,7 @@ import {
   CURRENCY_SUFFIX,
   DEFAULT_CURRENCY,
   formatCount,
+  formatFullDate,
   formatHeldDuration,
   formatMoney,
   formatVotes,
@@ -25,6 +26,9 @@ import type { ProjectScreenProps } from '@/widgets/mobile/ProjectScreen';
 import { FeedSection, PageBand, PageGrid, RailCard } from './Chrome';
 import styles from './Project.module.css';
 
+/** No-break spaces: an amount must not wrap halfway across lines. */
+const nowrap = (text: string) => text.replace(/\s/g, ' ');
+
 function BackPill({ segment, onBack }: { segment: ShowcaseType; onBack: () => void }) {
   return (
     <button type="button" className={styles.back} onClick={onBack}>
@@ -35,10 +39,14 @@ function BackPill({ segment, onBack }: { segment: ShowcaseType; onBack: () => vo
 }
 
 /**
- * One project on the desktop site (ui_kits/web/Pages.jsx, ProjectPage), on
- * the mini app's props. Left out from the kit because the product has no
- * source for them: «bought by» and «verified owner» (both behind PREVIEW
- * flags in the mini app), «report this project» (verification is not live).
+ * One project on the desktop site (ui_kits/web/Pages.jsx, ProjectPage), on the
+ * mini app's props: the band with the bid and its day change, the main card
+ * with tags and the four numbers, activity and the account's other entry;
+ * the rail with the position, its actions and the facts.
+ *
+ * Left out of the kit because the product has no source for them: «bought
+ * by», «verified owner» and «report this project» — owner handles are not
+ * public and verification is not live.
  */
 export function DesktopProject({
   project,
@@ -52,27 +60,34 @@ export function DesktopProject({
   otherEntry,
   otherRank,
   otherIsOwn = false,
+  valueDelta,
+  rankDelta,
+  contribution = null,
   onBack,
   onOpenLink,
   onRaise: raise,
   onAttack: attack,
+  onVote: vote,
   onOpenOther,
   onOpenOtherLink,
-  onRules,
 }: ProjectScreenProps) {
   const t = strings.project;
   const w = strings.web;
   const signIn = useSignIn();
   const { status } = useSession();
-  // Raising or attacking needs an account; a guest is asked to sign in first.
+  // Raising, attacking and voting need an account; a guest is asked to sign in.
   const gate = status === 'guest' && signIn ? signIn : null;
   const onRaise = gate ?? raise;
   const onAttack = gate ?? attack;
+  const onVote = gate ?? vote;
+
   const paid = segment === 'paid';
   const metric = paid ? project.paidAmount : project.votes;
   const unit = paid ? CURRENCY_SUFFIX[currency] : strings.vote.unit;
   const exact = paid ? formatMoney(metric, { currency, compact: false }) : formatVotes(metric);
   const held = rank === 1 && project.rank1Since ? formatHeldDuration(project.rank1Since) : null;
+  const since = project.createdAt ? formatFullDate(project.createdAt) : null;
+  const topName = paid ? strings.showcase.paidTitle : strings.showcase.freeTitle;
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -88,23 +103,43 @@ export function DesktopProject({
       .catch(() => {});
   };
 
+  // The kit's four numbers: the last one is the time at #1 for the leader and
+  // the date it joined the top for everyone else.
   const stats: Array<[string, string, 'paid' | 'free' | undefined]> = [
     [t.position, rank !== null ? `#${rank}` : '—', undefined],
     [paid ? t.currentBid : t.votes, `${exact} ${unit}`, segment],
     [t.clicks, formatCount(project.clicks), undefined],
-    ...(held ? [[t.heldAt1, held, undefined] as [string, string, undefined]] : []),
+    ...(held
+      ? [[t.heldAt1, held, undefined] as [string, string, undefined]]
+      : since
+        ? [[w.inTopSince, since, undefined] as [string, string, undefined]]
+        : []),
   ];
+
+  const tags = [categoryTitle, topName, since ? w.inTopSinceShort(since) : null].filter(
+    (tag): tag is string => Boolean(tag),
+  );
+
+  const meta = [
+    displayUrl(project.url),
+    categoryTitle,
+    since ? w.inTopSinceShort(since) : null,
+    held ? w.holdingFirst(held) : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <>
       <PageBand
         segment={segment}
         title={project.name}
-        meta={[displayUrl(project.url), categoryTitle].filter(Boolean).join(' · ')}
+        meta={meta}
         stat={
           <StatBlock
             segment={segment}
             value={metric}
+            delta={valueDelta}
             currency={currency}
             compact={compactAmounts}
             label={paid ? t.currentBid.toUpperCase() : t.votes.toUpperCase()}
@@ -126,28 +161,44 @@ export function DesktopProject({
                 <span className={styles.positionRank}>{rank !== null ? `#${rank}` : '—'}</span>
               </span>
               <span className={styles.positionNote}>
-                {/* No-break spaces: an amount must not wrap halfway across lines. */}
-                {paid
-                  ? w.overtakePaid(`${exact} ${unit}`.replace(/\s/g, '\u00a0'))
-                  : w.overtakeFree(exact.replace(/\s/g, '\u00a0'))}
+                {paid ? w.overtakePaid(nowrap(`${exact} ${unit}`)) : w.overtakeFree(nowrap(exact))}
               </span>
-              {paid && (
-                <div className={styles.positionActions}>
+              <div className={styles.positionActions}>
+                {paid && (
                   <Button variant="paid" size="lg" block icon="chevrons-up" onClick={onRaise}>
                     {isOwn ? t.raiseMine : t.raiseThis}
                   </Button>
-                  {!isOwn && (
-                    <Button variant="attack-quiet" size="lg" block icon="swords" onClick={onAttack}>
-                      {t.attack}
-                    </Button>
-                  )}
-                </div>
-              )}
+                )}
+                {paid && !isOwn && (
+                  <Button variant="attack-quiet" size="lg" block icon="swords" onClick={onAttack}>
+                    {t.attack}
+                  </Button>
+                )}
+                {!paid && (
+                  <Button variant="free" size="lg" block icon="vote" onClick={onVote}>
+                    {t.giveVotes}
+                  </Button>
+                )}
+              </div>
             </section>
-            <RailCard>
-              <Button variant="secondary" size="md" block icon="gavel" onClick={onRules}>
-                {t.rulesButton}
-              </Button>
+
+            <RailCard title={w.facts}>
+              <div>
+                {categoryTitle && <KeyRow label={w.category} value={categoryTitle} />}
+                <KeyRow label={w.top} value={topName} />
+                {since && <KeyRow label={w.inTopSince} value={since} />}
+                <KeyRow label={t.clicks} value={formatCount(project.clicks)} />
+                {/* What this viewer has put into the bid — own raises or raises
+                    of someone else's project; shown once there is any. */}
+                {paid && contribution !== null && contribution > 0 && (
+                  <KeyRow
+                    label={w.youPutIn}
+                    value={`+${formatMoney(contribution, { currency, compact: false })} ${unit}`}
+                    strong
+                    tone="paid"
+                  />
+                )}
+              </div>
             </RailCard>
           </>
         }
@@ -161,12 +212,19 @@ export function DesktopProject({
                 segment={segment}
                 size={104}
               />
-              {rank !== null && <RankBadge rank={rank} />}
+              {rank !== null && <RankBadge rank={rank} delta={rankDelta} />}
             </div>
             <div className={styles.body}>
               {project.ogDescription && (
                 <p className={styles.description}>{project.ogDescription}</p>
               )}
+              <div className={styles.tags}>
+                {tags.map((tag) => (
+                  <span key={tag} className={styles.tag}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
               <div className={styles.stats}>
                 {stats.map(([label, value, tone]) => (
                   <span key={label} className={styles.stat}>
@@ -227,6 +285,7 @@ export function DesktopProject({
                 icon="folder"
                 segment={segment}
                 title={paid ? t.noFreeEntry : t.noPaidEntry}
+                description={w.oneSlotEach}
                 compact
               />
             )}

@@ -57,6 +57,12 @@ export interface ProjectScreenProps {
    * и на чужом проекте она обязана быть обычной.
    */
   otherIsOwn?: boolean;
+  /** Bid change over the last 24 hours (paid only); 0 or absent — no change shown. */
+  valueDelta?: number;
+  /** Places gained over the last 24 hours, positive up. */
+  rankDelta?: number;
+  /** Points this viewer has put into this project's bid; null — not known yet. */
+  contribution?: number | null;
   onBack: () => void;
   onOpenLink: () => void;
   onRaise: () => void;
@@ -182,6 +188,8 @@ export function ProjectScreen({
   otherEntry,
   otherRank,
   otherIsOwn = false,
+  valueDelta,
+  contribution = null,
   onBack,
   onOpenLink,
   onRaise,
@@ -212,6 +220,7 @@ export function ProjectScreen({
             value={metric}
             currency={currency}
             compact={compactAmounts}
+            delta={valueDelta}
             label={paid ? strings.own.bidShort : strings.own.votesShort}
             size="md"
           />
@@ -261,6 +270,16 @@ export function ProjectScreen({
                 tone={paid ? 'paid' : 'free'}
               />
               <KeyRow label={t.clicks} value={formatCount(project.clicks)} />
+              {/* What this viewer has put into the bid — own raises or a
+                  donation to someone else's project. */}
+              {paid && contribution !== null && contribution > 0 && (
+                <KeyRow
+                  label={strings.web.youPutIn}
+                  value={`+${formatMoney(contribution, { currency, compact: false })} ${CURRENCY_SUFFIX[currency]}`}
+                  strong
+                  tone="paid"
+                />
+              )}
               {PREVIEW.verifiedBadge && <KeyRow label={t.verified} value={t.yes} />}
             </div>
 
@@ -298,7 +317,7 @@ export function ProjectScreen({
                 </Button>
               )}
               {!paid && (
-                <Button variant="free" size="lg" block icon="vote" disabled onClick={onVote}>
+                <Button variant="free" size="lg" block icon="vote" onClick={onVote}>
                   {t.giveVotes}
                 </Button>
               )}

@@ -225,19 +225,22 @@ export async function fetchMyProject(
   return data ? mapRow(data) : null;
 }
 
-/** Одна карточка по id — для страницы проекта. */
+/**
+ * Одна карточка по id — для страницы проекта. With the date it entered the
+ * top: the page shows «in the top since», the feeds have no use for it.
+ */
 export async function fetchProject(id: number): Promise<ProjectListItem | null> {
   const { data, error } = await getSupabase()
     .from('projects')
     .select(
-      'id, user_id, category_id, type, name, url, og_image_url, og_description, paid_amount, votes, clicks, rank1_since',
+      'id, user_id, category_id, type, name, url, og_image_url, og_description, paid_amount, votes, clicks, rank1_since, created_at',
     )
     .eq('id', id)
     .eq('status', 'active')
     .maybeSingle();
 
   if (error) throw error;
-  return data ? mapRow(data) : null;
+  return data ? { ...mapRow(data), createdAt: data.created_at } : null;
 }
 
 /**

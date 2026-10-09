@@ -66,6 +66,9 @@ export interface ProfileScreenProps {
   spending?: {
     month: number;
     total: number;
+    /** Confirmed payments and how many were attacks — the site's «money paid» card. */
+    payments?: number;
+    attacks?: number;
     receipts: readonly Receipt[];
   };
   projects: readonly { project: ProjectListItem; rank: number | null }[];

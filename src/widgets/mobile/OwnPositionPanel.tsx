@@ -3,6 +3,7 @@ import { Button } from '@/shared/ui/Button';
 import { SkeletonBlock, SkeletonText } from '@/shared/ui/Skeleton';
 import type { ShowcaseType } from '@/entities/project';
 import { strings } from '@/shared/i18n/strings';
+import { cx } from '@/shared/lib/cx';
 import styles from './OwnPositionPanel.module.css';
 
 const t = strings.own;
@@ -21,6 +22,7 @@ export interface OwnPositionPanelProps {
   actionDisabled?: boolean;
   onAdd?: () => void;
   addDisabled?: boolean;
+  className?: string;
   /**
    * The own entry is not known yet. Drawn as the panel with an entry — the
    * state people who come back every day actually see — with placeholders for
@@ -45,11 +47,12 @@ export function OwnPositionPanel({
   actionDisabled,
   onAdd,
   addDisabled,
+  className,
   loading = false,
 }: OwnPositionPanelProps) {
   if (loading) {
     return (
-      <section aria-busy="true" data-segment={segment} className={styles.panel}>
+      <section aria-busy="true" data-segment={segment} className={cx(styles.panel, className)}>
         <div className={styles.row}>
           <div className={styles.headBlock}>
             <span className={styles.label}>{t.position}</span>
@@ -80,7 +83,7 @@ export function OwnPositionPanel({
 
   if (!hasEntry) {
     return (
-      <section data-segment={segment} className={styles.panel}>
+      <section data-segment={segment} className={cx(styles.panel, className)}>
         <span className={styles.headBlock}>
           <span className={styles.label}>{t.position}</span>
           <span className={styles.dash}>—</span>
@@ -102,7 +105,7 @@ export function OwnPositionPanel({
   }
 
   return (
-    <section data-segment={segment} className={styles.panel}>
+    <section data-segment={segment} className={cx(styles.panel, className)}>
       <div className={styles.row}>
         <div className={styles.headBlock}>
           <span className={styles.label}>{t.position}</span>

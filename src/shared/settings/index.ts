@@ -12,8 +12,7 @@
  * <html>, вне дерева компонентов, и подписка ему нужна такая же, как экранам.
  */
 import { useSyncExternalStore } from 'react';
-import { getPlatform } from '@/shared/platform';
-import { LOCALES, localeFromLanguageCode, type Locale } from '@/shared/i18n/locale';
+import { DEFAULT_LOCALE, LOCALES, type Locale } from '@/shared/i18n/locale';
 
 export type ThemeChoice = 'auto' | 'light' | 'dark';
 
@@ -34,24 +33,19 @@ export interface AppSettings {
    */
   haptics: boolean;
   /**
-   * Язык интерфейса. Значение по умолчанию — язык оболочки Telegram, но только
-   * до первого выбора: дальше человек решает сам, и его выбор переживает
-   * перезапуск. Пункта «авто», как у темы, здесь нет намеренно — язык меняют
-   * раз в жизни аккаунта, и следить за оболочкой ему незачем.
+   * Interface language. Russian by default — the product's market — whatever
+   * the Telegram shell or the browser speaks; English only once picked in
+   * settings, and that choice survives a restart.
    */
   language: Locale;
 }
 
-/**
- * Язык по умолчанию спрашивается у оболочки один раз, при первом чтении
- * настроек: незнакомый язык Telegram даёт английский. Всё остальное —
- * константы, потому что подсказки на них у оболочки нет.
- */
+/** What a first launch starts with; nothing here is guessed from the shell. */
 const DEFAULTS: AppSettings = {
   theme: 'auto',
   compactAmounts: true,
   haptics: true,
-  language: localeFromLanguageCode(getPlatform().getLanguageCode()),
+  language: DEFAULT_LOCALE,
 };
 
 const STORAGE_KEY = 'bidwar.settings.v1';
@@ -66,7 +60,9 @@ const THEMES: readonly ThemeChoice[] = ['auto', 'light', 'dark'];
 function parse(raw: string | null): AppSettings {
   if (!raw) return DEFAULTS;
   try {
-    const stored = JSON.parse(raw) as Partial<Record<keyof AppSettings, unknown>>;
+    const stored = JSON.parse(raw) as Partial<
+      Record<keyof AppSettings | 'languageChosen', unknown>
+    >;
     return {
       theme: THEMES.includes(stored.theme as ThemeChoice)
         ? (stored.theme as ThemeChoice)
@@ -76,9 +72,14 @@ function parse(raw: string | null): AppSettings {
           ? stored.compactAmounts
           : DEFAULTS.compactAmounts,
       haptics: typeof stored.haptics === 'boolean' ? stored.haptics : DEFAULTS.haptics,
-      language: LOCALES.includes(stored.language as Locale)
-        ? (stored.language as Locale)
-        : DEFAULTS.language,
+      // Only a language picked by hand survives. Before 09.10.2026 the start
+      // language came from the Telegram shell and was stored as if chosen —
+      // an English Telegram left the app in English; those guesses reset to
+      // Russian, the product's default.
+      language:
+        stored.languageChosen === true && LOCALES.includes(stored.language as Locale)
+          ? (stored.language as Locale)
+          : DEFAULTS.language,
     };
   } catch {
     return DEFAULTS;
@@ -95,6 +96,17 @@ function read(): AppSettings {
 }
 
 let current: AppSettings = read();
+/** Whether the language was picked in settings — kept beside the settings. */
+let languageChosen = readLanguageChosen();
+
+function readLanguageChosen(): boolean {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as { languageChosen?: unknown }).languageChosen === true : false;
+  } catch {
+    return false;
+  }
+}
 const listeners = new Set<() => void>();
 
 export function getSettings(): AppSettings {
@@ -111,8 +123,9 @@ export function subscribeSettings(listener: () => void): () => void {
 export function setSetting<K extends keyof AppSettings>(key: K, value: AppSettings[K]): void {
   if (current[key] === value) return;
   current = { ...current, [key]: value };
+  if (key === 'language') languageChosen = true;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, languageChosen }));
   } catch {
     // Не сохранилось — настройка всё равно применяется до перезагрузки.
   }

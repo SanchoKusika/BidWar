@@ -18,10 +18,14 @@ import { channelUsername } from './bot_api.ts';
 
 export type NotifyLocale = 'RU' | 'EN';
 
+/**
+ * The language a message goes out in. `claim_notifications` hands over
+ * `users.language` — set in the app, upper case — or, failing that, the
+ * Telegram shell's code. Only a choice made in the app switches to English:
+ * the product speaks Russian by default, whatever the shell says.
+ */
 export function localeFromCode(code: string | null | undefined): NotifyLocale {
-  const base = (code ?? '').toLowerCase().split('-')[0];
-  if (base === 'ru') return 'RU';
-  return 'EN';
+  return code === 'EN' ? 'EN' : 'RU';
 }
 
 export interface NotifyRow {

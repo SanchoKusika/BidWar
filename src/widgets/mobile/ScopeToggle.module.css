@@ -34,3 +34,12 @@
 .option[data-active='true'][data-segment='free'] {
   background: var(--free-accent);
 }
+
+.wrap[data-size='md'] {
+  padding: 3px;
+}
+
+.wrap[data-size='md'] .option {
+  height: 28px;
+  padding: 0 var(--space-6);
+}

@@ -1,7 +1,12 @@
 import { getPlatform } from '@/shared/platform';
 import { useSession } from '@/entities/user';
 import { categoryTitle, useCategoryStats } from '@/entities/category';
-import { registerClick, type ProjectListItem, type ShowcaseType } from '@/entities/project';
+import {
+  registerClick,
+  useMovement24h,
+  type ProjectListItem,
+  type ShowcaseType,
+} from '@/entities/project';
 import { useProjectActivity } from '@/entities/activity';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { PREVIEW } from '@/shared/config/preview';
@@ -15,7 +20,7 @@ import {
 } from '@/widgets/mobile/ProjectScreen';
 import { DesktopProject, DesktopProjectSkeleton } from '@/widgets/desktop/Project';
 import { useLayout } from '@/shared/lib/layout';
-import { useProject } from '../model';
+import { useMyContribution, useProject } from '../model';
 import styles from './Mobile.module.css';
 
 export interface ProjectPageProps {
@@ -29,6 +34,8 @@ export interface ProjectPageProps {
   onBoost: (target: ProjectListItem, rank: number | null) => void;
   /** Уводит на вкладку Paid и просит открыть шторку атаки на этом проекте. */
   onAttack: (target: ProjectListItem, rank: number | null) => void;
+  /** Goes to the Free tab and asks it to open the vote sheet for this project. */
+  onVote: (target: ProjectListItem, rank: number | null) => void;
   /** Открыть страницу другого проекта — вторую запись того же аккаунта. */
   onOpenProject: (id: number, segment: ShowcaseType) => void;
 }
@@ -44,6 +51,7 @@ export function ProjectPage({
   onGoPaid,
   onBoost,
   onAttack,
+  onVote,
   onOpenProject,
 }: ProjectPageProps) {
   const { userId } = useSession();
@@ -53,6 +61,9 @@ export function ProjectPage({
   // Хук стоит до ранних возвратов ниже и потому берёт id из пропа, а не из
   // загруженного проекта: порядок хуков обязан быть одинаковым на каждый рендер.
   const events = useProjectActivity(id);
+  // Day movement exists for the paid top only (paid_movement_24h).
+  const movement = useMovement24h(segment === 'paid');
+  const contribution = useMyContribution(userId, id);
   const desktop = useLayout() === 'desktop';
   const Screen = desktop ? DesktopProject : ProjectScreen;
 
@@ -113,6 +124,12 @@ export function ProjectPage({
       otherEntry={otherEntry}
       otherRank={otherRank}
       otherIsOwn={userId !== null && otherEntry?.userId === userId}
+      valueDelta={movement.get(project.id)?.amountDelta}
+      rankDelta={(() => {
+        const past = movement.get(project.id)?.rank;
+        return past !== undefined && rank !== null ? past - rank : undefined;
+      })()}
+      contribution={contribution}
       onBack={onBack}
       onOpenLink={() => {
         const initData = getPlatform().getInitData();
@@ -126,7 +143,7 @@ export function ProjectPage({
         userId !== null && project.userId === userId ? onGoPaid() : onBoost(project, rank)
       }
       onAttack={() => onAttack(project, rank)}
-      onVote={() => {}}
+      onVote={() => onVote(project, rank)}
       // Вторая запись того же аккаунта — такой же проект со своей страницей.
       // Оба действия карточки были пустыми функциями: «Подробнее» никуда не
       // вело, тап по телу не открывал ссылку — то есть блок выглядел рабочим и

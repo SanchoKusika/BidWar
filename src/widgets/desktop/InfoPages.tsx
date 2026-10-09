@@ -43,9 +43,9 @@ export function RulesPage({ anchor, onAnchor, onSupport }: RulesPageProps) {
                 ))}
               </div>
             </RailCard>
-            <RailCard footnote={t.askSupport}>
+            <RailCard title={strings.web.stillUnclear} footnote={strings.web.supportLanguages}>
               <Button variant="secondary" size="md" block icon="life-buoy" onClick={onSupport}>
-                {strings.docs.tabs.support}
+                {strings.web.askSupport}
               </Button>
             </RailCard>
           </>
@@ -117,7 +117,7 @@ export function DocPage({ id, onDoc, onRules, onOpenBot }: DocPageProps) {
       <PageGrid
         rail={
           <>
-            <RailCard>
+            <RailCard title={strings.web.company}>
               <div className={styles.links}>
                 {DOC_ORDER.map((docId) => (
                   <RailLink
@@ -137,9 +137,9 @@ export function DocPage({ id, onDoc, onRules, onOpenBot }: DocPageProps) {
                 ))}
               </div>
             </RailCard>
-            <RailCard>
+            <RailCard title={strings.rules.title} footnote={strings.web.rulesSections}>
               <Button variant="secondary" size="md" block icon="gavel" onClick={onRules}>
-                {strings.rules.title}
+                {strings.web.openRules}
               </Button>
             </RailCard>
           </>

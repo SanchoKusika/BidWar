@@ -146,6 +146,7 @@ function Site({ onSignIn }: { onSignIn: () => void }) {
             onGoPaid={() => nav.setTab('paid')}
             onAttack={(target, rank) => nav.requestAttack(target, rank)}
             onBoost={(target, rank) => nav.requestBoost(target, rank)}
+            onVote={(target, rank) => nav.requestVote(target, rank)}
             onOpenProject={(projectId, projectSegment) =>
               nav.push({ name: 'project', id: projectId, segment: projectSegment })
             }
