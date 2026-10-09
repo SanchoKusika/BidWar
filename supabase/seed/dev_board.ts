@@ -36,6 +36,7 @@ interface SeedProject {
   /**
    * Ставка/голоса для строк, которым не нашлось сидовой пары (категория
    * Profiles заведена позже первой миграции и сидов не имеет).
+   * Bids are in roubles (1 point = 1 ₽ since the Russia-only pivot).
    */
   metric: number;
 }
@@ -49,21 +50,21 @@ const PROJECTS: readonly SeedProject[] = [
     url: 'https://t.me/telegram',
     type: 'paid',
     category: 'channels',
-    metric: 457000,
+    metric: 3390,
   },
   {
     name: 'Telegram Info',
     url: 'https://t.me/tginfo',
     type: 'paid',
     category: 'channels',
-    metric: 272000,
+    metric: 2010,
   },
   {
     name: 'Pavel Durov',
     url: 'https://t.me/durov',
     type: 'paid',
     category: 'channels',
-    metric: 87000,
+    metric: 640,
   },
   {
     name: 'Gram of TON',
@@ -93,24 +94,24 @@ const PROJECTS: readonly SeedProject[] = [
     url: 'https://t.me/BotFather',
     type: 'paid',
     category: 'bots',
-    metric: 494000,
+    metric: 3660,
   },
-  { name: 'Quiz Bot', url: 'https://t.me/QuizBot', type: 'paid', category: 'bots', metric: 309000 },
+  { name: 'Quiz Bot', url: 'https://t.me/QuizBot', type: 'paid', category: 'bots', metric: 2290 },
   {
     name: 'Gmail Bot',
     url: 'https://t.me/GmailBot',
     type: 'paid',
     category: 'bots',
-    metric: 124000,
+    metric: 920,
   },
   { name: 'GIF Search', url: 'https://t.me/gif', type: 'free', category: 'bots', metric: 286 },
   { name: 'VoteBot', url: 'https://t.me/vote', type: 'free', category: 'bots', metric: 171 },
   { name: 'LikeBot', url: 'https://t.me/like', type: 'free', category: 'bots', metric: 56 },
 
   // Sites
-  { name: 'GitHub', url: 'https://github.com', type: 'paid', category: 'sites', metric: 531000 },
-  { name: 'Figma', url: 'https://www.figma.com', type: 'paid', category: 'sites', metric: 346000 },
-  { name: 'Notion', url: 'https://www.notion.so', type: 'paid', category: 'sites', metric: 161000 },
+  { name: 'GitHub', url: 'https://github.com', type: 'paid', category: 'sites', metric: 3930 },
+  { name: 'Figma', url: 'https://www.figma.com', type: 'paid', category: 'sites', metric: 2560 },
+  { name: 'Notion', url: 'https://www.notion.so', type: 'paid', category: 'sites', metric: 1190 },
   { name: 'Obsidian', url: 'https://obsidian.md', type: 'free', category: 'sites', metric: 309 },
   { name: 'Raycast', url: 'https://www.raycast.com', type: 'free', category: 'sites', metric: 194 },
   { name: 'Linear', url: 'https://linear.app', type: 'free', category: 'sites', metric: 79 },
@@ -121,15 +122,15 @@ const PROJECTS: readonly SeedProject[] = [
     url: 'https://www.shopify.com',
     type: 'paid',
     category: 'business',
-    metric: 568000,
+    metric: 4210,
   },
-  { name: 'Stripe', url: 'https://stripe.com', type: 'paid', category: 'business', metric: 383000 },
+  { name: 'Stripe', url: 'https://stripe.com', type: 'paid', category: 'business', metric: 2840 },
   {
     name: 'Texnomart',
     url: 'https://texnomart.uz',
     type: 'paid',
     category: 'business',
-    metric: 198000,
+    metric: 1470,
   },
   { name: 'Click', url: 'https://click.uz', type: 'free', category: 'business', metric: 332 },
   { name: 'Korzinka', url: 'https://korzinka.uz', type: 'free', category: 'business', metric: 217 },
@@ -147,16 +148,16 @@ const PROJECTS: readonly SeedProject[] = [
     url: 'https://www.cloudflare.com',
     type: 'paid',
     category: 'services',
-    metric: 605000,
+    metric: 4480,
   },
   {
     name: 'Supabase',
     url: 'https://supabase.com',
     type: 'paid',
     category: 'services',
-    metric: 420000,
+    metric: 3110,
   },
-  { name: 'Sentry', url: 'https://sentry.io', type: 'paid', category: 'services', metric: 235000 },
+  { name: 'Sentry', url: 'https://sentry.io', type: 'paid', category: 'services', metric: 1740 },
   { name: 'Glovo', url: 'https://glovoapp.com', type: 'free', category: 'services', metric: 355 },
   {
     name: 'Calendly',
@@ -174,14 +175,14 @@ const PROJECTS: readonly SeedProject[] = [
     url: 'https://github.com/torvalds',
     type: 'paid',
     category: 'profiles',
-    metric: 300000,
+    metric: 2220,
   },
   {
     name: 'NASA',
     url: 'https://www.instagram.com/nasa',
     type: 'paid',
     category: 'profiles',
-    metric: 150000,
+    metric: 1110,
   },
   {
     name: 'Dan Abramov',

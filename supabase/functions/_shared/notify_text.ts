@@ -14,12 +14,11 @@
  * `language_code` Telegram.
  */
 
-export type NotifyLocale = 'RU' | 'UZ' | 'EN';
+export type NotifyLocale = 'RU' | 'EN';
 
 export function localeFromCode(code: string | null | undefined): NotifyLocale {
   const base = (code ?? '').toLowerCase().split('-')[0];
   if (base === 'ru') return 'RU';
-  if (base === 'uz') return 'UZ';
   return 'EN';
 }
 
@@ -36,18 +35,17 @@ const num = (value: unknown): number => {
 const str = (value: unknown): string => (typeof value === 'string' ? value : '');
 
 /**
- * Суммы в сообщении — очки, то есть сумы: бот пишет о движении ставки, а не о
- * списании с карты. Валюта показа сюда не доезжает и не должна: она живёт в
- * настройках устройства, а сообщение уходит с сервера.
+ * Amounts in a message are points, that is roubles: the bot reports a moving
+ * bid, not a card charge, so the unit is the same in both languages.
  *
- * Разряды разделены неразрывным пробелом: в Telegram сумма не имеет права
- * переехать на вторую строку половиной.
+ * Digit groups are split with a no-break space: in Telegram an amount must
+ * never wrap onto the next line halfway.
  */
-function money(points: number, locale: NotifyLocale): string {
+function money(points: number): string {
   const grouped = Math.abs(points)
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-  return locale === 'EN' ? `${grouped} UZS` : `${grouped} so'm`;
+  return `${grouped} ₽`;
 }
 
 /** «4 д 6 ч» — крупная единица вперёд, минуты только пока нет часов. */
@@ -59,7 +57,6 @@ function held(seconds: number, locale: NotifyLocale): string {
 
   const unit = {
     RU: ['д', 'ч', 'мин'],
-    UZ: ['kun', 'soat', 'daq'],
     EN: ['d', 'h', 'min'],
   }[locale];
 
@@ -69,11 +66,11 @@ function held(seconds: number, locale: NotifyLocale): string {
 }
 
 /**
- * Русская форма после числа: 1 раз, 2 раза, 5 раз, 21 раз, 112 раз.
+ * Russian plural after a number: 1 раз, 2 раза, 5 раз, 21 раз, 112 раз.
  *
- * Нужна ровно одному месту — серии атак, — но нужна: `count` ничем не
- * ограничен, и «5 раза» в сообщении о потерянных деньгах выглядит как машинный
- * перевод. В английском и узбекском форма одна, поэтому их это не касается.
+ * Only the attack streak needs it, but it does: `count` is unbounded, and
+ * «5 раза» in a message about lost money reads like a machine translation.
+ * English has a single form, so it is left alone.
  */
 function timesRu(count: number): string {
   const tail = count % 100;
@@ -85,8 +82,8 @@ function timesRu(count: number): string {
 }
 
 function topName(top: string, locale: NotifyLocale): string {
-  const paid = { RU: 'платном топе', UZ: "to'lovli topda", EN: 'Paid Top' };
-  const free = { RU: 'бесплатном топе', UZ: 'bepul topda', EN: 'Free Top' };
+  const paid = { RU: 'платном топе', EN: 'Paid Top' };
+  const free = { RU: 'бесплатном топе', EN: 'Free Top' };
   return top === 'free' ? free[locale] : paid[locale];
 }
 
@@ -94,7 +91,7 @@ function attacked(p: Record<string, unknown>, locale: NotifyLocale): string {
   const project = str(p.project_name);
   const attacker = str(p.attacker);
   const count = Math.max(1, num(p.count));
-  const lost = money(num(p.amount), locale);
+  const lost = money(num(p.amount));
   const before = num(p.rank_before);
   const after = num(p.rank_after);
   // Ранг мог и не измениться: удар, не сдвинувший позицию, всё равно стоит
@@ -109,16 +106,6 @@ function attacked(p: Record<string, unknown>, locale: NotifyLocale): string {
     return moved
       ? `${head} Ты упал с #${before} на #${after}.`
       : `${head} Ты держишься на #${after}.`;
-  }
-
-  if (locale === 'UZ') {
-    const head =
-      count > 1
-        ? `⚔️ Sizga ketma-ket ${count} marta hujum qilishdi: «${project}» −${lost}.`
-        : `⚔️ ${attacker} sizga hujum qildi: «${project}» −${lost}.`;
-    return moved
-      ? `${head} Siz #${before} dan #${after} ga tushdingiz.`
-      : `${head} Siz #${after} da turibsiz.`;
   }
 
   const head =
@@ -150,11 +137,6 @@ function rankLost(p: Record<string, unknown>, locale: NotifyLocale): string {
     return winner ? `${head} Место занял ${winner}.` : head;
   }
 
-  if (locale === 'UZ') {
-    const head = `👑 Siz endi ${where} birinchi emassiz: «${project}» tojni ${kept} ushlab turdi.`;
-    return winner ? `${head} O'rinni ${winner} egalladi.` : head;
-  }
-
   const head = `👑 You are no longer #1 in the ${where}: "${project}" held the crown for ${kept}.`;
   return winner ? `${head} ${winner} took the spot.` : head;
 }
@@ -176,11 +158,6 @@ function votes(p: Record<string, unknown>, locale: NotifyLocale): string {
       ? `🗳 Твоему проекту «${project}» отдали +${amount} голосов — ${times} отдачи за раз.`
       : `🗳 Твоему проекту «${project}» отдали +${amount} голосов.`;
   }
-  if (locale === 'UZ') {
-    return times > 1
-      ? `🗳 «${project}» loyihangizga +${amount} ovoz berildi — ${times} marta.`
-      : `🗳 «${project}» loyihangizga +${amount} ovoz berildi.`;
-  }
   return times > 1
     ? `🗳 Your project "${project}" got +${amount} votes — ${times} separate votes.`
     : `🗳 Your project "${project}" got +${amount} votes.`;
@@ -195,11 +172,6 @@ function referral(p: Record<string, unknown>, locale: NotifyLocale): string {
       ? `🤝 +${amount} голосов: ${friends} приглашённых тобой выполнили первое задание.`
       : `🤝 +${amount} голосов: приглашённый тобой выполнил первое задание.`;
   }
-  if (locale === 'UZ') {
-    return friends > 1
-      ? `🤝 +${amount} ovoz: siz taklif qilgan ${friends} kishi birinchi topshiriqni bajardi.`
-      : `🤝 +${amount} ovoz: siz taklif qilgan do'st birinchi topshiriqni bajardi.`;
-  }
   return friends > 1
     ? `🤝 +${amount} votes: ${friends} people you invited finished their first task.`
     : `🤝 +${amount} votes: someone you invited finished their first task.`;
@@ -208,7 +180,6 @@ function referral(p: Record<string, unknown>, locale: NotifyLocale): string {
 /** Подпись кнопки, открывающей мини-апп. */
 export function buttonText(locale: NotifyLocale): string {
   if (locale === 'RU') return 'Открыть BidWar';
-  if (locale === 'UZ') return 'BidWar ochish';
   return 'Open BidWar';
 }
 

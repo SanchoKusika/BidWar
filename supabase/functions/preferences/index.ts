@@ -20,7 +20,7 @@ interface PreferencesRequest {
   patch?: Partial<Preferences>;
 }
 
-const LANGUAGES = ['RU', 'UZ', 'EN'];
+const LANGUAGES = ['RU', 'EN'];
 
 const COLUMNS = 'notify_attacked, notify_rank_lost, notify_votes, notify_referral, language';
 

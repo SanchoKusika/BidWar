@@ -7,12 +7,12 @@ export interface PaymentProvider {
   /** Имя глифа в реестре иконок. */
   icon: string;
   desc: string;
-  /** Подпись-плашка: в каких валютах провайдер принимает оплату («только UZS»). */
+  /** Badge text: which currencies the provider charges in («только RUB»). */
   unit: string;
   /**
-   * Код валюты списания. Отдельно от `unit`: та — надпись на плашке и в разных
-   * языках выглядит по-разному, а этот код подставляется в предложение
-   * («GlobalPay списывает в UZS»), и «в только UZS» там читалось бы как ошибка.
+   * Charge currency code. Separate from `unit`: that one is badge text and
+   * differs between languages, while this code goes into a sentence
+   * («Platega списывает в RUB»), where «в только RUB» would read as a typo.
    */
   currency: string;
   /** Проставляется, когда провайдер подключён и комиссия известна. */

@@ -1,34 +1,29 @@
 /**
  * Форматирование чисел двух экономик.
  *
- * Внутри всё считается в очках (1 очко = 1 сум по якорю). Валюта отображения —
- * настройка пользователя: списывается всегда в валюте провайдера, а показывается
- * в выбранной. Курсы фиксированные и приходят из app_config, живого фида нет
- * намеренно — топ не должен дёргаться от колебаний рынка.
+ * Internally everything is counted in points, anchored 1 point = 1 rouble.
+ * Roubles are the only display currency while the product is Russia-only; the
+ * `currency` option stays as the seam a second display currency plugs into.
+ * Multi-currency display with fixed rates lived here until the pivot — see the
+ * `archive/multi-market` tag and the Obsidian note «13 Выход за пределы РФ».
  *
  * Число всегда идёт со своей единицей. Голое число — баг: это единственное,
  * что позволяет спутать деньги с голосами.
  */
 
 import { strings } from '@/shared/i18n/strings';
-export type DisplayCurrency = 'UZS' | 'USD' | 'RUB';
+export type DisplayCurrency = 'RUB';
+
+export const DEFAULT_CURRENCY: DisplayCurrency = 'RUB';
 
 export const CURRENCY_SUFFIX: Record<DisplayCurrency, string> = {
-  UZS: "so'm",
-  USD: '$',
   RUB: '₽',
 };
 
-/** Курс к одному очку. Перезаписывается значениями из app_config при старте. */
+/** Units of a display currency per point. The anchor currency is 1 by definition. */
 const rates: Record<DisplayCurrency, number> = {
-  UZS: 1,
-  USD: 1 / 12100,
-  RUB: 1 / 135,
+  RUB: 1,
 };
-
-export function setRates(next: Partial<Record<DisplayCurrency, number>>): void {
-  Object.assign(rates, next);
-}
 
 export interface MoneyOptions {
   currency?: DisplayCurrency;
@@ -51,7 +46,7 @@ export function convert(points: number, currency: DisplayCurrency): number {
 
 export function formatMoney(
   points: number,
-  { currency = 'UZS', compact = true }: MoneyOptions = {},
+  { currency = DEFAULT_CURRENCY, compact = true }: MoneyOptions = {},
 ): string {
   const n = convert(points, currency);
   if (compact && n >= 1_000_000) return `${trim(n / 1_000_000)} ${strings.units.million}`;
@@ -73,16 +68,12 @@ export function fromDisplay(amount: number, currency: DisplayCurrency): number {
 }
 
 /**
- * Сумма в поле ввода. Сумы целыми — очко к суму привязано один к одному
- * (04 Платежи и валюты), поэтому дробей там не бывает; остальные валюты с
- * копейками, иначе минимальную ставку в 50 000 сум нельзя было бы ни показать,
- * ни набрать: доллара четыре с небольшим.
+ * The amount in an input field. Whole roubles: a point is pinned to a rouble
+ * one to one, so there are no fractions to show or type. A display currency
+ * that is not the anchor would need decimals here again.
  */
 export function formatEditable(points: number, currency: DisplayCurrency): string {
-  const n = convert(points, currency);
-  if (currency === 'UZS') return group(Math.round(n));
-  const [whole = '0', cents = '00'] = n.toFixed(2).split('.');
-  return `${group(Number(whole))}.${cents}`;
+  return group(Math.round(convert(points, currency)));
 }
 
 export function formatVotes(value: number, { compact = true }: { compact?: boolean } = {}): string {

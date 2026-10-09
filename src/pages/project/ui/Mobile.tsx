@@ -45,7 +45,7 @@ export function ProjectPage({
   onOpenProject,
 }: ProjectPageProps) {
   const { userId } = useSession();
-  const { currency, compactAmounts } = useSettings();
+  const { compactAmounts } = useSettings();
   const categories = useCategoryStats(segment);
   const { project, rank, otherEntry, otherRank, status } = useProject(id, segment);
   // Хук стоит до ранних возвратов ниже и потому берёт id из пропа, а не из
@@ -91,7 +91,7 @@ export function ProjectPage({
           ? strings.project.activityAttackIn(event.targetName ?? '—')
           : strings.project.activityAttackOut,
     when: formatReceiptDate(event.createdAt),
-    amount: formatMoney(event.amount, { currency, compact: compactAmounts }),
+    amount: formatMoney(event.amount, { compact: compactAmounts }),
     up: event.type !== 'attack_out',
   }));
 
@@ -102,7 +102,6 @@ export function ProjectPage({
       rank={rank}
       categoryTitle={category ? categoryTitle(category.slug, category.title) : null}
       isOwn={userId !== null && project.userId === userId}
-      currency={currency}
       compactAmounts={compactAmounts}
       owner={PREVIEW.ownerHandle ? OWNER_FIXTURE : undefined}
       activity={activity}

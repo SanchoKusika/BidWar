@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { getPlatform } from '@/shared/platform';
-import { fetchFxRates } from '@/shared/api';
-import { setRates } from '@/shared/lib/format';
 import { useSettings } from '@/shared/settings';
 import type { Locale } from '@/shared/i18n/locale';
 import { SessionProvider } from '@/entities/user';
@@ -19,7 +17,7 @@ import { bindTheme } from './theme';
 import styles from './Shell.module.css';
 
 /** Наш код языка → значение атрибута `lang` по BCP-47. */
-const HTML_LANG: Record<Locale, string> = { RU: 'ru', UZ: 'uz', EN: 'en' };
+const HTML_LANG: Record<Locale, string> = { RU: 'ru', EN: 'en' };
 
 /**
  * Каркас мини-аппа: TabBar снизу переключает вкладки, поверх любой из них
@@ -46,14 +44,6 @@ export function Shell() {
   useEffect(() => {
     document.documentElement.lang = HTML_LANG[language];
   }, [language]);
-
-  // Курсы валюты показа — с сервера, одним запросом на старте. Отказ не
-  // страшен: у formatMoney остаются свои значения, просто без обновления.
-  useEffect(() => {
-    fetchFxRates()
-      .then(setRates)
-      .catch(() => {});
-  }, []);
 
   // Новый экран начинается сверху, а не там, где остался прошлый.
   useEffect(() => {

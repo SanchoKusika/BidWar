@@ -1,10 +1,9 @@
-// Один источник продуктового копирайтинга для Mini App и веба: правила,
-// юридические страницы и провайдеры оплаты обязаны читаться одинаково на обеих
-// площадках.
+// One source of product copy for the Mini App and the web: rules, legal pages
+// and payment providers must read the same on both.
 //
-// Наружу уходят функции, а не объекты: тексты переведены на три языка, и язык
-// выбирается в момент обращения. Объект, собранный при импорте, после
-// переключения языка остался бы вчерашним (см. `locale.ts`).
+// Functions go out, not objects: the texts exist in two languages and the
+// language is picked at call time. An object built on import would stay in
+// the language of the first launch after a switch (see `locale.ts`).
 export { brand } from './brand';
 export { getRules, getDocs, getPaymentMethods, getPaymentProviders } from './locale';
 

@@ -60,7 +60,7 @@ async function attack(
       (user_id, project_id, target_project_id, intent, provider, original_currency,
        original_amount, fx_rate_used, points_granted, status)
     values (${attacker.userId}, ${attacker.projectId}, ${targetProjectId}, 'attack', 'mock',
-            'UZS', ${points}, 1, ${points}, 'pending')
+            'RUB', ${points}, 1, ${points}, 'pending')
     returning id`;
   const [result] = await tx`select * from apply_payment(${payment.id}, ${eventId}, true)`;
   return { paymentId: payment.id as string, result };
@@ -191,7 +191,7 @@ Deno.test('свой проект и бесплатный проект не ат�
       insert into payment_transactions
         (user_id, project_id, target_project_id, intent, provider, original_currency,
          original_amount, fx_rate_used, points_granted, status)
-      values (${victim}, ${beta.projectId}, ${alpha.projectId}, 'attack', 'mock', 'UZS',
+      values (${victim}, ${beta.projectId}, ${alpha.projectId}, 'attack', 'mock', 'RUB',
               10000, 1, 10000, 'pending')
       returning id`;
     const [selfResult] = await tx`select * from apply_payment(${self.id}, 'atk-self', true)`;

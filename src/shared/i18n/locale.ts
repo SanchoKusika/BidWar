@@ -6,22 +6,21 @@
  * зависят оба, а он — ни от кого.
  */
 
-export const LOCALES = ['RU', 'UZ', 'EN'] as const;
+export const LOCALES = ['RU', 'EN'] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = 'EN';
 
 /**
- * Язык оболочки → наш код. `en-US`, `ru-RU` и подобные приходят с регионом,
- * поэтому сравнивается только первая часть.
+ * Shell language → our code. `en-US`, `ru-RU` and the like come with a
+ * region, so only the first part is compared.
  *
- * Незнакомый язык — английский: русский и узбекский мы переводим и отвечаем за
- * них, а подставлять человеку язык, которого в словаре нет, значит показать ему
- * английский под чужой вывеской.
+ * Anything unknown gets English: Russian is the only other language we
+ * translate and answer for. Uzbek existed until the Russia-only pivot (tag
+ * `archive/multi-market`) — a `uz` shell now lands on English too.
  */
 export function localeFromLanguageCode(code: string | null): Locale {
   const base = (code ?? '').toLowerCase().split('-')[0];
   if (base === 'ru') return 'RU';
-  if (base === 'uz') return 'UZ';
   return DEFAULT_LOCALE;
 }

@@ -1,7 +1,6 @@
 import { getSettings, subscribeSettings } from '@/shared/settings';
 import { en } from './en';
 import { ru } from './ru';
-import { uz } from './uz';
 import type { Locale } from './locale';
 
 /** Форму словаря задаёт английский: он обязан быть полным. */
@@ -35,7 +34,7 @@ export type PartialStrings = {
   };
 };
 
-const DICTS: Record<Locale, PartialStrings> = { RU: ru, UZ: uz, EN: en };
+const DICTS: Record<Locale, PartialStrings> = { RU: ru, EN: en };
 
 let current: Locale = getSettings().language;
 subscribeSettings(() => {

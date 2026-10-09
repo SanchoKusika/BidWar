@@ -122,7 +122,7 @@ export const en = {
     title: 'Add a project',
     subtitle: 'One link is enough — we pull the rest',
     linkLabel: 'PROJECT LINK',
-    linkPlaceholder: 't.me/yourchannel or yoursite.uz',
+    linkPlaceholder: 't.me/yourchannel or yoursite.ru',
     destinationLabel: 'WHERE IT COMPETES',
     categoryLabel: 'CATEGORY',
     free: { label: 'Free Top', sub: 'Votes from tasks' },
@@ -248,7 +248,7 @@ export const en = {
     todayEmptyTitle: 'Nothing moved today',
     todayEmptyNote: 'No bid in this top changed in the last 24 hours.',
     justHappened: 'Just happened',
-    /** Подпись яруса: «от 500 000 so'm» — цена входа в этот десяток. */
+    /** Tier label: «от 5 000 ₽» — the entry price into this group of ten. */
     tierFrom: (amount: string) => `from ${amount}`,
     /** Tier divider label. A reading aid over a long list, not a mechanic. */
     tier: (rank: number) => `Top ${rank}`,
@@ -403,8 +403,6 @@ export const en = {
     themeDark: 'Dark',
     vibration: 'Vibration',
     vibrationNote: 'A short buzz when a bid, attack or vote goes through',
-    currency: 'Currency',
-    currencyNote: 'Display only — every charge is made in UZS',
     compact: 'Compact amounts',
     compactNote: '12.5 mil instead of 12 500 000',
 

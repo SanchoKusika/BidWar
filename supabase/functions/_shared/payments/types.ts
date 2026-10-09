@@ -6,7 +6,7 @@
 
 export type PaymentIntent = 'raise' | 'attack';
 
-export type PaymentProviderId = 'mock' | 'globalpay' | 'platega' | 'paddle' | 'telegram_stars';
+export type PaymentProviderId = 'mock' | 'platega' | 'telegram_stars';
 
 /** Как фронт открывает оплату: нативно внутри Telegram или редиректом. */
 export type PaymentMode = 'telegram_native' | 'hosted';

@@ -2,7 +2,6 @@ import { Segmented } from '@/shared/ui/Segmented';
 import { SkeletonBlock } from '@/shared/ui/Skeleton';
 import { SettingsGroup, SettingsRow } from '@/shared/ui/Settings';
 import { Switch } from '@/shared/ui/Switch';
-import type { DisplayCurrency } from '@/shared/lib/format';
 import type { AppSettings, ThemeChoice } from '@/shared/settings';
 import { brand, getPaymentProviders, type DocId } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
@@ -141,19 +140,6 @@ export function SettingsPanel({
               checked={value.haptics}
               onChange={(v) => onChange('haptics', v)}
               label={t.vibration}
-            />
-          }
-        />
-        <SettingsRow
-          icon="banknote"
-          title={t.currency}
-          description={t.currencyNote}
-          control={
-            <Segmented
-              options={['UZS', 'USD', 'RUB']}
-              value={value.currency}
-              onChange={(v) => onChange('currency', v as DisplayCurrency)}
-              size="sm"
             />
           }
         />

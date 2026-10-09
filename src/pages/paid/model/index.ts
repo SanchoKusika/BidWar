@@ -58,9 +58,9 @@ export function useMinPaidAmount(): number {
       fetchPaidLimits()
         .then((limits) => limits.minPaidAmount)
         // Остаёмся с запасным значением — это подсказка, не расчёт платежа.
-        .catch(() => 50000),
+        .catch(() => 300),
     [],
   );
 
-  return useQuery<number>('paid_limits', fetcher).data ?? 50000;
+  return useQuery<number>('paid_limits', fetcher).data ?? 300;
 }
