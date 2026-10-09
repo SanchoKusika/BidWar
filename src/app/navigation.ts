@@ -32,6 +32,16 @@ export interface BoostRequest {
   rank: number | null;
 }
 
+/**
+ * A section of the profile to bring into view on arrival. The tasks tab sends
+ * «invite a friend» here: landing at the top of the profile left the person
+ * to hunt for the referral link themselves. An object, not a string, so the
+ * same request is handled once and a new tap is a new request.
+ */
+export interface ProfileFocusRequest {
+  section: 'referral';
+}
+
 export interface Navigation {
   tab: TabId;
   /** Верхний экран стека или null, когда видна сама вкладка. */
@@ -41,6 +51,8 @@ export interface Navigation {
   attackRequest: AttackRequest | null;
   /** Незабранный запрос доната — читается там же и так же. */
   boostRequest: BoostRequest | null;
+  /** Section the profile should scroll to when it opens. */
+  profileFocus: ProfileFocusRequest | null;
   setTab: (tab: TabId) => void;
   push: (route: Route) => void;
   back: () => void;
@@ -48,6 +60,8 @@ export interface Navigation {
   requestAttack: (target: ProjectListItem, rank: number | null) => void;
   /** Переключает на Paid и просит открыть шторку Raise для чужого проекта. */
   requestBoost: (target: ProjectListItem, rank: number | null) => void;
+  /** Switches to the profile and asks it to scroll to a section. */
+  requestProfileFocus: (section: ProfileFocusRequest['section']) => void;
 }
 
 /**
@@ -66,6 +80,7 @@ export function useNavigation(platform: Platform): Navigation {
   const [stack, setStack] = useState<Route[]>([]);
   const [attackRequest, setAttackRequest] = useState<AttackRequest | null>(null);
   const [boostRequest, setBoostRequest] = useState<BoostRequest | null>(null);
+  const [profileFocus, setProfileFocus] = useState<ProfileFocusRequest | null>(null);
 
   const back = useCallback(() => {
     setStack((s) => s.slice(0, -1));
@@ -92,6 +107,12 @@ export function useNavigation(platform: Platform): Navigation {
     setBoostRequest({ target, rank });
   }, []);
 
+  const requestProfileFocus = useCallback((section: ProfileFocusRequest['section']) => {
+    setStack([]);
+    setTabState('profile');
+    setProfileFocus({ section });
+  }, []);
+
   // Системная кнопка Telegram — единственный способ выйти назад на телефоне,
   // где жеста «свайп от края» у мини-аппа нет.
   useEffect(() => {
@@ -110,12 +131,26 @@ export function useNavigation(platform: Platform): Navigation {
       depth: stack.length,
       attackRequest,
       boostRequest,
+      profileFocus,
       setTab,
       push,
       back,
       requestAttack,
       requestBoost,
+      requestProfileFocus,
     }),
-    [tab, stack, attackRequest, boostRequest, setTab, push, back, requestAttack, requestBoost],
+    [
+      tab,
+      stack,
+      attackRequest,
+      boostRequest,
+      profileFocus,
+      setTab,
+      push,
+      back,
+      requestAttack,
+      requestBoost,
+      requestProfileFocus,
+    ],
   );
 }

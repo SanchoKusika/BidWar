@@ -137,6 +137,7 @@ export function ProfilePage({ nav }: ProfilePageProps) {
         projectsLoading={sessionLoading || mine.loading}
         spendingLoading={sessionLoading || spendingLoading}
         referralLoading={sessionLoading || referral.loading}
+        referralFocus={nav.profileFocus?.section === 'referral' ? nav.profileFocus : null}
         onRefresh={refresh}
         refreshing={mine.refreshing}
         // Формат ссылки — t.me/<bot>?start=<users.id> (01 Механики): раньше

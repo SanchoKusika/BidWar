@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { getPlatform } from '@/shared/platform';
 import { useSettings } from '@/shared/settings';
 import type { Locale } from '@/shared/i18n/locale';
@@ -45,9 +45,44 @@ export function Shell() {
     document.documentElement.lang = HTML_LANG[language];
   }, [language]);
 
-  // Новый экран начинается сверху, а не там, где остался прошлый.
-  useEffect(() => {
-    if (scroller.current) scroller.current.scrollTop = 0;
+  // A new screen starts at the top; going back returns to where the person
+  // left the screen underneath. Before, «back» from the rules also landed at
+  // the top of the profile, far from the link that had been tapped.
+  //
+  // Positions are kept per stack level. The tab page remounts on the way back
+  // and its content may still be arriving, so the restore retries for a few
+  // frames until the page is tall enough to scroll that far.
+  const lastScroll = useRef(0);
+  const scrollStack = useRef<number[]>([]);
+  const shown = useRef({ tab: nav.tab, depth: nav.depth });
+
+  useLayoutEffect(() => {
+    const el = scroller.current;
+    const prev = shown.current;
+    shown.current = { tab: nav.tab, depth: nav.depth };
+    if (!el) return;
+
+    if (nav.tab !== prev.tab) {
+      scrollStack.current = [];
+      el.scrollTop = 0;
+      return;
+    }
+    if (nav.depth > prev.depth) {
+      scrollStack.current.push(lastScroll.current);
+      el.scrollTop = 0;
+      return;
+    }
+    if (nav.depth < prev.depth) {
+      const target = scrollStack.current.splice(nav.depth).at(0) ?? 0;
+      let frames = 0;
+      let raf = 0;
+      const restore = () => {
+        el.scrollTop = target;
+        if (el.scrollTop < target - 1 && frames++ < 30) raf = requestAnimationFrame(restore);
+      };
+      restore();
+      return () => cancelAnimationFrame(raf);
+    }
   }, [nav.tab, nav.depth]);
 
   const openRules = (anchor?: string) => nav.push({ name: 'rules', anchor });
@@ -55,7 +90,13 @@ export function Shell() {
   return (
     <SessionProvider>
       <div className={styles.app}>
-        <main className={styles.content} ref={scroller}>
+        <main
+          className={styles.content}
+          ref={scroller}
+          onScroll={(e) => {
+            lastScroll.current = e.currentTarget.scrollTop;
+          }}
+        >
           {nav.current === null && nav.tab === 'paid' && <PaidMobile nav={nav} />}
           {nav.current === null && nav.tab === 'free' && <FreeMobile nav={nav} />}
           {nav.current === null && nav.tab === 'tasks' && <TasksPage nav={nav} />}
