@@ -25,6 +25,10 @@ export interface Spending {
   month: number;
   /** За всё время. */
   total: number;
+  /** Confirmed payments, all time — every raise, attack and opening bid. */
+  payments: number;
+  /** How many of them were attacks. */
+  attacks: number;
   receipts: readonly SpendingReceipt[];
   /**
    * Points put into each project's bid by this person — own raises and

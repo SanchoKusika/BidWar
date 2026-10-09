@@ -1178,10 +1178,19 @@ export type Database = {
           vote_balance: number
         }[]
       }
+      spending_by_project: {
+        Args: { p_user_id: string }
+        Returns: {
+          project_id: number
+          total: number
+        }[]
+      }
       spending_totals: {
         Args: { p_user_id: string }
         Returns: {
+          attacks: number
           month: number
+          payments: number
           total: number
         }[]
       }

@@ -1,7 +1,12 @@
 import { getPlatform } from '@/shared/platform';
 import { useSession } from '@/entities/user';
 import { categoryTitle, useCategoryStats } from '@/entities/category';
-import { registerClick, type ProjectListItem, type ShowcaseType } from '@/entities/project';
+import {
+  registerClick,
+  useMovement24h,
+  type ProjectListItem,
+  type ShowcaseType,
+} from '@/entities/project';
 import { useProjectActivity } from '@/entities/activity';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { PREVIEW } from '@/shared/config/preview';
@@ -15,7 +20,7 @@ import {
 } from '@/widgets/mobile/ProjectScreen';
 import { DesktopProject, DesktopProjectSkeleton } from '@/widgets/desktop/Project';
 import { useLayout } from '@/shared/lib/layout';
-import { useProject } from '../model';
+import { useMyContribution, useProject } from '../model';
 import styles from './Mobile.module.css';
 
 export interface ProjectPageProps {
@@ -56,6 +61,9 @@ export function ProjectPage({
   // Хук стоит до ранних возвратов ниже и потому берёт id из пропа, а не из
   // загруженного проекта: порядок хуков обязан быть одинаковым на каждый рендер.
   const events = useProjectActivity(id);
+  // Day movement exists for the paid top only (paid_movement_24h).
+  const movement = useMovement24h(segment === 'paid');
+  const contribution = useMyContribution(userId, id);
   const desktop = useLayout() === 'desktop';
   const Screen = desktop ? DesktopProject : ProjectScreen;
 
@@ -116,6 +124,12 @@ export function ProjectPage({
       otherEntry={otherEntry}
       otherRank={otherRank}
       otherIsOwn={userId !== null && otherEntry?.userId === userId}
+      valueDelta={movement.get(project.id)?.amountDelta}
+      rankDelta={(() => {
+        const past = movement.get(project.id)?.rank;
+        return past !== undefined && rank !== null ? past - rank : undefined;
+      })()}
+      contribution={contribution}
       onBack={onBack}
       onOpenLink={() => {
         const initData = getPlatform().getInitData();

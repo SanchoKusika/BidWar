@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState } from '@/shared/ui/EmptyState';
-import { Icon } from '@/shared/ui/Icon';
 import { KeyRow } from '@/shared/ui/KeyRow';
 import { OgPreview } from '@/shared/ui/OgPreview';
 import { ProjectCard, ProjectCardSkeleton } from '@/shared/ui/ProjectCard';
@@ -12,6 +11,7 @@ import {
   CURRENCY_SUFFIX,
   DEFAULT_CURRENCY,
   formatCharged,
+  formatCount,
   formatMoney,
   formatVotes,
 } from '@/shared/lib/format';
@@ -40,8 +40,6 @@ export function DesktopProfile({
   voteBalanceLoading = false,
   spending,
   projects,
-  onRefresh,
-  refreshing = false,
   referralLink,
   referralInvited,
   referralEarned,
@@ -151,12 +149,32 @@ export function DesktopProfile({
                       )
                     }
                   />
+                  <KeyRow
+                    label={strings.web.attacksPaid}
+                    value={
+                      spending ? (
+                        formatCount(spending.attacks ?? 0)
+                      ) : (
+                        <SkeletonText>00</SkeletonText>
+                      )
+                    }
+                  />
+                  <KeyRow
+                    label={strings.web.paymentsMade}
+                    value={
+                      spending ? (
+                        formatCount(spending.payments ?? 0)
+                      ) : (
+                        <SkeletonText>00</SkeletonText>
+                      )
+                    }
+                  />
                 </div>
               </RailCard>
             )}
 
             {showSpending && (
-              <RailCard title={t.receipts}>
+              <RailCard title={t.receipts} footnote={strings.web.receiptsNote}>
                 <div aria-busy={!spending}>
                   {!spending ? (
                     RECEIPT_PLACEHOLDERS.map((width) => (
@@ -188,27 +206,13 @@ export function DesktopProfile({
         <FeedSection
           label={t.myProjects}
           right={
-            <span className={styles.sectionActions}>
-              {onRefresh && (
-                <button
-                  type="button"
-                  className={styles.textButton}
-                  onClick={onRefresh}
-                  disabled={refreshing}
-                >
-                  <Icon name="rotate-ccw" size={13} />
-                  {t.refresh}
-                </button>
-              )}
-              {onAdd ? (
-                <button type="button" className={styles.textButton} onClick={onAdd}>
-                  <Icon name="plus" size={13} />
-                  {t.add}
-                </button>
-              ) : projects.length >= 2 ? (
-                <span className={styles.note}>{t.bothSlotsUsed}</span>
-              ) : null}
-            </span>
+            onAdd ? (
+              <Button variant="secondary" size="sm" icon="plus" onClick={onAdd}>
+                {t.addProject}
+              </Button>
+            ) : projects.length >= 2 ? (
+              <span className={styles.note}>{t.bothSlotsUsed}</span>
+            ) : null
           }
         >
           <div className={styles.projects}>

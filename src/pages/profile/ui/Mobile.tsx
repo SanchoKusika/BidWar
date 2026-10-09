@@ -132,6 +132,8 @@ export function ProfilePage({ nav }: ProfilePageProps) {
             ? {
                 month: spending.month,
                 total: spending.total,
+                payments: spending.payments,
+                attacks: spending.attacks,
                 receipts: spending.receipts.map(toReceipt),
               }
             : undefined

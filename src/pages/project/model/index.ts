@@ -1,4 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { fetchMySpending, type Spending } from '@/shared/api';
+import { getPlatform } from '@/shared/platform';
+import { useQuery } from '@/shared/lib/query';
 import {
   fetchMyProject,
   fetchProject,
@@ -95,4 +98,20 @@ export function useProject(id: number, fallbackSegment: ShowcaseType): ProjectSt
   }, [id, fallbackSegment]);
 
   return { project, rank, otherEntry: other.entry, otherRank: other.rank, status };
+}
+
+/**
+ * How much this viewer has put into the project's bid — own raises and raises
+ * of someone else's project. The same cache key as the profile's spending, so
+ * the two pages share one request. null while unknown (or for a guest).
+ */
+export function useMyContribution(userId: string | null, projectId: number): number | null {
+  const fetcher = useCallback(() => {
+    const initData = getPlatform().getInitData();
+    if (!initData) return Promise.reject(new Error('initData недоступен'));
+    return fetchMySpending(initData);
+  }, []);
+  const query = useQuery<Spending>(userId ? `spending:${userId}` : null, fetcher);
+  if (!query.data) return null;
+  return query.data.byProject?.find((row) => row.projectId === projectId)?.total ?? 0;
 }

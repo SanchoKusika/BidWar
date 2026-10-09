@@ -86,9 +86,11 @@ serve('my-spending', async (req, ctx) => {
   const totals = await db.rpc('spending_totals', { p_user_id: userId });
   if (totals.error) throw totals.error;
   const sums = (Array.isArray(totals.data) ? totals.data[0] : totals.data) as
-    { total: number; month: number } | undefined;
+    { total: number; month: number; payments: number; attacks: number } | undefined;
   const total = Number(sums?.total ?? 0);
   const month = Number(sums?.month ?? 0);
+  const payments = Number(sums?.payments ?? 0);
+  const attacks = Number(sums?.attacks ?? 0);
 
   // What this person has put into each project's bid — own raises and raises
   // of someone else's project. The project page shows it as «you put in».
@@ -116,5 +118,5 @@ serve('my-spending', async (req, ctx) => {
   }));
 
   ctx.log('spending', { receipts: receipts.length });
-  return { month, total, receipts, byProject };
+  return { month, total, payments, attacks, receipts, byProject };
 });

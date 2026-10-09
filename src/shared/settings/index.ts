@@ -60,7 +60,9 @@ const THEMES: readonly ThemeChoice[] = ['auto', 'light', 'dark'];
 function parse(raw: string | null): AppSettings {
   if (!raw) return DEFAULTS;
   try {
-    const stored = JSON.parse(raw) as Partial<Record<keyof AppSettings | 'languageChosen', unknown>>;
+    const stored = JSON.parse(raw) as Partial<
+      Record<keyof AppSettings | 'languageChosen', unknown>
+    >;
     return {
       theme: THEMES.includes(stored.theme as ThemeChoice)
         ? (stored.theme as ThemeChoice)
