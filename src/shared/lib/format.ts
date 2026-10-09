@@ -132,6 +132,23 @@ export function formatFullDate(iso: string): string {
 }
 
 /**
+ * The date in a narrow slot — a stat tile, a tag: «13 сент. 2026» /
+ * «13 Sep 2026». The full form cut off with an ellipsis in the project page's
+ * four-number row. The Russian «г.» is dropped: the year is plain without it.
+ */
+export function formatShortDate(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date
+    .toLocaleDateString(strings.duration.dateLocale, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+    .replace(/\s*г\.$/, '');
+}
+
+/**
  * «Сколько назад» одной короткой строкой — подпись события в ленте.
  * Минуты до часа, часы до суток, дальше дни: точнее в ленте не нужно, а
  * секунды создавали бы иллюзию точности, которой у выборки нет.
