@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getPlatform, signInWithTelegram } from '@/shared/platform';
-import { fetchHealth } from '@/shared/api';
+import { getPlatform, saveLogin, signInWithTelegram } from '@/shared/platform';
+import { exchangeWebLogin, fetchHealth } from '@/shared/api';
 import { dropQueryCache } from '@/shared/lib/query';
 import { SignInContext } from '@/shared/lib/signIn';
 import { strings } from '@/shared/i18n/strings';
@@ -36,9 +36,10 @@ export function WebShell() {
   const [signInError, setSignInError] = useState(false);
 
   /**
-   * Telegram's own sign-in window for the bot the server checks against
-   * (its id comes from `health`, never from a build setting that could name
-   * another bot). A successful sign-in reloads the site: the session, the
+   * Telegram's sign-in popup for the bot the server checks against — its id is
+   * the Client ID in BotFather and comes from `health`, never from a build
+   * setting that could name another bot. The popup's ID token is exchanged
+   * for the site's credential; then the site reloads, so the session, the
    * cache and every screen start over as this account.
    */
   const signIn = useCallback(() => {
@@ -47,10 +48,11 @@ export function WebShell() {
       try {
         const { botId } = await fetchHealth();
         if (!botId) throw new Error('no bot');
-        if (await signInWithTelegram(botId, language.toLowerCase())) {
-          dropQueryCache();
-          window.location.reload();
-        }
+        const idToken = await signInWithTelegram(botId, language.toLowerCase());
+        if (!idToken) return;
+        saveLogin(await exchangeWebLogin(idToken));
+        dropQueryCache();
+        window.location.reload();
       } catch {
         setSignInError(true);
       }

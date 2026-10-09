@@ -29,3 +29,18 @@ export async function authenticate(initData: string): Promise<AuthResult> {
   if (!data) throw new Error('auth ответил пусто');
   return data;
 }
+
+/**
+ * Trades the hour-long ID token from Telegram's sign-in popup for the site's
+ * thirty-day credential. The server checks the token against Telegram's keys
+ * before minting anything (`auth-web`).
+ */
+export async function exchangeWebLogin(idToken: string): Promise<string> {
+  const { data, error } = await getSupabase().functions.invoke<{ login: string }>('auth-web', {
+    method: 'POST',
+    body: { idToken },
+  });
+  if (error) throw new Error(await functionErrorMessage(error, 'Не удалось войти'));
+  if (!data?.login) throw new Error('auth-web ответил пусто');
+  return data.login;
+}

@@ -421,6 +421,9 @@ enabled = true
 [functions.health]
 verify_jwt = true
 
+[functions.auth-web]
+verify_jwt = true
+
 [functions.auth]
 verify_jwt = true
 
