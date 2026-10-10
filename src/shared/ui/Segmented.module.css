@@ -14,10 +14,12 @@
 
 .group[data-segment='paid'] {
   --segmented-accent: var(--paid-accent);
+  --segmented-on-accent: var(--paid-on-accent);
 }
 
 .group[data-segment='free'] {
   --segmented-accent: var(--free-accent);
+  --segmented-on-accent: var(--free-on-accent);
 }
 
 .option {
@@ -41,7 +43,9 @@
   font-size: var(--fs-10);
 }
 
+/* The ink is the accent's own pair: white on the dark theme's light green
+   read at 2:1, where the buttons on the same screen already use dark ink. */
 .option[aria-selected='true'] {
   background: var(--segmented-accent);
-  color: #fff;
+  color: var(--segmented-on-accent, var(--paid-on-accent));
 }

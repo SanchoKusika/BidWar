@@ -11,7 +11,9 @@
   padding: var(--space-10) 0 var(--content-bottom-pad);
 }
 
-.ownSkeleton {
+/* The slot of «your position» in every state — the panel, its placeholder,
+   the sign-in failure, the site's sign-in — holds the page gutter. */
+.own {
   padding: 0 var(--page-gutter);
 }
 

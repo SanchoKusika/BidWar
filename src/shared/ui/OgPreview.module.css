@@ -9,6 +9,14 @@
   border: var(--border-w) solid var(--border-subtle);
 }
 
+/* Under a picture that has come in, the tile turns light in either theme: a
+   site's icon is drawn for a light browser tab, and a black glyph on a
+   transparent ground vanished on the dark tile. A face or an app icon covers
+   the tile whole and is not affected. */
+.preview[data-state='ready'] {
+  background: var(--og-tile);
+}
+
 .image {
   display: block;
   width: 100%;
@@ -16,6 +24,11 @@
   object-fit: cover;
   opacity: 0;
   transition: opacity var(--dur-base) var(--ease-out);
+}
+
+/* A banner is shown whole, not cut to a square from its middle. */
+.image[data-fit='contain'] {
+  object-fit: contain;
 }
 
 .image[data-state='ready'] {

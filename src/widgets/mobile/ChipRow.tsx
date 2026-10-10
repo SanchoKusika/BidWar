@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Icon, type IconName } from '@/shared/ui/Icon';
 import { haptic } from '@/shared/lib/haptic';
 import styles from './ChipRow.module.css';
@@ -30,8 +31,25 @@ export function ChipRow<T extends string | number>({
   onChange,
   tone = 'neutral',
 }: ChipRowProps<T>) {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const settled = useRef(false);
+
+  // The chosen chip is brought into the row's view: a link to /rules/attacks
+  // opened the rules with «Attacks» chosen and cut off past the right edge.
+  // Only the row scrolls, never the page; at once on arrival, smoothly after.
+  useEffect(() => {
+    const row = rowRef.current;
+    const chip = row?.querySelector<HTMLElement>('[data-active="true"]');
+    if (!row || !chip) return;
+    const rowBox = row.getBoundingClientRect();
+    const chipBox = chip.getBoundingClientRect();
+    const offset = chipBox.left - rowBox.left - (rowBox.width - chipBox.width) / 2;
+    row.scrollBy({ left: offset, behavior: settled.current ? 'smooth' : 'auto' });
+    settled.current = true;
+  }, [value]);
+
   return (
-    <div className={styles.row}>
+    <div className={styles.row} ref={rowRef}>
       {items.map((item) => (
         <button
           key={item.id}

@@ -17,6 +17,7 @@
     "db:push": "supabase db push",
     "db:diff": "supabase db diff --linked",
     "db:seed:dev": "deno run --allow-env --allow-net --allow-read --allow-sys --env-file=.env supabase/seed/dev_board.ts",
+    "db:previews": "deno run --allow-env --allow-net --allow-read --allow-sys --env-file=.env supabase/seed/refresh_previews.ts",
     "db:types": "supabase gen types typescript --linked > src/shared/api/database.types.ts",
     "test": "deno test --allow-env supabase/functions",
     "test:db": "deno test --allow-env --allow-net --allow-read --allow-sys --env-file=.env supabase/tests",

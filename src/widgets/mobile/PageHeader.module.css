@@ -47,17 +47,19 @@
 .pill {
   padding: 4px 9px;
   border-radius: var(--radius-pill);
-  color: #fff;
   font: var(--type-label);
   letter-spacing: var(--ls-caps);
 }
 
+/* The accent's own ink, as on the site's band (widgets/desktop/Chrome). */
 .header[data-segment='paid'] .pill {
   background: var(--paid-accent);
+  color: var(--paid-on-accent);
 }
 
 .header[data-segment='free'] .pill {
   background: var(--free-accent);
+  color: var(--free-on-accent);
 }
 
 .title {

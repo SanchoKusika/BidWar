@@ -23,16 +23,16 @@
   transition: var(--t-control);
 }
 
-.option[data-active='true'] {
-  color: #fff;
-}
-
+/* Each accent with its own ink: white on the dark theme's light green read at
+   2:1, beside buttons of the same green with dark ink. */
 .option[data-active='true'][data-segment='paid'] {
   background: var(--paid-accent);
+  color: var(--paid-on-accent);
 }
 
 .option[data-active='true'][data-segment='free'] {
   background: var(--free-accent);
+  color: var(--free-on-accent);
 }
 
 .wrap[data-size='md'] {

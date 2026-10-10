@@ -28,17 +28,22 @@
 
 .chip[data-active='true'] {
   border-color: transparent;
-  color: #fff;
 }
 
+/* The chosen section is the strongest chip on the row: the primary button's
+   pair, black on light and white on dark. It was black in both, and on the
+   dark page the chosen chip was the one that disappeared. */
 .chip[data-active='true'][data-tone='neutral'] {
-  background: var(--n-950);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
 }
 
 .chip[data-active='true'][data-tone='paid'] {
   background: var(--paid-accent);
+  color: var(--paid-on-accent);
 }
 
 .chip[data-active='true'][data-tone='free'] {
   background: var(--free-accent);
+  color: var(--free-on-accent);
 }
