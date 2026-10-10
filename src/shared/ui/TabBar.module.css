@@ -68,24 +68,28 @@
   --tab-accent: var(--paid-accent);
   --tab-tint: var(--paid-tint);
   --tab-badge: var(--attack-accent);
+  --tab-badge-ink: var(--attack-on-accent);
 }
 
 .tab[data-tab='free'] {
   --tab-accent: var(--free-accent);
   --tab-tint: var(--free-tint);
   --tab-badge: var(--attack-accent);
+  --tab-badge-ink: var(--attack-on-accent);
 }
 
 .tab[data-tab='tasks'] {
   --tab-accent: var(--text-primary);
   --tab-tint: var(--surface-sunken);
   --tab-badge: var(--free-accent);
+  --tab-badge-ink: var(--free-on-accent);
 }
 
 .tab[data-tab='profile'] {
   --tab-accent: var(--text-primary);
   --tab-tint: var(--surface-sunken);
   --tab-badge: var(--attack-accent);
+  --tab-badge-ink: var(--attack-on-accent);
 }
 
 .label {
@@ -114,7 +118,7 @@
   justify-content: center;
   border-radius: var(--radius-pill);
   background: var(--tab-badge);
-  color: #fff;
+  color: var(--tab-badge-ink);
   font: var(--type-label);
   font-variant-numeric: tabular-nums;
 }

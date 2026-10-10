@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react';
+import { useState, type CSSProperties, type SyntheticEvent } from 'react';
 import { Icon } from './Icon';
 import { cx } from '@/shared/lib/cx';
 import styles from './OgPreview.module.css';
@@ -6,7 +6,7 @@ import styles from './OgPreview.module.css';
 export type Segment = 'paid' | 'free';
 
 export interface OgPreviewProps {
-  /** Ссылка на og:image, подтянутую с сайта проекта. */
+  /** Картинка проекта: аватар аккаунта или иконка сайта (сервер, _shared/og.ts). */
   src?: string;
   name?: string;
   size?: number;
@@ -17,6 +17,15 @@ export interface OgPreviewProps {
 }
 
 type State = 'loading' | 'ready' | 'empty';
+
+/**
+ * How the picture sits in the square: a face or an icon fills it; anything
+ * clearly wider or taller — a site whose only picture is its link-preview
+ * banner — is shown whole instead of a slice cut from its middle.
+ */
+type Fit = 'cover' | 'contain';
+
+const MAX_SQUARE_RATIO = 1.25;
 
 /**
  * Превью подтягивается автоматически по ссылке проекта, вручную его не загрузить.
@@ -33,6 +42,7 @@ export function OgPreview({
   style,
 }: OgPreviewProps) {
   const [state, setState] = useState<State>(src ? 'loading' : 'empty');
+  const [fit, setFit] = useState<Fit>('cover');
 
   // Смена ссылки сбрасывает состояние прямо в рендере, а не эффектом: эффект
   // здесь дал бы лишний каскадный рендер на каждой смене превью.
@@ -40,13 +50,22 @@ export function OgPreview({
   if (src !== renderedSrc) {
     setRenderedSrc(src);
     setState(src ? 'loading' : 'empty');
+    setFit('cover');
   }
 
   const initial = (name.trim()[0] ?? '?').toUpperCase();
 
+  const onLoad = (event: SyntheticEvent<HTMLImageElement>) => {
+    const { naturalWidth: width, naturalHeight: height } = event.currentTarget;
+    const ratio = width > 0 && height > 0 ? width / height : 1;
+    setFit(ratio > MAX_SQUARE_RATIO || ratio < 1 / MAX_SQUARE_RATIO ? 'contain' : 'cover');
+    setState('ready');
+  };
+
   return (
     <div
       data-segment={segment}
+      data-state={state}
       className={cx(styles.preview, className)}
       style={{ '--og-size': `${size}px`, '--og-radius': radius, ...style } as CSSProperties}
     >
@@ -55,8 +74,13 @@ export function OgPreview({
           src={src}
           alt=""
           data-state={state}
+          data-fit={fit}
           className={styles.image}
-          onLoad={() => setState('ready')}
+          // The picture lives on the project's own server. Without a referrer
+          // it learns nothing about which page showed it, and the servers
+          // that refuse other sites' referrers (hotlink protection) serve it.
+          referrerPolicy="no-referrer"
+          onLoad={onLoad}
           onError={() => setState('empty')}
         />
       )}

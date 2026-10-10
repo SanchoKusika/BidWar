@@ -1,5 +1,7 @@
+/* No outer margin: the screen around the panel keeps the page gutter, as it
+   does for every other block. With its own margin as well, the panel stood
+   a gutter narrower than the feed on the phone (the desktop reset it). */
 .panel {
-  margin: 0 var(--page-gutter);
   padding: var(--card-pad-lg);
   border-radius: var(--radius-panel);
   background: var(--surface-inverse);

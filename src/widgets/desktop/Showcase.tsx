@@ -223,7 +223,7 @@ export function DesktopShowcase(screenProps: ShowcaseScreenProps) {
         rail={
           <>
             {/* For a guest — the sign-in, in the same slot. */}
-            <ShowcaseOwn {...part} panelClassName={styles.ownPanel} />
+            <ShowcaseOwn {...part} />
             {activity && activity.length > 0 && (
               <ActivityFeed
                 max={5}

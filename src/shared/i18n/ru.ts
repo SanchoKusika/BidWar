@@ -287,7 +287,10 @@ export const ru: PartialStrings = {
     todayNote: (segment: 'paid' | 'free') =>
       `Здесь считаются только последние 24 часа. ${segment === 'paid' ? 'Каждая ставка' : 'Каждый голос'} остаётся и в общем топе — ничего не теряется, просто сутки начинаются заново.`,
     todayEmptyTitle: 'За сутки ничего не сдвинулось',
-    todayEmptyNote: 'Ни одна ставка в этом топе не менялась последние 24 часа.',
+    todayEmptyNote: (segment: 'paid' | 'free') =>
+      segment === 'paid'
+        ? 'Ни одна ставка в этом топе не менялась последние 24 часа.'
+        : 'Ни один проект в этом топе не получал голосов последние 24 часа.',
     justHappened: 'Только что',
     tierFrom: (amount: string) => `от ${amount}`,
     tier: (rank: number) => `Топ-${rank}`,

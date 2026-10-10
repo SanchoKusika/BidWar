@@ -321,7 +321,10 @@ export const en = {
     todayNote: (segment: 'paid' | 'free') =>
       `Only the last 24 hours count here. Every ${segment === 'paid' ? 'bid' : 'vote'} also stays in the all-time top — nothing is lost, the day just resets.`,
     todayEmptyTitle: 'Nothing moved today',
-    todayEmptyNote: 'No bid in this top changed in the last 24 hours.',
+    todayEmptyNote: (segment: 'paid' | 'free'): string =>
+      segment === 'paid'
+        ? 'No bid in this top changed in the last 24 hours.'
+        : 'No project in this top got votes in the last 24 hours.',
     justHappened: 'Just happened',
     /** Tier label: «от 5 000 ₽» — the entry price into this group of ten. */
     tierFrom: (amount: string) => `from ${amount}`,

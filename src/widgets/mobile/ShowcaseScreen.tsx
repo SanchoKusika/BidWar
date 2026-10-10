@@ -178,12 +178,7 @@ export function ShowcaseBalance({ props, size = 'md' }: PartProps & { size?: 'md
  * The «your position» panel, the sign-in failure — and on the site, for a
  * viewer with no account, the way in: the slot a position would take.
  */
-export function ShowcaseOwn({
-  props,
-  view,
-  className,
-  panelClassName,
-}: PartProps & { panelClassName?: string }) {
+export function ShowcaseOwn({ props, view, className }: PartProps) {
   const { segment, userId, sessionStatus, sessionErrorMessage, ownLoading, ownRank } = props;
   const actionLabel = segment === 'paid' ? s.raiseMine : s.voteMine;
   const signIn = useGuestSignIn();
@@ -214,16 +209,10 @@ export function ShowcaseOwn({
             // The panel itself with placeholders, held while the session is
             // on the way too: it belongs to every signed-in viewer, and
             // without the placeholder it dropped in once userId landed.
-            <OwnPositionPanel
-              segment={segment}
-              actionLabel={actionLabel}
-              className={panelClassName}
-              loading
-            />
+            <OwnPositionPanel segment={segment} actionLabel={actionLabel} loading />
           ) : (
             <OwnPositionPanel
               segment={segment}
-              className={panelClassName}
               rank={ownRank}
               value={view.ownValue}
               unit={view.unit}
@@ -376,7 +365,7 @@ export function ShowcaseFeed({ props, view, className }: PartProps) {
             segment={segment}
             icon="clock"
             title={s.todayEmptyTitle}
-            description={s.todayEmptyNote}
+            description={s.todayEmptyNote(segment)}
             compact
           />
         ) : (
@@ -505,7 +494,7 @@ export function ShowcaseScreen(screenProps: ShowcaseScreenProps) {
       />
 
       <div className={styles.body}>
-        <ShowcaseOwn {...part} className={styles.ownSkeleton} />
+        <ShowcaseOwn {...part} className={styles.own} />
         <ShowcaseCategories
           {...part}
           className={styles.categoriesScroll}

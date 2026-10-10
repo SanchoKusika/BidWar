@@ -18,6 +18,10 @@ export function bindTheme(platform: Platform): () => void {
     // осталась бы с тёмным фоном клиента (см. комментарий там же).
     if (choice === 'auto') delete root.dataset['themeSource'];
     else root.dataset['themeSource'] = 'user';
+
+    // Inside Telegram the background is the chat's, and the dark surfaces are
+    // mixed from it (colors.css); the site keeps its own palette.
+    root.dataset['shell'] = platform.name;
   };
 
   apply();

@@ -126,6 +126,3 @@
 }
 
 /* In the mini app the panel carries the page gutter; in the rail it sits flush. */
-.ownPanel {
-  margin: 0;
-}

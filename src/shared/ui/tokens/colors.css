@@ -179,6 +179,10 @@
   --skeleton-base: var(--n-100);
   --skeleton-sheen: var(--n-50);
 
+  /* Under a project's picture once it has come in: light in both themes, as a
+     site's icon is drawn for a light browser tab (OgPreview). */
+  --og-tile: var(--n-0);
+
   color-scheme: light;
 }
 
@@ -302,7 +306,38 @@
   --skeleton-base: #171c23;
   --skeleton-sheen: #22293380;
 
+  --og-tile: var(--n-50);
+
   color-scheme: dark;
+}
+
+/* ── Telegram's own dark background ────────────────────────────────────────
+   In the mini app --bg-app is the chat's background: #000 on iOS, but
+   #212d3b, #212121 or #282e33 in other clients, while the dark surfaces
+   above are fixed near-blacks made for our own #07090c. On a blue-grey
+   Telegram every card, tile and the tab bar sat darker than the page behind
+   them, like holes, and the borders vanished. While the theme follows
+   Telegram the surfaces are mixed from its background instead: the same
+   steps of lightness over whatever ground the client gives. A theme picked
+   by hand drops Telegram's colours (data-theme-source, above), and our own
+   palette applies as written; so does the site, which has no Telegram
+   background at all (data-shell, app/theme.ts). */
+@supports (color: color-mix(in srgb, red, blue)) {
+  :root[data-shell='telegram']:not([data-theme-source='user'])[data-theme='dark'] {
+    --bg-elevated: color-mix(in srgb, var(--bg-app), #fff 3%);
+    --surface-card: color-mix(in srgb, var(--bg-app), #fff 4.5%);
+    --surface-sunken: color-mix(in srgb, var(--bg-app), #fff 1.5%);
+    --surface-inset: color-mix(in srgb, var(--bg-app), #fff 8%);
+    --surface-inverse: color-mix(in srgb, var(--bg-app), #fff 10.5%);
+    --border-subtle: color-mix(in srgb, var(--bg-app), #fff 11%);
+    --border-default: color-mix(in srgb, var(--bg-app), #fff 15%);
+    --border-strong: color-mix(in srgb, var(--bg-app), #fff 21%);
+    --rank-default-tint: color-mix(in srgb, var(--bg-app), #fff 11%);
+    --btn-secondary-bg: color-mix(in srgb, var(--bg-app), #fff 11%);
+    --btn-disabled-bg: color-mix(in srgb, var(--bg-app), #fff 9%);
+    --skeleton-base: color-mix(in srgb, var(--bg-app), #fff 8%);
+    --skeleton-sheen: color-mix(in srgb, var(--bg-app), #fff 13%);
+  }
 }
 
 /* A topic's hue on an icon tile: `data-hue` sets the pair, the tile reads

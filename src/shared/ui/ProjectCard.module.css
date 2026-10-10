@@ -17,12 +17,14 @@
 
 .card[data-segment='paid'] {
   --card-accent: var(--paid-accent);
+  --card-on-accent: var(--paid-on-accent);
   --card-tint: var(--paid-tint);
   --card-tint-line: var(--paid-tint-border);
 }
 
 .card[data-segment='free'] {
   --card-accent: var(--free-accent);
+  --card-on-accent: var(--free-on-accent);
   --card-tint: var(--free-tint);
   --card-tint-line: var(--free-tint-border);
 }
@@ -112,7 +114,7 @@
 .own {
   padding: 1px 5px;
   background: var(--card-accent);
-  color: #fff;
+  color: var(--card-on-accent);
 }
 
 .description {
