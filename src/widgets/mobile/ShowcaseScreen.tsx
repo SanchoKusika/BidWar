@@ -4,6 +4,7 @@ import { TierDivider } from '@/shared/ui/TierDivider';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Button } from '@/shared/ui/Button';
 import { StatBlock } from '@/shared/ui/StatBlock';
+import { SignInCard } from '@/shared/ui/SignInCard';
 import { formatHeldDuration, type DisplayCurrency, DEFAULT_CURRENCY } from '@/shared/lib/format';
 import {
   CATEGORY_ICON,
@@ -17,7 +18,7 @@ import type {
   ProjectListItem,
   ShowcaseType,
 } from '@/entities/project';
-import type { SessionStatus } from '@/entities/user';
+import { useGuestSignIn, type SessionStatus } from '@/entities/user';
 import { ActivityFeed, type ActivityItem } from '@/shared/ui/ActivityFeed';
 import { strings } from '@/shared/i18n/strings';
 import { cx } from '@/shared/lib/cx';
@@ -31,6 +32,7 @@ import {
   metricOf,
   spotFor,
   tierFor,
+  useGuestActions,
   useShowcaseView,
   type ShowcaseView,
 } from './showcaseView';
@@ -172,7 +174,10 @@ export function ShowcaseBalance({ props, size = 'md' }: PartProps & { size?: 'md
   return null;
 }
 
-/** The sign-in failure and the «your position» panel. */
+/**
+ * The «your position» panel, the sign-in failure — and on the site, for a
+ * viewer with no account, the way in: the slot a position would take.
+ */
 export function ShowcaseOwn({
   props,
   view,
@@ -181,6 +186,15 @@ export function ShowcaseOwn({
 }: PartProps & { panelClassName?: string }) {
   const { segment, userId, sessionStatus, sessionErrorMessage, ownLoading, ownRank } = props;
   const actionLabel = segment === 'paid' ? s.raiseMine : s.voteMine;
+  const signIn = useGuestSignIn();
+
+  if (signIn) {
+    return (
+      <div className={className}>
+        <SignInCard onSignIn={signIn} note={strings.web.signInRail} compact />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -474,7 +488,8 @@ export function ShowcaseFeed({ props, view, className }: PartProps) {
  * The blocks are shared with the desktop site, which lays them out around a
  * rail instead of in one column.
  */
-export function ShowcaseScreen(props: ShowcaseScreenProps) {
+export function ShowcaseScreen(screenProps: ShowcaseScreenProps) {
+  const props = useGuestActions(screenProps);
   const view = useShowcaseView(props);
   const { segment, onOpenRules, activity } = props;
   const part = { props, view };

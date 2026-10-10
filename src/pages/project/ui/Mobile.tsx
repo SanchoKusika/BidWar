@@ -1,5 +1,5 @@
 import { getPlatform } from '@/shared/platform';
-import { useSession } from '@/entities/user';
+import { useGuestSignIn, useSession } from '@/entities/user';
 import { categoryTitle, useCategoryStats } from '@/entities/category';
 import {
   registerClick,
@@ -55,6 +55,9 @@ export function ProjectPage({
   onOpenProject,
 }: ProjectPageProps) {
   const { userId } = useSession();
+  // Raising, attacking and voting need an account: on the site a viewer
+  // without one is asked to sign in, not sent to a sheet that cannot pay.
+  const signIn = useGuestSignIn();
   const { compactAmounts } = useSettings();
   const categories = useCategoryStats(segment);
   const { project, rank, otherEntry, otherRank, status } = useProject(id, segment);
@@ -78,13 +81,16 @@ export function ProjectPage({
     );
   }
 
-  if (status === 'error' || !project) {
+  if (status === 'missing' || status === 'error' || !project) {
+    // A shared link to a project that is gone says so — «check the
+    // connection» sent people after a problem they did not have.
+    const missing = status === 'missing';
     return (
       <div className={styles.pad}>
         <EmptyState
-          icon="triangle-alert"
-          title={strings.showcase.errorTitle}
-          description={strings.showcase.errorNote}
+          icon={missing ? 'search-x' : 'triangle-alert'}
+          title={missing ? strings.project.missingTitle : strings.showcase.errorTitle}
+          description={missing ? strings.project.missingNote : strings.showcase.errorNote}
           actionLabel={strings.common.back}
           onAction={onBack}
         />
@@ -100,6 +106,7 @@ export function ProjectPage({
   // не храним (01 Механики), а сегодняшний ранг рядом со старой датой был бы
   // выдумкой.
   const activity: ActivityEntry[] = events.map((event) => ({
+    id: event.id,
     label:
       event.type === 'raise'
         ? strings.project.activityRaise
@@ -139,11 +146,12 @@ export function ProjectPage({
       }}
       // Свой проект поднимают на вкладке Paid обычным Raise; чужой — донатом,
       // и цель надо донести до вкладки, иначе шторка не знает, кого поднимать.
-      onRaise={() =>
-        userId !== null && project.userId === userId ? onGoPaid() : onBoost(project, rank)
+      onRaise={
+        signIn ??
+        (() => (userId !== null && project.userId === userId ? onGoPaid() : onBoost(project, rank)))
       }
-      onAttack={() => onAttack(project, rank)}
-      onVote={() => onVote(project, rank)}
+      onAttack={signIn ?? (() => onAttack(project, rank))}
+      onVote={signIn ?? (() => onVote(project, rank))}
       // Вторая запись того же аккаунта — такой же проект со своей страницей.
       // Оба действия карточки были пустыми функциями: «Подробнее» никуда не
       // вело, тап по телу не открывал ссылку — то есть блок выглядел рабочим и

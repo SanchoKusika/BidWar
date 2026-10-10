@@ -110,7 +110,8 @@ export function SettingsPanel({
 }: SettingsPanelProps) {
   // A browser has nothing to vibrate with — the platform's haptic is a no-op
   // there, and a switch that changes nothing is hidden, not shown dead.
-  const haptics = getPlatform().name !== 'web';
+  const web = getPlatform().name === 'web';
+  const haptics = !web;
   const switchPlaceholder = <SkeletonBlock width={46} height={28} radius="var(--radius-pill)" />;
 
   return (
@@ -131,7 +132,8 @@ export function SettingsPanel({
         <SettingsRow
           icon="sun-moon"
           title={t.theme}
-          description={t.themeNote}
+          // On the site «auto» is the device's theme: there is no Telegram.
+          description={web ? t.themeNoteWeb : t.themeNote}
           control={
             <Segmented
               options={themeOptions()}

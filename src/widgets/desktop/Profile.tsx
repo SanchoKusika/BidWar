@@ -5,6 +5,7 @@ import { KeyRow } from '@/shared/ui/KeyRow';
 import { OgPreview } from '@/shared/ui/OgPreview';
 import { ProjectCard, ProjectCardSkeleton } from '@/shared/ui/ProjectCard';
 import { ReferralShareCard } from '@/shared/ui/ReferralShareCard';
+import { SignInCard } from '@/shared/ui/SignInCard';
 import { SkeletonText } from '@/shared/ui/Skeleton';
 import { StatBlock } from '@/shared/ui/StatBlock';
 import {
@@ -17,11 +18,33 @@ import {
 } from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
 import type { ProfileScreenProps } from '@/widgets/mobile/ProfileScreen';
-import { SettingsPanel } from '@/widgets/mobile/SettingsPanel';
+import { SettingsPanel, type SettingsPanelProps } from '@/widgets/mobile/SettingsPanel';
 import { FeedSection, PageBand, PageGrid, RailCard } from './Chrome';
 import styles from './Profile.module.css';
 
 const RECEIPT_PLACEHOLDERS = [184, 148, 168] as const;
+
+/**
+ * The profile for a viewer with no account: the way in, and the device's own
+ * settings — the language among them, which a guest had no way to change.
+ */
+export function DesktopGuestProfile({
+  onSignIn,
+  settings,
+}: {
+  onSignIn: () => void;
+  settings: SettingsPanelProps;
+}) {
+  return (
+    <>
+      <PageBand title={strings.web.profile} />
+      <PageGrid>
+        <SignInCard onSignIn={onSignIn} note={strings.web.signInProfile} />
+        <SettingsPanel {...settings} className={styles.settings} />
+      </PageGrid>
+    </>
+  );
+}
 
 /**
  * The profile on the desktop site (ui_kits/web/Pages.jsx, ProfilePage), on the

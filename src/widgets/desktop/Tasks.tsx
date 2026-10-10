@@ -4,10 +4,9 @@ import { KeyRow } from '@/shared/ui/KeyRow';
 import { StatBlock } from '@/shared/ui/StatBlock';
 import { TaskListItem, TaskListItemSkeleton } from '@/shared/ui/TaskListItem';
 import { TASK_ICON, availableCount, splitTasks, taskCopy, type TaskItem } from '@/entities/task';
+import { SignInCard } from '@/shared/ui/SignInCard';
 import { strings } from '@/shared/i18n/strings';
-import { useSignIn } from '@/shared/lib/signIn';
-import { useSession } from '@/entities/user';
-import { SignInCard } from './SignIn';
+import { useGuestSignIn } from '@/entities/user';
 import type { TasksScreenProps } from '@/widgets/mobile/TasksScreen';
 import { FeedSection, PageBand, PageGrid, RailCard } from './Chrome';
 import styles from './Tasks.module.css';
@@ -62,9 +61,7 @@ export function DesktopTasks({
 }: TasksScreenProps) {
   const t = strings.tasks;
   const w = strings.web;
-  const signIn = useSignIn();
-  const { status } = useSession();
-  const guest = status === 'guest' && signIn !== null;
+  const signIn = useGuestSignIn();
   const { daily, oneTime } = splitTasks(tasks);
   const referral = tasks.find((task) => task.type === 'referral');
 
@@ -152,9 +149,9 @@ export function DesktopTasks({
           </>
         )}
 
-        {guest && signIn && <SignInCard onSignIn={signIn} note={w.signInTasks} />}
+        {signIn && <SignInCard onSignIn={signIn} note={w.signInTasks} />}
 
-        {!guest &&
+        {!signIn &&
           tasks.length === 0 &&
           !loading &&
           (error ? (

@@ -8,6 +8,7 @@ import { ProjectCard, ProjectCardSkeleton } from '@/shared/ui/ProjectCard';
 import { SkeletonText } from '@/shared/ui/Skeleton';
 import { ReferralShareCard } from '@/shared/ui/ReferralShareCard';
 import { SectionLabel } from '@/shared/ui/SectionLabel';
+import { SignInCard } from '@/shared/ui/SignInCard';
 import {
   CURRENCY_SUFFIX,
   formatCharged,
@@ -377,6 +378,35 @@ export function ProfileScreen({
             </Section>
           </div>
         )}
+      </ScreenBody>
+    </>
+  );
+}
+
+/**
+ * The profile of a viewer the site has no account for: the way in where the
+ * account would be, and under it what belongs to the device, not to an
+ * account — language, theme, the rules and the legal pages, which on a phone
+ * have no other way in. Before, a guest got the signed-in profile with no one
+ * in it: dashes for a name, «no projects yet», «+0 votes per friend».
+ */
+export function GuestProfileScreen({
+  onSignIn,
+  settings,
+}: {
+  onSignIn: () => void;
+  settings: SettingsPanelProps;
+}) {
+  return (
+    <>
+      <PageHeader title={t.title} />
+      <ScreenBody>
+        <Gutter>
+          <SignInCard onSignIn={onSignIn} note={strings.web.signInProfile} />
+        </Gutter>
+        <Gutter>
+          <SettingsPanel {...settings} />
+        </Gutter>
       </ScreenBody>
     </>
   );

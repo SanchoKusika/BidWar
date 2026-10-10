@@ -1,25 +1,27 @@
 import { useSession } from '@/entities/user';
 import { Button } from '@/shared/ui/Button';
+import { useSignIn } from '@/shared/lib/signIn';
 import { strings } from '@/shared/i18n/strings';
 import styles from './AccountButton.module.css';
 
 export interface AccountButtonProps {
   active: boolean;
   onOpen: () => void;
-  onSignIn: () => void;
 }
 
 /**
  * The right edge of the top bar: the signed-in account and a way into the
  * profile, or the sign-in for a guest (and after a sign-in that failed).
  */
-export function AccountButton({ active, onOpen, onSignIn }: AccountButtonProps) {
+export function AccountButton({ active, onOpen }: AccountButtonProps) {
   const { status, displayName, avatarUrl } = useSession();
+  const signIn = useSignIn();
 
   if (status === 'loading') return <span className={styles.avatar} aria-busy="true" />;
   if (status !== 'ready') {
+    if (!signIn) return null;
     return (
-      <Button variant="primary" size="sm" icon="send" onClick={onSignIn}>
+      <Button variant="primary" size="sm" icon="send" onClick={signIn}>
         {strings.web.signIn}
       </Button>
     );

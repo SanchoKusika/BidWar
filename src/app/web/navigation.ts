@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 import type { TabId } from '@/shared/ui/TabBar';
 import type { DocId } from '@/shared/content';
 import type { ProjectListItem, ShowcaseType } from '@/entities/project';
@@ -78,7 +86,22 @@ interface EntryState {
   inApp?: boolean;
 }
 
-export function useWebNavigation(): Navigation {
+/** How far the pages are scrolled: in their own element, or in the window. */
+function scrollOf(el: HTMLElement | null | undefined): number {
+  return el ? el.scrollTop : window.scrollY;
+}
+
+function setScroll(el: HTMLElement | null | undefined, top: number): void {
+  if (el) el.scrollTop = top;
+  else window.scrollTo(0, top);
+}
+
+/**
+ * `scrollerRef` — the element the pages scroll in, when it is not the window:
+ * on a phone the site keeps the mini app's frame, where the tab bar stays put
+ * and the content scrolls under it.
+ */
+export function useWebNavigation(scrollerRef?: RefObject<HTMLElement | null>): Navigation {
   const [location, setLocation] = useState<Location>(() => current('paid'));
   const [attackRequest, setAttackRequest] = useState<AttackRequest | null>(null);
   const [boostRequest, setBoostRequest] = useState<BoostRequest | null>(null);
@@ -106,24 +129,29 @@ export function useWebNavigation(): Navigation {
   // the entry was left at. Retried for a few frames: the page underneath is
   // remounted and may still be filling in from the cache.
   useLayoutEffect(() => {
+    const el = scrollerRef?.current;
     const target = pendingScroll.current ?? 0;
     pendingScroll.current = null;
     let frames = 0;
     let raf = 0;
     const restore = () => {
-      window.scrollTo(0, target);
-      if (window.scrollY < target - 1 && frames++ < 30) raf = requestAnimationFrame(restore);
+      setScroll(el, target);
+      if (scrollOf(el) < target - 1 && frames++ < 30) raf = requestAnimationFrame(restore);
     };
     restore();
     return () => cancelAnimationFrame(raf);
-  }, [location]);
+  }, [location, scrollerRef]);
 
-  const go = useCallback((tab: TabId, route: Route | null) => {
-    const here = (window.history.state ?? {}) as EntryState;
-    window.history.replaceState({ ...here, scroll: window.scrollY } satisfies EntryState, '');
-    window.history.pushState({ inApp: true } satisfies EntryState, '', pathOf(tab, route));
-    setLocation({ tab, route });
-  }, []);
+  const go = useCallback(
+    (tab: TabId, route: Route | null) => {
+      const here = (window.history.state ?? {}) as EntryState;
+      const scroll = scrollOf(scrollerRef?.current);
+      window.history.replaceState({ ...here, scroll } satisfies EntryState, '');
+      window.history.pushState({ inApp: true } satisfies EntryState, '', pathOf(tab, route));
+      setLocation({ tab, route });
+    },
+    [scrollerRef],
+  );
 
   const setTab = useCallback((tab: TabId) => go(tab, null), [go]);
   const push = useCallback((route: Route) => go(tabRef.current, route), [go]);

@@ -29,6 +29,8 @@ const t = strings.project;
 
 /** Строка ленты «что происходило со ставкой». Пока считается из витрины. */
 export interface ActivityEntry {
+  /** The ledger row's id: two raises in the same minute read the same otherwise. */
+  id: number;
   label: string;
   when: string;
   amount: string;
@@ -332,7 +334,7 @@ export function ProjectScreen({
               <RowsCard>
                 {activity.map((entry) => (
                   <KeyRow
-                    key={`${entry.label}-${entry.when}`}
+                    key={entry.id}
                     label={`${entry.label} · ${entry.when}`}
                     value={`${entry.up ? '+' : '−'}${entry.amount}`}
                     tone={entry.up ? 'up' : 'attack'}

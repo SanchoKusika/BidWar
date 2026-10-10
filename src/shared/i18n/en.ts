@@ -103,7 +103,10 @@ export const en = {
     signInProfile: 'Your projects, votes, receipts and settings live in your account.',
     signInRail: 'Add a project, raise bids and give votes from your Telegram account.',
     signInExpired: 'Your sign-in has expired — reload the page and sign in with Telegram again.',
+    signInProblem: 'Could not sign in',
     signInFailed: 'Telegram sign-in did not open. Try again in a moment.',
+    signInBlocked:
+      'The browser did not let the Telegram window open. Tap the button again — or allow pop-ups for this site.',
     profile: 'Profile',
     footerTagline: 'Two independent tops. Money never becomes votes, votes never become money.',
     next: 'NEXT',
@@ -436,6 +439,8 @@ export const en = {
     otherSlotNote: (buyer: string) =>
       `${buyer} uses only this slot. Every account may hold one more — one entry in each top.`,
     rulesButton: 'Rules of the game',
+    missingTitle: 'No such project',
+    missingNote: 'It may have left the top, or the link is wrong.',
   },
 
   profile: {
@@ -472,6 +477,7 @@ export const en = {
     language: 'Language',
     theme: 'Theme',
     themeNote: 'Auto follows your Telegram theme',
+    themeNoteWeb: 'Auto follows your device theme',
     themeAuto: 'Auto',
     themeLight: 'Light',
     themeDark: 'Dark',

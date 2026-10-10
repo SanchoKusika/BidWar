@@ -10,10 +10,3 @@
 .page {
   flex: 1;
 }
-
-.dialogText {
-  margin: 0;
-  padding-right: var(--space-16);
-  font: var(--type-body);
-  color: var(--text-primary);
-}
