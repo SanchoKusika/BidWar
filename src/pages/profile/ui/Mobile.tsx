@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSession } from '@/entities/user';
+import { useGuestSignIn, useSession } from '@/entities/user';
 import { removeMyProjects } from '@/entities/project';
 import { useTaskBoard } from '@/entities/task';
 import { brand } from '@/shared/content';
@@ -10,10 +10,11 @@ import { dropQueryCache } from '@/shared/lib/query';
 import { strings } from '@/shared/i18n/strings';
 import { setSetting, useSettings, type ThemeChoice } from '@/shared/settings';
 import type { Locale } from '@/shared/i18n/locale';
-import { ProfileScreen, type Receipt } from '@/widgets/mobile/ProfileScreen';
-import { DesktopProfile } from '@/widgets/desktop/Profile';
+import { GuestProfileScreen, ProfileScreen, type Receipt } from '@/widgets/mobile/ProfileScreen';
+import { DesktopGuestProfile, DesktopProfile } from '@/widgets/desktop/Profile';
 import { useLayout } from '@/shared/lib/layout';
 import { ConfirmSheet } from '@/widgets/mobile/ConfirmSheet';
+import type { SettingsPanelProps } from '@/widgets/mobile/SettingsPanel';
 import type { Navigation } from '@/app/navigation';
 import { useMyProjects, useMySpending, useNotificationPrefs } from '../model';
 
@@ -84,7 +85,9 @@ export function ProfilePage({ nav }: ProfilePageProps) {
   const mine = useMyProjects(userId);
   const { spending, loading: spendingLoading, retry: retrySpending } = useMySpending(userId);
   const referral = useReferralNumbers();
-  const Screen = useLayout() === 'desktop' ? DesktopProfile : ProfileScreen;
+  const desktop = useLayout() === 'desktop';
+  const Screen = desktop ? DesktopProfile : ProfileScreen;
+  const signIn = useGuestSignIn();
 
   const [removeOpen, setRemoveOpen] = useState(false);
   const [removing, setRemoving] = useState(false);
@@ -117,6 +120,68 @@ export function ProfilePage({ nav }: ProfilePageProps) {
       setRemoving(false);
     }
   };
+
+  const settingsPanel: SettingsPanelProps = {
+    value: settings,
+    // Разбор по ключу, а не один setSetting(key, next): сузить сам ключ
+    // TypeScript умеет, а связанное с ним значение — нет, поэтому тип
+    // значения подтверждается здесь по одной ветке на настройку.
+    onChange: (key, next) => {
+      if (key === 'theme') setSetting('theme', next as ThemeChoice);
+      else if (key === 'compactAmounts') setSetting('compactAmounts', next as boolean);
+      else if (key === 'haptics') setSetting('haptics', next as boolean);
+      else if (key === 'language') {
+        setSetting('language', next as Locale);
+        // Язык уезжает и на сервер: тем же языком бот пишет уведомления,
+        // и подпись группы это прямо обещает. Экран при этом не ждёт
+        // ответа — интерфейс переключается сразу, локально.
+        prefs.set({ language: next as Locale });
+      }
+    },
+    // Группы нет, пока сервер не ответил: тумблер с выдуманным
+    // состоянием врал бы про то, что придёт в Telegram.
+    notifications: prefs.value
+      ? {
+          value: prefs.value,
+          onChange: (key, nextValue) => prefs.set({ [key]: nextValue }),
+          error: prefs.error,
+        }
+      : undefined,
+    notificationsLoading: sessionLoading || prefs.loading,
+    onRules: () => nav.push({ name: 'rules', anchor: 'bidding' }),
+    onDoc: (id) => nav.push({ name: 'doc', id }),
+    // Only the site keeps a sign-in to drop; the mini app is signed in
+    // by Telegram itself and has nothing to sign out of.
+    onSignOut:
+      getPlatform().name === 'web' && storedLogin()
+        ? () => {
+            clearLogin();
+            dropQueryCache();
+            window.location.assign('/');
+          }
+        : undefined,
+    // Development tool: wipes projects and payment history for real. Shown
+    // only while payments run on the mock, the same boundary the server
+    // function checks; in production this lives in the admin panel.
+    onRemoveProjects:
+      PREVIEW.mockPayments && mine.projects.length > 0
+        ? () => {
+            setRemoveError(null);
+            setRemoveOpen(true);
+          }
+        : undefined,
+  };
+
+  // A viewer the site has no account for: the way in, and the settings that
+  // belong to the device. The signed-in profile with nobody in it was what a
+  // phone showed before.
+  if (signIn) {
+    return desktop ? (
+      <DesktopGuestProfile onSignIn={signIn} settings={settingsPanel} />
+    ) : (
+      <GuestProfileScreen onSignIn={signIn} settings={settingsPanel} />
+    );
+  }
 
   return (
     <>
@@ -167,56 +232,7 @@ export function ProfilePage({ nav }: ProfilePageProps) {
         referralEarned={referral.rewarded * referral.reward}
         referralReward={referral.reward}
         compactAmounts={settings.compactAmounts}
-        settings={{
-          value: settings,
-          // Разбор по ключу, а не один setSetting(key, next): сузить сам ключ
-          // TypeScript умеет, а связанное с ним значение — нет, поэтому тип
-          // значения подтверждается здесь по одной ветке на настройку.
-          onChange: (key, next) => {
-            if (key === 'theme') setSetting('theme', next as ThemeChoice);
-            else if (key === 'compactAmounts') setSetting('compactAmounts', next as boolean);
-            else if (key === 'haptics') setSetting('haptics', next as boolean);
-            else if (key === 'language') {
-              setSetting('language', next as Locale);
-              // Язык уезжает и на сервер: тем же языком бот пишет уведомления,
-              // и подпись группы это прямо обещает. Экран при этом не ждёт
-              // ответа — интерфейс переключается сразу, локально.
-              prefs.set({ language: next as Locale });
-            }
-          },
-          // Группы нет, пока сервер не ответил: тумблер с выдуманным
-          // состоянием врал бы про то, что придёт в Telegram.
-          notifications: prefs.value
-            ? {
-                value: prefs.value,
-                onChange: (key, nextValue) => prefs.set({ [key]: nextValue }),
-                error: prefs.error,
-              }
-            : undefined,
-          notificationsLoading: sessionLoading || prefs.loading,
-          onRules: () => nav.push({ name: 'rules', anchor: 'bidding' }),
-          onDoc: (id) => nav.push({ name: 'doc', id }),
-          // Only the site keeps a sign-in to drop; the mini app is signed in
-          // by Telegram itself and has nothing to sign out of.
-          onSignOut:
-            getPlatform().name === 'web' && storedLogin()
-              ? () => {
-                  clearLogin();
-                  dropQueryCache();
-                  window.location.assign('/');
-                }
-              : undefined,
-          // Development tool: wipes projects and payment history for real. Shown
-          // only while payments run on the mock, the same boundary the server
-          // function checks; in production this lives in the admin panel.
-          onRemoveProjects:
-            PREVIEW.mockPayments && mine.projects.length > 0
-              ? () => {
-                  setRemoveError(null);
-                  setRemoveOpen(true);
-                }
-              : undefined,
-        }}
+        settings={settingsPanel}
         onEarn={() => nav.setTab('tasks')}
         onOpenProject={(project) =>
           nav.push({ name: 'project', id: project.id, segment: project.type })

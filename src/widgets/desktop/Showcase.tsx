@@ -8,7 +8,6 @@ import { LiveCount } from '@/shared/ui/LiveCount';
 import { useOnlineCount } from '@/shared/lib/online';
 import { getRules, type Fact } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
-import { useSignIn } from '@/shared/lib/signIn';
 import {
   ShowcaseBalance,
   ShowcaseCategories,
@@ -17,9 +16,13 @@ import {
   type ShowcaseScreenProps,
 } from '@/widgets/mobile/ShowcaseScreen';
 import { ScopeToggle } from '@/widgets/mobile/ScopeToggle';
-import { metricOf, useShowcaseView, type ShowcaseView } from '@/widgets/mobile/showcaseView';
+import {
+  metricOf,
+  useGuestActions,
+  useShowcaseView,
+  type ShowcaseView,
+} from '@/widgets/mobile/showcaseView';
 import { PageBand, PageGrid, RailCard } from './Chrome';
-import { SignInCard } from './SignIn';
 import styles from './Showcase.module.css';
 
 /**
@@ -167,21 +170,7 @@ function RankingHead({ props, view }: { props: ShowcaseScreenProps; view: Showca
  * cap.
  */
 export function DesktopShowcase(screenProps: ShowcaseScreenProps) {
-  const signIn = useSignIn();
-  // A guest sees the same buttons a signed-in stranger would — raise a row,
-  // give votes, take a spot, add a project — and each one asks to sign in
-  // instead of opening a payment that has no account behind it.
-  const guest = screenProps.sessionStatus === 'guest' && signIn !== null;
-  const props: ShowcaseScreenProps =
-    guest && signIn
-      ? {
-          ...screenProps,
-          onBoost: screenProps.segment === 'paid' ? () => signIn() : undefined,
-          onVote: screenProps.segment === 'free' ? () => signIn() : undefined,
-          onTakeSpot: () => signIn(),
-          onAddProject: () => signIn(),
-        }
-      : screenProps;
+  const props = useGuestActions(screenProps);
   const view = useShowcaseView(props);
   const online = useOnlineCount();
   const { segment, items, minStep, hasMore, activity, onOpenRules } = props;
@@ -233,11 +222,8 @@ export function DesktopShowcase(screenProps: ShowcaseScreenProps) {
       <PageGrid
         rail={
           <>
-            {guest && signIn ? (
-              <SignInCard onSignIn={signIn} note={w.signInRail} compact />
-            ) : (
-              <ShowcaseOwn {...part} panelClassName={styles.ownPanel} />
-            )}
+            {/* For a guest — the sign-in, in the same slot. */}
+            <ShowcaseOwn {...part} panelClassName={styles.ownPanel} />
             {activity && activity.length > 0 && (
               <ActivityFeed
                 max={5}

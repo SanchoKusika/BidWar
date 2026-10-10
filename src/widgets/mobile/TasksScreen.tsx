@@ -1,8 +1,10 @@
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { SectionLabel } from '@/shared/ui/SectionLabel';
+import { SignInCard } from '@/shared/ui/SignInCard';
 import { StatBlock } from '@/shared/ui/StatBlock';
 import { TaskListItem, TaskListItemSkeleton } from '@/shared/ui/TaskListItem';
 import { TASK_ICON, splitTasks, taskCopy, type TaskItem } from '@/entities/task';
+import { useGuestSignIn } from '@/entities/user';
 import { strings } from '@/shared/i18n/strings';
 import { PageHeader } from './PageHeader';
 import { HeaderAction } from './HeaderAction';
@@ -41,6 +43,9 @@ export function TasksScreen({
   onRules,
 }: TasksScreenProps) {
   const { daily, oneTime } = splitTasks(tasks);
+  // Tasks pay an account. Without one the board has no answer at all, and
+  // «that's all for today» in its place would be a claim about nothing.
+  const signIn = useGuestSignIn();
 
   return (
     <>
@@ -82,7 +87,13 @@ export function TasksScreen({
           </>
         )}
 
-        {tasks.length === 0 && !loading && (
+        {signIn && (
+          <Gutter>
+            <SignInCard onSignIn={signIn} note={strings.web.signInTasks} />
+          </Gutter>
+        )}
+
+        {!signIn && tasks.length === 0 && !loading && (
           <Gutter>
             {/* Три разных пустых экрана, а не один: «ещё грузится», «не
                 загрузилось» и «всё сделано» — разные новости, и подменять

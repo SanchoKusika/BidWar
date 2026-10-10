@@ -1,7 +1,7 @@
-import { Button } from '@/shared/ui/Button';
-import { Icon } from '@/shared/ui/Icon';
+import { Button } from './Button';
+import { Icon } from './Icon';
 import { strings } from '@/shared/i18n/strings';
-import styles from './SignIn.module.css';
+import styles from './SignInCard.module.css';
 
 /**
  * The invitation a guest sees where an action needs an account: the same

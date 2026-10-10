@@ -7,6 +7,7 @@ import {
 } from '@/shared/lib/format';
 import { categoryTitle, type CategoryStat } from '@/entities/category';
 import type { NeighborProject, ProjectListItem, ShowcaseType } from '@/entities/project';
+import { useGuestSignIn } from '@/entities/user';
 import { strings } from '@/shared/i18n/strings';
 import type { ShowcaseScreenProps } from './ShowcaseScreen';
 
@@ -136,6 +137,24 @@ function gapHint(
   return segment === 'paid'
     ? s.gapPaid(`${amount} ${unit}`, neighborAbove.name, rank - 1)
     : s.gapFree(amount, neighborAbove.name, rank - 1);
+}
+
+/**
+ * A viewer the site has no account for sees the buttons a signed-in stranger
+ * would — raise a row, give votes, take a spot, add a project — and each one
+ * asks to sign in instead of opening a payment with no account behind it.
+ * Anyone else, and everyone in the mini app, gets the props as they came.
+ */
+export function useGuestActions(props: ShowcaseScreenProps): ShowcaseScreenProps {
+  const signIn = useGuestSignIn();
+  if (!signIn) return props;
+  return {
+    ...props,
+    onBoost: props.segment === 'paid' ? () => signIn() : undefined,
+    onVote: props.segment === 'free' ? () => signIn() : undefined,
+    onTakeSpot: () => signIn(),
+    onAddProject: () => signIn(),
+  };
 }
 
 /** Everything the blocks below derive from the props — one place for both layouts. */

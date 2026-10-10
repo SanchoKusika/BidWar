@@ -20,8 +20,6 @@ import {
 } from '@/shared/lib/format';
 import { displayUrl } from '@/shared/lib/url';
 import { strings } from '@/shared/i18n/strings';
-import { useSignIn } from '@/shared/lib/signIn';
-import { useSession } from '@/entities/user';
 import type { ShowcaseType } from '@/entities/project';
 import type { ProjectScreenProps } from '@/widgets/mobile/ProjectScreen';
 import { FeedSection, PageBand, PageGrid, RailCard } from './Chrome';
@@ -66,21 +64,14 @@ export function DesktopProject({
   contribution = null,
   onBack,
   onOpenLink,
-  onRaise: raise,
-  onAttack: attack,
-  onVote: vote,
+  onRaise,
+  onAttack,
+  onVote,
   onOpenOther,
   onOpenOtherLink,
 }: ProjectScreenProps) {
   const t = strings.project;
   const w = strings.web;
-  const signIn = useSignIn();
-  const { status } = useSession();
-  // Raising, attacking and voting need an account; a guest is asked to sign in.
-  const gate = status === 'guest' && signIn ? signIn : null;
-  const onRaise = gate ?? raise;
-  const onAttack = gate ?? attack;
-  const onVote = gate ?? vote;
 
   const paid = segment === 'paid';
   const metric = paid ? project.paidAmount : project.votes;
@@ -257,7 +248,7 @@ export function DesktopProject({
               <div className={styles.rows}>
                 {activity.map((entry) => (
                   <KeyRow
-                    key={`${entry.label}-${entry.when}`}
+                    key={entry.id}
                     label={`${entry.label} · ${entry.when}`}
                     value={`${entry.up ? '+' : '−'}${entry.amount}`}
                     tone={entry.up ? 'up' : 'attack'}

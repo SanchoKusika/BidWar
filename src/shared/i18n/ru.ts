@@ -87,7 +87,10 @@ export const ru: PartialStrings = {
     signInProfile: 'Твои проекты, голоса, чеки и настройки живут в аккаунте.',
     signInRail: 'Добавляй проект, поднимай ставки и отдавай голоса из своего Telegram-аккаунта.',
     signInExpired: 'Вход устарел — обнови страницу и войди через Telegram ещё раз.',
+    signInProblem: 'Не получилось войти',
     signInFailed: 'Вход через Telegram не открылся. Попробуй ещё раз через минуту.',
+    signInBlocked:
+      'Браузер не дал открыть окно Telegram. Нажми кнопку ещё раз — или разреши всплывающие окна для этого сайта.',
     profile: 'Профиль',
     footerTagline: 'Два независимых топа. Деньги не становятся голосами, голоса — деньгами.',
     next: 'ДАЛЕЕ',
@@ -389,6 +392,8 @@ export const ru: PartialStrings = {
     otherSlotNote: (buyer: string) =>
       `${buyer} занимает только этот слот. У каждого аккаунта есть ещё один — по одной записи в каждом топе.`,
     rulesButton: 'Правила игры',
+    missingTitle: 'Такого проекта нет',
+    missingNote: 'Возможно, он ушёл из топа или ссылка с ошибкой.',
   },
 
   profile: {
@@ -425,6 +430,7 @@ export const ru: PartialStrings = {
     language: 'Язык',
     theme: 'Тема',
     themeNote: '«Авто» следует за темой Telegram',
+    themeNoteWeb: '«Авто» следует за темой устройства',
     themeAuto: 'Авто',
     themeLight: 'Светлая',
     themeDark: 'Тёмная',

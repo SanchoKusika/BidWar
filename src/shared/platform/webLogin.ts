@@ -66,10 +66,25 @@ export function saveLogin(login: string): void {
   }
 }
 
+/**
+ * The browser would not open the sign-in window. It lets one open only in
+ * direct answer to a tap, and a phone's browser is the strictest about it.
+ */
+export class PopupBlockedError extends Error {
+  constructor() {
+    super('The Telegram sign-in window was blocked');
+    this.name = 'PopupBlockedError';
+  }
+}
+
 let scriptLoad: Promise<TelegramLoginApi> | null = null;
 
+function loadedWidget(): TelegramLoginApi | null {
+  return (window as { Telegram?: { Login?: TelegramLoginApi } }).Telegram?.Login ?? null;
+}
+
 function loadWidget(): Promise<TelegramLoginApi> {
-  const existing = (window as { Telegram?: { Login?: TelegramLoginApi } }).Telegram?.Login;
+  const existing = loadedWidget();
   if (existing) return Promise.resolve(existing);
   if (!scriptLoad) {
     scriptLoad = new Promise((resolve, reject) => {
@@ -77,7 +92,7 @@ function loadWidget(): Promise<TelegramLoginApi> {
       script.src = SCRIPT_URL;
       script.async = true;
       script.onload = () => {
-        const api = (window as { Telegram?: { Login?: TelegramLoginApi } }).Telegram?.Login;
+        const api = loadedWidget();
         if (api) resolve(api);
         else reject(new Error('Telegram Login did not load'));
       };
@@ -92,22 +107,48 @@ function loadWidget(): Promise<TelegramLoginApi> {
 }
 
 /**
+ * Loads the library before anyone taps «Sign in». A script load between the
+ * tap and the window is enough for a phone's browser to block the window;
+ * and inside Telegram's own browser the library needs a moment after loading
+ * to learn it can ask Telegram for a native confirmation instead.
+ */
+export function preloadTelegramLogin(): void {
+  loadWidget().catch(() => {
+    // The tap loads it again and reports the failure then.
+  });
+}
+
+/**
  * Opens Telegram's sign-in popup for the bot and resolves with its ID token,
  * or null when the person closed it. `write` lets the bot send the attack and
- * rank notices.
- *
+ * rank notices. With the library already loaded the window opens inside the
+ * caller's tap; otherwise after the load, where a strict browser may block it.
+ */
+export function signInWithTelegram(clientId: number, lang: string): Promise<string | null> {
+  const api = loadedWidget();
+  if (api) return openSignIn(api, clientId, lang);
+  return loadWidget().then((loaded) => openSignIn(loaded, clientId, lang));
+}
+
+/**
  * The library sends the current page as `redirect_uri`, and Telegram checks it
  * against BotFather's list exactly — `/project/42` or `/free` would never
  * match. The address is set to the site root for the moment the popup is
  * built (the library reads it synchronously) and put back right after, so
  * one registered URL, `https://bidwar.world/`, serves every page.
  */
-export async function signInWithTelegram(clientId: number, lang: string): Promise<string | null> {
-  const api = await loadWidget();
+function openSignIn(api: TelegramLoginApi, clientId: number, lang: string): Promise<string | null> {
   return new Promise((resolve, reject) => {
     const here = window.location.pathname + window.location.search + window.location.hash;
     const state: unknown = window.history.state;
     if (window.location.pathname !== '/') window.history.replaceState(state, '', '/');
+    // When the browser blocks the window, the library gets null back and
+    // never calls the callback: the button would simply do nothing. The
+    // window is caught on its way out to tell that apart. Inside Telegram's
+    // own browser no window is opened at all, and nothing is caught.
+    const open = window.open;
+    let opened: Window | null | undefined;
+    window.open = (...args: Parameters<Window['open']>) => (opened = open.apply(window, args));
     try {
       api.auth({ client_id: clientId, request_access: ['write'], lang }, (result) => {
         if (result.id_token) resolve(result.id_token);
@@ -115,7 +156,9 @@ export async function signInWithTelegram(clientId: number, lang: string): Promis
         else reject(new Error(result.error));
       });
     } finally {
+      window.open = open;
       if (here !== '/') window.history.replaceState(state, '', here);
     }
+    if (opened === null) reject(new PopupBlockedError());
   });
 }

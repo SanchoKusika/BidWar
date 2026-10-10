@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { getPlatform } from '@/shared/platform';
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
+import { getPlatform, type Platform } from '@/shared/platform';
 import { useSettings } from '@/shared/settings';
 import { useJoinOnline } from '@/shared/lib/online';
 import type { Locale } from '@/shared/i18n/locale';
@@ -13,7 +13,7 @@ import { ProjectPage } from '@/pages/project/ui/Mobile';
 import { RulesScreen } from '@/widgets/mobile/RulesScreen';
 import { DocScreen } from '@/widgets/mobile/DocScreen';
 import { availableCount, useTaskBoard } from '@/entities/task';
-import { useNavigation } from './navigation';
+import { useNavigation, type Navigation } from './navigation';
 import { bindTheme } from './theme';
 import styles from './Shell.module.css';
 
@@ -21,30 +21,13 @@ import styles from './Shell.module.css';
 const HTML_LANG: Record<Locale, string> = { RU: 'ru', EN: 'en' };
 
 /**
- * Каркас мини-аппа: TabBar снизу переключает вкладки, поверх любой из них
- * ложится стек экранов (проект, правила, документ) — см. app/navigation.ts.
+ * The mini app: the frame below, an in-memory stack of screens over the tabs
+ * and Telegram's own back button (app/navigation.ts).
  */
 export function Shell() {
   const [platform] = useState(getPlatform);
   const nav = useNavigation(platform);
   const scroller = useRef<HTMLElement>(null);
-  // Каркас подписан на язык ради одного: словарь читает его в момент
-  // обращения к строке, но сам по себе перерисовку не запускает. Подписка
-  // здесь, а не перемонтирование по `key`, потому что перемонтирование сбросило
-  // бы вкладку и прокрутку — человек менял язык, а не уходил с экрана.
-  const { language } = useSettings();
-  const board = useTaskBoard();
-  const availableTasks = board.data ? availableCount(board.data.tasks) : 0;
-
-  useEffect(() => {
-    platform.ready();
-    return bindTheme(platform);
-  }, [platform]);
-
-  // Тот же язык — и для программ чтения с экрана, и для переносов слов.
-  useEffect(() => {
-    document.documentElement.lang = HTML_LANG[language];
-  }, [language]);
 
   // A new screen starts at the top; going back returns to where the person
   // left the screen underneath. Before, «back» from the rules also landed at
@@ -86,18 +69,63 @@ export function Shell() {
     }
   }, [nav.tab, nav.depth]);
 
+  return (
+    <SessionProvider>
+      <MobileFrame
+        platform={platform}
+        nav={nav}
+        scroller={scroller}
+        onScroll={(top) => {
+          lastScroll.current = top;
+        }}
+      />
+    </SessionProvider>
+  );
+}
+
+export interface MobileFrameProps {
+  platform: Platform;
+  nav: Navigation;
+  /** The element the screens scroll in — the tab bar stays put over it. */
+  scroller: RefObject<HTMLElement | null>;
+  onScroll?: (top: number) => void;
+}
+
+/**
+ * The phone composition, shared by the mini app and the site on a phone: the
+ * tab bar below switches the tabs, a screen (project, rules, a document) lies
+ * over any of them. How the screens are addressed — a stack in memory or the
+ * browser's addresses — is the caller's `nav`. Lives under a SessionProvider.
+ */
+export function MobileFrame({ platform, nav, scroller, onScroll }: MobileFrameProps) {
+  // Каркас подписан на язык ради одного: словарь читает его в момент
+  // обращения к строке, но сам по себе перерисовку не запускает. Подписка
+  // здесь, а не перемонтирование по `key`, потому что перемонтирование сбросило
+  // бы вкладку и прокрутку — человек менял язык, а не уходил с экрана.
+  const { language } = useSettings();
+  const board = useTaskBoard();
+  const availableTasks = board.data ? availableCount(board.data.tasks) : 0;
+
+  useEffect(() => {
+    platform.ready();
+    return bindTheme(platform);
+  }, [platform]);
+
+  // Тот же язык — и для программ чтения с экрана, и для переносов слов.
+  useEffect(() => {
+    document.documentElement.lang = HTML_LANG[language];
+  }, [language]);
+
   const openRules = (anchor?: string) => nav.push({ name: 'rules', anchor });
 
   return (
-    <SessionProvider>
+    <>
       <OnlinePresence />
       <div className={styles.app}>
         <main
           className={styles.content}
           ref={scroller}
-          onScroll={(e) => {
-            lastScroll.current = e.currentTarget.scrollTop;
-          }}
+          onScroll={onScroll ? (e) => onScroll(e.currentTarget.scrollTop) : undefined}
         >
           {nav.current === null && nav.tab === 'paid' && <PaidMobile nav={nav} />}
           {nav.current === null && nav.tab === 'free' && <FreeMobile nav={nav} />}
@@ -106,6 +134,9 @@ export function Shell() {
 
           {nav.current?.name === 'project' && (
             <ProjectPage
+              // A project page opened from another one is a new page, not the
+              // same one refilled — on the site both have their own address.
+              key={nav.current.id}
               id={nav.current.id}
               segment={nav.current.segment}
               onBack={nav.back}
@@ -142,7 +173,7 @@ export function Shell() {
             врала бы про работу, которой нет. */}
         <TabBar active={nav.tab} onChange={nav.setTab} badges={{ tasks: availableTasks }} />
       </div>
-    </SessionProvider>
+    </>
   );
 }
 

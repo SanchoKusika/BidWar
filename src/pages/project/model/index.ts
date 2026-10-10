@@ -17,7 +17,12 @@ export interface ProjectState {
   /** Запись того же аккаунта в другом топе — блок «same account». */
   otherEntry: ProjectListItem | null;
   otherRank: number | null;
-  status: 'loading' | 'ready' | 'error';
+  /**
+   * `missing` — the server answered and there is no such project: a link to
+   * one that was removed, or a mistyped address. Not the same news as a
+   * request that failed.
+   */
+  status: 'loading' | 'ready' | 'missing' | 'error';
 }
 
 function metricOf(row: ProjectListItem): number {
@@ -54,7 +59,7 @@ export function useProject(id: number, fallbackSegment: ShowcaseType): ProjectSt
       .then(async (row) => {
         if (cancelled) return;
         if (!row) {
-          setStatus('error');
+          setStatus('missing');
           return;
         }
         setProject(row);
