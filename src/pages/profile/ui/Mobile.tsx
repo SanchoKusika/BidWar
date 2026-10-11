@@ -13,6 +13,7 @@ import type { Locale } from '@/shared/i18n/locale';
 import { GuestProfileScreen, ProfileScreen, type Receipt } from '@/widgets/mobile/ProfileScreen';
 import { DesktopGuestProfile, DesktopProfile } from '@/widgets/desktop/Profile';
 import { useLayout } from '@/shared/lib/layout';
+import { withViewTransition } from '@/shared/lib/viewTransition';
 import { ConfirmSheet } from '@/widgets/mobile/ConfirmSheet';
 import type { SettingsPanelProps } from '@/widgets/mobile/SettingsPanel';
 import type { Navigation } from '@/app/navigation';
@@ -127,8 +128,13 @@ export function ProfilePage({ nav }: ProfilePageProps) {
     // TypeScript умеет, а связанное с ним значение — нет, поэтому тип
     // значения подтверждается здесь по одной ветке на настройку.
     onChange: (key, next) => {
-      if (key === 'theme') setSetting('theme', next as ThemeChoice);
-      else if (key === 'compactAmounts') setSetting('compactAmounts', next as boolean);
+      if (key === 'theme') {
+        const apply = () => setSetting('theme', next as ThemeChoice);
+        // On the site the screen fades into the new colours, as from the top
+        // bar's toggle; the mini app switches at once, as it always has.
+        if (desktop) withViewTransition('theme', apply);
+        else apply();
+      } else if (key === 'compactAmounts') setSetting('compactAmounts', next as boolean);
       else if (key === 'haptics') setSetting('haptics', next as boolean);
       else if (key === 'language') {
         setSetting('language', next as Locale);

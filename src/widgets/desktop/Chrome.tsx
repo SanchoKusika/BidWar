@@ -95,6 +95,7 @@ export function TopBar({ active, onNavigate, onHome, dark, onToggleTheme, accoun
               }}
             >
               {item.label}
+              {active === item.id && <span className={styles.navIndicator} />}
             </a>
           ))}
         </nav>

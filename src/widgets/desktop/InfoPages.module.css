@@ -4,6 +4,16 @@
   gap: var(--space-1);
 }
 
+/* The active row's view-transition name, one per list: between two sections
+   of the rules it slides, between the rules and a legal page it does not. */
+.links[data-list='rules'] {
+  --rail-active-name: rules-active;
+}
+
+.links[data-list='docs'] {
+  --rail-active-name: docs-active;
+}
+
 .card {
   display: flex;
   flex-direction: column;

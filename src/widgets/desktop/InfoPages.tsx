@@ -31,7 +31,7 @@ export function RulesPage({ anchor, onAnchor, onSupport }: RulesPageProps) {
         rail={
           <>
             <RailCard title={strings.web.rules}>
-              <div className={styles.links}>
+              <div className={styles.links} data-list="rules">
                 {sections.map((r) => (
                   <RailLink
                     key={r.id}
@@ -121,7 +121,7 @@ export function DocPage({ id, onDoc, onRules, onOpenBot }: DocPageProps) {
         rail={
           <>
             <RailCard title={strings.web.company}>
-              <div className={styles.links}>
+              <div className={styles.links} data-list="docs">
                 {DOC_ORDER.map((docId) => (
                   <RailLink
                     key={docId}
