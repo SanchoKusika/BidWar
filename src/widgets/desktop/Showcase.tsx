@@ -207,21 +207,33 @@ export function DesktopShowcase(screenProps: ShowcaseScreenProps) {
               <StatBlock
                 segment={segment}
                 value={metricOf(top)}
+                // The top of another category is another number, not a change.
+                series={String(props.categoryId)}
                 label={paid ? w.topBid : w.topProject}
                 size="md"
                 compact
               />
             )}
+            {/* Summed from the categories: until they answer the sum is not
+                zero but unknown — and a zero would count up as they land. */}
             <StatBlock
               segment={segment}
               value={view.globalTotals.pool}
+              loading={props.categoriesLoading}
               label={paid ? w.moneyInPlay : w.votesInPlay}
               size="md"
               compact
             />
             {paid ? (
               entry !== null && (
-                <StatBlock segment="paid" value={entry} label={w.entryFrom} size="lg" compact />
+                <StatBlock
+                  segment="paid"
+                  value={entry}
+                  series={String(props.categoryId)}
+                  label={w.entryFrom}
+                  size="lg"
+                  compact
+                />
               )
             ) : (
               <ShowcaseBalance {...part} size="lg" />

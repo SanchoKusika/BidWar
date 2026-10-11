@@ -63,6 +63,34 @@
   letter-spacing: var(--ls-tighter);
 }
 
+/* The site only: the attributes below are set by its ticker and swap. A new
+   place comes in from the side it moved from — from below when it climbed. */
+.rank[data-swap='up'] {
+  --enter-shift: var(--shift-md);
+
+  animation: ds-enter var(--dur-base) var(--ease-out);
+}
+
+.rank[data-swap='down'] {
+  --enter-shift: calc(-1 * var(--shift-md));
+
+  animation: ds-enter var(--dur-base) var(--ease-out);
+}
+
+/* The panel is dark in both themes, so the change takes the light inks the
+   dark theme uses for it — the light theme's deeper green sank into it. */
+.value[data-trend='up'] {
+  --flash-tone: var(--free-400);
+
+  animation: ds-flash var(--dur-ticker) linear;
+}
+
+.value[data-trend='down'] {
+  --flash-tone: var(--attack-400);
+
+  animation: ds-flash var(--dur-ticker) linear;
+}
+
 .panel[data-segment='free'] .value {
   --panel-accent: var(--free-accent);
 }

@@ -24,6 +24,7 @@ import { ActivityFeed, type ActivityItem } from '@/shared/ui/ActivityFeed';
 import { strings } from '@/shared/i18n/strings';
 import { cx } from '@/shared/lib/cx';
 import { useLayout } from '@/shared/lib/layout';
+import { useRankSwap, useTicker } from '@/shared/lib/ticker';
 import { PageHeader } from './PageHeader';
 import { HeaderAction } from './HeaderAction';
 import { OwnPositionPanel } from './OwnPositionPanel';
@@ -184,6 +185,11 @@ export function ShowcaseOwn({ props, view, className }: PartProps) {
   const { segment, userId, sessionStatus, sessionErrorMessage, ownLoading, ownRank } = props;
   const actionLabel = segment === 'paid' ? s.raiseMine : s.voteMine;
   const signIn = useGuestSignIn();
+  // On the site the own bid counts to its new value and the place swaps in
+  // from the side it moved from; the mini app draws them as they are.
+  const desktop = useLayout() === 'desktop';
+  const tick = useTicker(view.ownMetric ?? 0, desktop && view.ownMetric !== null && !ownLoading);
+  const place = useRankSwap(ownRank, desktop);
 
   if (signIn) {
     return (
@@ -215,8 +221,10 @@ export function ShowcaseOwn({ props, view, className }: PartProps) {
           ) : (
             <OwnPositionPanel
               segment={segment}
-              rank={ownRank}
-              value={view.ownValue}
+              rank={place.shown}
+              rankSwap={place.swap}
+              value={desktop && view.ownMetric !== null ? view.format(tick.shown) : view.ownValue}
+              valueTrend={tick.trend}
               unit={view.unit}
               hint={view.ownHint}
               entryHint={view.entryHint}

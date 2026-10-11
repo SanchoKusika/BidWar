@@ -4,6 +4,7 @@ import { SkeletonBlock, SkeletonText } from '@/shared/ui/Skeleton';
 import type { ShowcaseType } from '@/entities/project';
 import { strings } from '@/shared/i18n/strings';
 import { cx } from '@/shared/lib/cx';
+import type { Trend } from '@/shared/lib/ticker';
 import styles from './OwnPositionPanel.module.css';
 
 const t = strings.own;
@@ -29,6 +30,13 @@ export interface OwnPositionPanelProps {
    * the numbers, the hint and the button.
    */
   loading?: boolean;
+  /** The value is counting to a new one — the site's ticker colours it. */
+  valueTrend?: Trend;
+  /**
+   * The place has just changed, and which way — the site swaps the number in
+   * from that side. Left out, the number is simply drawn (the mini app).
+   */
+  rankSwap?: Trend;
 }
 
 /**
@@ -49,6 +57,8 @@ export function OwnPositionPanel({
   addDisabled,
   className,
   loading = false,
+  valueTrend = null,
+  rankSwap = null,
 }: OwnPositionPanelProps) {
   if (loading) {
     return (
@@ -109,11 +119,19 @@ export function OwnPositionPanel({
       <div className={styles.row}>
         <div className={styles.headBlock}>
           <span className={styles.label}>{t.position}</span>
-          <span className={styles.rank}>{rank != null ? `#${rank}` : '—'}</span>
+          {/* Keyed by the place only once it has moved: the new number is a
+              new element and plays its way in. */}
+          <span
+            key={rankSwap ? `#${rank}` : undefined}
+            className={styles.rank}
+            data-swap={rankSwap ?? undefined}
+          >
+            {rank != null ? `#${rank}` : '—'}
+          </span>
         </div>
         <div className={styles.valueBlock}>
           <span className={styles.label}>{segment === 'free' ? t.votes : t.bid}</span>
-          <span className={styles.value}>
+          <span className={styles.value} data-trend={valueTrend ?? undefined}>
             {value}
             {unit && <span className={styles.unit}>{unit}</span>}
           </span>
