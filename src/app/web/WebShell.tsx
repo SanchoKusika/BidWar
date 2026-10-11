@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { getPlatform } from '@/shared/platform';
 import { useJoinOnline } from '@/shared/lib/online';
+import { withViewTransition } from '@/shared/lib/viewTransition';
 import { setSetting, useSettings } from '@/shared/settings';
 import { LayoutContext } from '@/shared/lib/layout';
 import type { Locale } from '@/shared/i18n/locale';
@@ -15,12 +16,15 @@ import { SiteFooter, TopBar, type TopBarItem } from '@/widgets/desktop/Chrome';
 import { DialogScrim } from '@/widgets/desktop/Dialog';
 import { DocPage, RulesPage } from '@/widgets/desktop/InfoPages';
 import { bindTheme } from '../theme';
-import { useWebNavigation } from './navigation';
+import { useWebNavigation, type ApplyLocation } from './navigation';
 import { AccountButton } from './AccountButton';
 import { SiteSignIn } from './SiteSignIn';
 import styles from './WebShell.module.css';
 
 const HTML_LANG: Record<Locale, string> = { RU: 'ru', EN: 'en' };
+
+/** A new address on the desktop arrives as a page transition (motion.css). */
+const asPageTransition: ApplyLocation = (update) => withViewTransition('page', update);
 
 /**
  * The desktop site (ui_kits/web): a top bar, the page, a footer. The pages
@@ -42,7 +46,7 @@ export function WebShell() {
 
 function Site() {
   const [platform] = useState(getPlatform);
-  const nav = useWebNavigation();
+  const nav = useWebNavigation(undefined, asPageTransition);
   const { language, theme } = useSettings();
   const [systemDark, setSystemDark] = useState(() => platform.getColorScheme() === 'dark');
 
@@ -86,7 +90,11 @@ function Site() {
         onHome={() => nav.setTab('paid')}
         onNavigate={(item) => (item === 'rules' ? openRules() : nav.setTab(item))}
         dark={dark}
-        onToggleTheme={() => setSetting('theme', dark ? 'light' : 'dark')}
+        // The whole screen changes colour, so it fades into the new one at
+        // once rather than every surface recolouring on its own.
+        onToggleTheme={() =>
+          withViewTransition('theme', () => setSetting('theme', dark ? 'light' : 'dark'))
+        }
         account={
           <AccountButton active={active === 'profile'} onOpen={() => nav.setTab('profile')} />
         }

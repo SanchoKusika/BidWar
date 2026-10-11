@@ -96,12 +96,23 @@ function setScroll(el: HTMLElement | null | undefined, top: number): void {
   else window.scrollTo(0, top);
 }
 
+/** Applies a change of address — at once, or as the desktop's page transition. */
+export type ApplyLocation = (update: () => void) => void;
+
+const atOnce: ApplyLocation = (update) => update();
+
 /**
  * `scrollerRef` — the element the pages scroll in, when it is not the window:
  * on a phone the site keeps the mini app's frame, where the tab bar stays put
  * and the content scrolls under it.
+ *
+ * `apply` — how a new address reaches the screen. The desktop passes its view
+ * transition; must be stable (a module-level function).
  */
-export function useWebNavigation(scrollerRef?: RefObject<HTMLElement | null>): Navigation {
+export function useWebNavigation(
+  scrollerRef?: RefObject<HTMLElement | null>,
+  apply: ApplyLocation = atOnce,
+): Navigation {
   const [location, setLocation] = useState<Location>(() => current('paid'));
   const [attackRequest, setAttackRequest] = useState<AttackRequest | null>(null);
   const [boostRequest, setBoostRequest] = useState<BoostRequest | null>(null);
@@ -119,11 +130,11 @@ export function useWebNavigation(scrollerRef?: RefObject<HTMLElement | null>): N
     window.history.scrollRestoration = 'manual';
     const onPop = (event: PopStateEvent) => {
       pendingScroll.current = (event.state as EntryState | null)?.scroll ?? 0;
-      setLocation(current(tabRef.current));
+      apply(() => setLocation(current(tabRef.current)));
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
-  }, []);
+  }, [apply]);
 
   // A new address starts at the top; back and forward return to the scroll
   // the entry was left at. Retried for a few frames: the page underneath is
@@ -148,9 +159,9 @@ export function useWebNavigation(scrollerRef?: RefObject<HTMLElement | null>): N
       const scroll = scrollOf(scrollerRef?.current);
       window.history.replaceState({ ...here, scroll } satisfies EntryState, '');
       window.history.pushState({ inApp: true } satisfies EntryState, '', pathOf(tab, route));
-      setLocation({ tab, route });
+      apply(() => setLocation({ tab, route }));
     },
-    [scrollerRef],
+    [scrollerRef, apply],
   );
 
   const setTab = useCallback((tab: TabId) => go(tab, null), [go]);

@@ -65,6 +65,40 @@
     background-position: 260% 0;
   }
 }
+/* ── View transitions ──────────────────────────────────────────────────────
+   Only the desktop site starts them (shared/lib/viewTransition), and only
+   while one runs is <html data-transition> set. The page is one crossfade on
+   the browser's own plus-lighter blend, both halves on the same curve: the
+   two opacities then always add up to one, so whatever looks the same on
+   both pages — the top bar, the band of the same top, the rail — stays
+   perfectly still, and only what changed fades. A rising new page would have
+   doubled all of it by the rise. */
+:root[data-transition]::view-transition-group(*),
+:root[data-transition]::view-transition-old(*),
+:root[data-transition]::view-transition-new(*) {
+  animation-duration: var(--dur-base);
+  animation-timing-function: var(--ease-out);
+}
+/* The whole screen changes colour: a slower, even crossfade. */
+:root[data-transition='theme']::view-transition-group(*),
+:root[data-transition='theme']::view-transition-old(*),
+:root[data-transition='theme']::view-transition-new(*) {
+  animation-duration: var(--dur-slow);
+  animation-timing-function: var(--ease-in-out);
+}
+/* Indicators travel from one item to the next — from rest to rest. */
+:root[data-transition]::view-transition-group(nav-indicator),
+:root[data-transition]::view-transition-old(nav-indicator),
+:root[data-transition]::view-transition-new(nav-indicator),
+:root[data-transition]::view-transition-group(rules-active),
+:root[data-transition]::view-transition-old(rules-active),
+:root[data-transition]::view-transition-new(rules-active),
+:root[data-transition]::view-transition-group(docs-active),
+:root[data-transition]::view-transition-old(docs-active),
+:root[data-transition]::view-transition-new(docs-active) {
+  animation-duration: var(--dur-slow);
+  animation-timing-function: var(--ease-in-out);
+}
 /* Шторка (--dur-sheet, «bottom sheet in/out» в motion-timing.html) живёт не
    здесь, а на переходах в Sheet.module.css: имя @keyframes, названное внутри
    CSS-модуля, скоупится и перестаёт совпадать с определением отсюда. */
