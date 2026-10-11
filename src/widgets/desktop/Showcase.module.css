@@ -139,4 +139,12 @@
   --card-pad: var(--card-pad-lg);
 }
 
+/* The own card's tint is see-through in the dark theme. On the page it lies
+   on the page's own ground; climbing past other cards (FlipGroup) it showed
+   them through itself. The same tint over the same ground, made opaque;
+   `article` outweighs the card's own `.card[data-own]` in either load order. */
+.feed article[data-own='true'] {
+  background: linear-gradient(var(--card-tint), var(--card-tint)), var(--bg-app);
+}
+
 /* In the mini app the panel carries the page gutter; in the rail it sits flush. */

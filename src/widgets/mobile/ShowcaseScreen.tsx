@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { CategoryTile, CategoryTileSkeleton } from '@/shared/ui/CategoryTile';
 import { ProjectCard, ProjectCardSkeleton } from '@/shared/ui/ProjectCard';
 import { TierDivider } from '@/shared/ui/TierDivider';
@@ -22,6 +23,7 @@ import { useGuestSignIn, type SessionStatus } from '@/entities/user';
 import { ActivityFeed, type ActivityItem } from '@/shared/ui/ActivityFeed';
 import { strings } from '@/shared/i18n/strings';
 import { cx } from '@/shared/lib/cx';
+import { useLayout } from '@/shared/lib/layout';
 import { PageHeader } from './PageHeader';
 import { HeaderAction } from './HeaderAction';
 import { OwnPositionPanel } from './OwnPositionPanel';
@@ -336,6 +338,19 @@ export function ShowcaseFeed({ props, view, className }: PartProps) {
     onAddProject,
   } = props;
   const { todayScope, rows } = view;
+  // On the site the card and the tier divider each get a wrapper that names
+  // them for FlipGroup (widgets/desktop/Showcase): the divider belongs to a
+  // place in the list, not to the card that happens to stand there, so the
+  // two travel apart. The mini app's rows stay as they are.
+  const desktop = useLayout() === 'desktop';
+  const flip = (id: string, node: ReactNode, own = false) =>
+    desktop ? (
+      <div data-flip-id={id} data-flip-own={own || undefined}>
+        {node}
+      </div>
+    ) : (
+      node
+    );
 
   return (
     <section className={cx(styles.feed, className)}>
@@ -405,50 +420,58 @@ export function ShowcaseFeed({ props, view, className }: PartProps) {
 
             return (
               <div key={item.id} className={styles.row}>
-                {tier && (
-                  <TierDivider
-                    label={tier.label}
-                    note={tier.note}
-                    icon={rank === 1 ? 'trophy' : undefined}
-                  />
+                {tier &&
+                  flip(
+                    `tier:${tier.label}`,
+                    <TierDivider
+                      label={tier.label}
+                      note={tier.note}
+                      icon={rank === 1 ? 'trophy' : undefined}
+                    />,
+                  )}
+                {flip(
+                  String(item.id),
+                  <ProjectCard
+                    segment={segment}
+                    rank={rank}
+                    rankDelta={pastRank === undefined ? undefined : pastRank - rank}
+                    name={item.name}
+                    url={item.url}
+                    description={item.ogDescription ?? undefined}
+                    ogImage={item.ogImageUrl ?? undefined}
+                    value={todayScope ? (item.todayAmount ?? 0) : metricOf(item)}
+                    valueDelta={moved?.amountDelta}
+                    currency={currency}
+                    compactAmounts={compactAmounts}
+                    clicks={item.clicks}
+                    heldFor={
+                      !todayScope && rank === 1 && item.rank1Since
+                        ? formatHeldDuration(item.rank1Since)
+                        : undefined
+                    }
+                    catLeader={todayScope ? undefined : catLeaderOf(item, view.categoryById)}
+                    spotPrice={spot?.price}
+                    spotUnit={spot?.unit}
+                    isOwn={isOwn}
+                    onPress={() => onOpenProject(item)}
+                    onDetails={onOpenDetails ? () => onOpenDetails(item) : undefined}
+                    onTakeSpot={spot && onTakeSpot ? () => onTakeSpot(item) : undefined}
+                    onRaise={
+                      !isOwn && onBoost && segment === 'paid'
+                        ? () => onBoost(item, rank)
+                        : undefined
+                    }
+                    onAttack={
+                      !isOwn && onAttack && segment === 'paid'
+                        ? () => onAttack(item, rank)
+                        : undefined
+                    }
+                    onVote={
+                      !isOwn && onVote && segment === 'free' ? () => onVote(item, rank) : undefined
+                    }
+                  />,
+                  isOwn,
                 )}
-                <ProjectCard
-                  segment={segment}
-                  rank={rank}
-                  rankDelta={pastRank === undefined ? undefined : pastRank - rank}
-                  name={item.name}
-                  url={item.url}
-                  description={item.ogDescription ?? undefined}
-                  ogImage={item.ogImageUrl ?? undefined}
-                  value={todayScope ? (item.todayAmount ?? 0) : metricOf(item)}
-                  valueDelta={moved?.amountDelta}
-                  currency={currency}
-                  compactAmounts={compactAmounts}
-                  clicks={item.clicks}
-                  heldFor={
-                    !todayScope && rank === 1 && item.rank1Since
-                      ? formatHeldDuration(item.rank1Since)
-                      : undefined
-                  }
-                  catLeader={todayScope ? undefined : catLeaderOf(item, view.categoryById)}
-                  spotPrice={spot?.price}
-                  spotUnit={spot?.unit}
-                  isOwn={isOwn}
-                  onPress={() => onOpenProject(item)}
-                  onDetails={onOpenDetails ? () => onOpenDetails(item) : undefined}
-                  onTakeSpot={spot && onTakeSpot ? () => onTakeSpot(item) : undefined}
-                  onRaise={
-                    !isOwn && onBoost && segment === 'paid' ? () => onBoost(item, rank) : undefined
-                  }
-                  onAttack={
-                    !isOwn && onAttack && segment === 'paid'
-                      ? () => onAttack(item, rank)
-                      : undefined
-                  }
-                  onVote={
-                    !isOwn && onVote && segment === 'free' ? () => onVote(item, rank) : undefined
-                  }
-                />
               </div>
             );
           })}
