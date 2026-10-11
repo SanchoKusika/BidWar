@@ -58,7 +58,13 @@ export interface Navigation {
   /** Верхний экран стека или null, когда видна сама вкладка. */
   current: Route | null;
   depth: number;
-  /** Незабранный запрос атаки — вкладка Paid читает и отмечает его своим. */
+  /**
+   * Незабранный запрос атаки — вкладка Paid читает и отмечает его своим.
+   * Requests are one-shot: the next move anywhere drops whatever is pending.
+   * The tab marks a request handled in its own state, and that state is gone
+   * once the tab unmounts — a request kept here reopened its sheet on every
+   * later visit to the tab.
+   */
   attackRequest: AttackRequest | null;
   /** Незабранный запрос доната — читается там же и так же. */
   boostRequest: BoostRequest | null;
@@ -98,42 +104,68 @@ export function useNavigation(platform: Platform): Navigation {
   const [profileFocus, setProfileFocus] = useState<ProfileFocusRequest | null>(null);
   const [voteRequest, setVoteRequest] = useState<VoteRequest | null>(null);
 
+  /** Every move drops the requests nobody took (see `attackRequest`). */
+  const dropRequests = useCallback(() => {
+    setAttackRequest(null);
+    setBoostRequest(null);
+    setProfileFocus(null);
+    setVoteRequest(null);
+  }, []);
+
   const back = useCallback(() => {
+    dropRequests();
     setStack((s) => s.slice(0, -1));
-  }, []);
+  }, [dropRequests]);
 
-  const push = useCallback((route: Route) => {
-    setStack((s) => [...s, route]);
-  }, []);
+  const push = useCallback(
+    (route: Route) => {
+      dropRequests();
+      setStack((s) => [...s, route]);
+    },
+    [dropRequests],
+  );
 
-  const setTab = useCallback((next: TabId) => {
-    setStack([]);
-    setTabState(next);
-  }, []);
+  const setTab = useCallback(
+    (next: TabId) => {
+      dropRequests();
+      setStack([]);
+      setTabState(next);
+    },
+    [dropRequests],
+  );
 
-  const requestAttack = useCallback((target: ProjectListItem, rank: number | null) => {
-    setStack([]);
-    setTabState('paid');
-    setAttackRequest({ target, rank });
-  }, []);
+  // A request is a move too: it drops the others and sets its own.
+  const requestAttack = useCallback(
+    (target: ProjectListItem, rank: number | null) => {
+      setTab('paid');
+      setAttackRequest({ target, rank });
+    },
+    [setTab],
+  );
 
-  const requestBoost = useCallback((target: ProjectListItem, rank: number | null) => {
-    setStack([]);
-    setTabState('paid');
-    setBoostRequest({ target, rank });
-  }, []);
+  const requestBoost = useCallback(
+    (target: ProjectListItem, rank: number | null) => {
+      setTab('paid');
+      setBoostRequest({ target, rank });
+    },
+    [setTab],
+  );
 
-  const requestProfileFocus = useCallback((section: ProfileFocusRequest['section']) => {
-    setStack([]);
-    setTabState('profile');
-    setProfileFocus({ section });
-  }, []);
+  const requestProfileFocus = useCallback(
+    (section: ProfileFocusRequest['section']) => {
+      setTab('profile');
+      setProfileFocus({ section });
+    },
+    [setTab],
+  );
 
-  const requestVote = useCallback((target: ProjectListItem, rank: number | null) => {
-    setStack([]);
-    setTabState('free');
-    setVoteRequest({ target, rank });
-  }, []);
+  const requestVote = useCallback(
+    (target: ProjectListItem, rank: number | null) => {
+      setTab('free');
+      setVoteRequest({ target, rank });
+    },
+    [setTab],
+  );
 
   // Системная кнопка Telegram — единственный способ выйти назад на телефоне,
   // где жеста «свайп от края» у мини-аппа нет.
