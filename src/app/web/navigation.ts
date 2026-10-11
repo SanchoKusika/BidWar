@@ -126,15 +126,32 @@ export function useWebNavigation(
     tabRef.current = location.tab;
   }, [location.tab]);
 
+  /**
+   * Requests are one-shot (see `attackRequest` in app/navigation): the next
+   * move drops what nobody took. Kept, a raise asked for on a project page
+   * reopened its dialog on every later visit to the paid top — the top marks
+   * a request handled in its own state, which goes when it unmounts.
+   *
+   * Dropped at once, not inside `apply`: a request set right after its own
+   * move would otherwise be wiped when the page transition lands.
+   */
+  const dropRequests = useCallback(() => {
+    setAttackRequest(null);
+    setBoostRequest(null);
+    setProfileFocus(null);
+    setVoteRequest(null);
+  }, []);
+
   useEffect(() => {
     window.history.scrollRestoration = 'manual';
     const onPop = (event: PopStateEvent) => {
       pendingScroll.current = (event.state as EntryState | null)?.scroll ?? 0;
+      dropRequests();
       apply(() => setLocation(current(tabRef.current)));
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
-  }, [apply]);
+  }, [apply, dropRequests]);
 
   // A new address starts at the top; back and forward return to the scroll
   // the entry was left at. Retried for a few frames: the page underneath is
@@ -159,9 +176,10 @@ export function useWebNavigation(
       const scroll = scrollOf(scrollerRef?.current);
       window.history.replaceState({ ...here, scroll } satisfies EntryState, '');
       window.history.pushState({ inApp: true } satisfies EntryState, '', pathOf(tab, route));
+      dropRequests();
       apply(() => setLocation({ tab, route }));
     },
-    [scrollerRef, apply],
+    [scrollerRef, apply, dropRequests],
   );
 
   const setTab = useCallback((tab: TabId) => go(tab, null), [go]);
