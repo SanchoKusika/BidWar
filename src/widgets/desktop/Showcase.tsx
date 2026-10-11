@@ -82,28 +82,29 @@ function CategoryCarousel({ props, view }: { props: ShowcaseScreenProps; view: S
         className={styles.track}
         tileClassName={styles.tile}
       />
-      {!edges.start && (
-        <button
-          type="button"
-          className={styles.arrow}
-          data-side="start"
-          onClick={() => page(-1)}
-          aria-label={strings.web.scrollBack}
-        >
-          <Icon name="chevron-left" size={18} />
-        </button>
-      )}
-      {!edges.end && (
-        <button
-          type="button"
-          className={styles.arrow}
-          data-side="end"
-          onClick={() => page(1)}
-          aria-label={strings.web.scrollForward}
-        >
-          <Icon name="chevron-right" size={18} />
-        </button>
-      )}
+      {/* Both arrows stay mounted and fade at an edge: one that popped in
+          and out jumped under the pointer. Hidden, not disabled — once faded
+          it is `visibility: hidden`, out of reach of clicks and the keyboard. */}
+      <button
+        type="button"
+        className={styles.arrow}
+        data-side="start"
+        data-hidden={edges.start}
+        onClick={() => page(-1)}
+        aria-label={strings.web.scrollBack}
+      >
+        <Icon name="chevron-left" size={18} />
+      </button>
+      <button
+        type="button"
+        className={styles.arrow}
+        data-side="end"
+        data-hidden={edges.end}
+        onClick={() => page(1)}
+        aria-label={strings.web.scrollForward}
+      >
+        <Icon name="chevron-right" size={18} />
+      </button>
     </div>
   );
 }

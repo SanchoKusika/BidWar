@@ -1,13 +1,37 @@
+/* Transitions, not keyframes, as in the bottom sheet: a transition reverses
+   from wherever it is when a dialog is closed mid-way in. Entering takes
+   --dur-base, leaving the shorter --dur-fast, on the same curve — the sheet
+   found that an accelerating exit reads as a jerk. */
+
 .scrim {
   position: fixed;
   inset: 0;
   z-index: 60;
+  pointer-events: none;
+  background: var(--surface-scrim);
+  backdrop-filter: var(--blur-scrim);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.scrim[data-shown='true'] {
+  opacity: 1;
+  transition-duration: var(--dur-base);
+}
+
+.frame {
+  position: fixed;
+  inset: 0;
+  z-index: 61;
   display: grid;
   place-items: center;
   padding: var(--space-12);
-  background: var(--surface-scrim);
-  backdrop-filter: var(--blur-scrim);
-  animation: ds-fade-up var(--dur-base) var(--ease-out);
+}
+
+/* Not yet shown or on its way out: clicks belong to the page or to the
+   dialog taking over. */
+.frame[data-shown='false'] {
+  pointer-events: none;
 }
 
 .panel {
@@ -23,6 +47,26 @@
   background: var(--bg-elevated);
   border-radius: var(--radius-panel);
   box-shadow: var(--shadow-sheet);
+  opacity: 0;
+  transform: translateY(var(--shift-md)) scale(var(--scale-enter));
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.frame[data-shown='true'] .panel {
+  opacity: 1;
+  transform: none;
+  transition-duration: var(--dur-base);
+}
+
+/* Taking over from a dialog that is leaving: wait a quarter of its way out,
+   on top of the two frames a dialog takes to show — the old one has mostly
+   faded by then, and the new one rises as it goes. A longer wait left a
+   blink of bare scrim between the two; none at all, two panels on top of
+   each other. */
+.frame[data-shown='true'][data-handoff='true'] .panel {
+  transition-delay: calc(var(--dur-fast) / 4);
 }
 
 .close {
@@ -38,6 +82,7 @@
   background: var(--surface-card);
   color: var(--text-secondary);
   cursor: pointer;
+  transition: var(--t-control);
 }
 
 .close:hover {

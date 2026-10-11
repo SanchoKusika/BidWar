@@ -185,3 +185,9 @@
   border: var(--border-w) solid var(--border-subtle);
   border-radius: var(--radius-card);
 }
+
+/* «Copy link» ↔ «Copied»: the new label fades in rather than replacing the
+   old in one frame. */
+.swap {
+  animation: ds-fade-in var(--dur-fast) var(--ease-out);
+}

@@ -1,6 +1,7 @@
 import { Button } from '@/shared/ui/Button';
 import { Icon } from '@/shared/ui/Icon';
 import { strings } from '@/shared/i18n/strings';
+import { useLingering } from '@/shared/lib/presence';
 import { Sheet } from './Sheet';
 import styles from './ResultSheet.module.css';
 
@@ -31,7 +32,9 @@ export interface ResultSheetProps {
  * Квитанция после любого действия — платного или голосового
  * (design/ui_kits/mini_app/Sheets.jsx). Одна цифра во весь экран: новая позиция.
  */
-export function ResultSheet({ open, result, onClose }: ResultSheetProps) {
+export function ResultSheet({ open, result: resultProp, onClose }: ResultSheetProps) {
+  // On the desktop the dialog leaves with what it last showed (useLingering).
+  const result = useLingering(resultProp, open);
   if (!result) return null;
 
   return (

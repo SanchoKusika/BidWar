@@ -15,9 +15,47 @@
   --press-scale: 0.97; /* @kind other */
   --hover-opacity: 0.88; /* @kind other */
 
+  /* How far a thing travels as it appears: content and pages by the small
+     step, a dialog by the larger one, and a dialog grows from just under its
+     size. Small on purpose — motion says «this is new», not «look here». */
+  --shift-sm: 4px; /* @kind other */
+  --shift-md: 8px; /* @kind other */
+  --scale-enter: 0.98; /* @kind other */
+
   --t-control:
     transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out),
     color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+/* The desktop site (WebShell sets data-layout). Under a mouse the hover has
+   already answered, so a press only nods: 0.97 of a 340px block button in the
+   rail was a 10px squeeze. The gutter stays when a dialog locks the page's
+   scroll, so the page does not jump sideways by a scrollbar's width. */
+:root[data-layout='desktop'] {
+  --press-scale: 0.985; /* @kind other */
+
+  scrollbar-gutter: stable;
+}
+
+/* Appearing: from a step below and transparent into place. Leaving is the
+   way back, shorter (--dur-fast against --dur-base). */
+@keyframes ds-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--enter-shift, var(--shift-sm)));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ds-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 @keyframes ds-skeleton {
   0% {
@@ -27,37 +65,9 @@
     background-position: 260% 0;
   }
 }
-@keyframes ds-fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
 /* Шторка (--dur-sheet, «bottom sheet in/out» в motion-timing.html) живёт не
    здесь, а на переходах в Sheet.module.css: имя @keyframes, названное внутри
    CSS-модуля, скоупится и перестаёт совпадать с определением отсюда. */
-@keyframes ds-pulse-attack {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(225, 29, 72, 0);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(225, 29, 72, 0.18);
-  }
-}
-@keyframes ds-flame {
-  0%,
-  100% {
-    transform: scale(1) translateY(0);
-  }
-  50% {
-    transform: scale(1.16) translateY(-1px);
-  }
-}
 @keyframes ds-flame-breathe {
   0%,
   100% {
@@ -109,12 +119,18 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
-  :root {
+  :root,
+  :root[data-layout='desktop'] {
+    --dur-instant: 0ms; /* @kind other */
     --dur-fast: 0ms; /* @kind other */
     --dur-base: 0ms; /* @kind other */
     --dur-slow: 0ms; /* @kind other */
     --dur-sheet: 0ms; /* @kind other */
+    --dur-ticker: 0ms; /* @kind other */
     --press-scale: 1; /* @kind other */
+    --shift-sm: 0px; /* @kind other */
+    --shift-md: 0px; /* @kind other */
+    --scale-enter: 1; /* @kind other */
   }
 }
 

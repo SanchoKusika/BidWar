@@ -41,7 +41,21 @@
   color: var(--text-primary);
   box-shadow: var(--shadow-lg);
   cursor: pointer;
-  transition: var(--t-control);
+  transition:
+    var(--t-control),
+    opacity var(--dur-fast) var(--ease-out),
+    visibility 0s;
+}
+
+.arrow[data-hidden='true'] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  /* Visibility flips only after the fade, or the arrow would vanish at once. */
+  transition:
+    var(--t-control),
+    opacity var(--dur-fast) var(--ease-out),
+    visibility 0s var(--dur-fast);
 }
 
 .arrow[data-side='start'] {
