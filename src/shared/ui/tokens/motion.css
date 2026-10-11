@@ -7,6 +7,8 @@
   --dur-slow: 260ms; /* @kind other */
   --dur-sheet: 320ms; /* @kind other */
   --dur-ticker: 600ms; /* @kind other */
+  /* A one-time mark that says «here» — the own card after it moved up. */
+  --dur-highlight: 1200ms; /* @kind other */
 
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1); /* @kind other */
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1); /* @kind other */
@@ -161,6 +163,7 @@
     --dur-slow: 0ms; /* @kind other */
     --dur-sheet: 0ms; /* @kind other */
     --dur-ticker: 0ms; /* @kind other */
+    --dur-highlight: 0ms; /* @kind other */
     --press-scale: 1; /* @kind other */
     --shift-sm: 0px; /* @kind other */
     --shift-md: 0px; /* @kind other */

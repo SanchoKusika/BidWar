@@ -4,6 +4,7 @@ import { Icon } from '@/shared/ui/Icon';
 import { KeyRow } from '@/shared/ui/KeyRow';
 import { StatBlock } from '@/shared/ui/StatBlock';
 import { ActivityFeed } from '@/shared/ui/ActivityFeed';
+import { FlipGroup } from '@/shared/ui/FlipGroup';
 import { LiveCount } from '@/shared/ui/LiveCount';
 import { useOnlineCount } from '@/shared/lib/online';
 import { getRules, type Fact } from '@/shared/content';
@@ -24,6 +25,9 @@ import {
 } from '@/widgets/mobile/showcaseView';
 import { PageBand, PageGrid, RailCard } from './Chrome';
 import styles from './Showcase.module.css';
+
+/** Events in the rail's «just happened». */
+const RECENT = 5;
 
 /**
  * The rail's «how this top works»: the kit's four rows, taken from the rules
@@ -180,6 +184,12 @@ export function DesktopShowcase(screenProps: ShowcaseScreenProps) {
   const s = strings.showcase;
   const w = strings.web;
 
+  // What FlipGroup compares: the list shown and the order of its rows. A
+  // placeholder is no order at all — the rows that replace it fade in.
+  const feedList = `${segment}:${props.categoryId ?? 'all'}:${view.todayScope ? 'today' : 'all'}`;
+  const feedOrder = view.feedLoading ? '' : view.rows.map((row) => row.id).join(',');
+  const recent = activity?.slice(0, RECENT) ?? [];
+
   const top = items[0];
   const last = items.at(-1);
   // As in the feed: the entry price is honest only with the list loaded to the end.
@@ -225,18 +235,21 @@ export function DesktopShowcase(screenProps: ShowcaseScreenProps) {
           <>
             {/* For a guest — the sign-in, in the same slot. */}
             <ShowcaseOwn {...part} />
-            {activity && activity.length > 0 && (
-              <ActivityFeed
-                max={5}
-                title={s.justHappened}
-                items={[...activity]}
-                // Who has BidWar open right now, as in the kit's rail.
-                right={
-                  online !== null ? (
-                    <LiveCount value={online} label={w.online} size="sm" />
-                  ) : undefined
-                }
-              />
+            {recent.length > 0 && (
+              // A new event comes in on top and the rest move down a row.
+              <FlipGroup list={segment} order={recent.map((event) => event.id).join(',')}>
+                <ActivityFeed
+                  flip
+                  title={s.justHappened}
+                  items={recent}
+                  // Who has BidWar open right now, as in the kit's rail.
+                  right={
+                    online !== null ? (
+                      <LiveCount value={online} label={w.online} size="sm" />
+                    ) : undefined
+                  }
+                />
+              </FlipGroup>
             )}
             <RailCard title={paid ? w.howPaidWorks : w.howFreeWorks}>
               <div>
@@ -253,8 +266,12 @@ export function DesktopShowcase(screenProps: ShowcaseScreenProps) {
       >
         <CategoryCarousel {...part} />
         <RankingHead {...part} />
-        {/* Cards on the site carry the kit's larger inner padding. */}
-        <ShowcaseFeed {...part} className={styles.feed} />
+        {/* Cards on the site carry the kit's larger inner padding. After a
+            payment the board rearranges and the cards travel to their new
+            places; another filter or scope is another list and fades in. */}
+        <FlipGroup list={feedList} order={feedOrder}>
+          <ShowcaseFeed {...part} className={styles.feed} />
+        </FlipGroup>
       </PageGrid>
     </>
   );

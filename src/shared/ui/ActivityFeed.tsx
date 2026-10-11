@@ -33,6 +33,8 @@ export interface ActivityFeedProps {
   /** Плотность мини-аппа. */
   dense?: boolean;
   max?: number;
+  /** Names the rows for a FlipGroup around the feed (the site's rail). */
+  flip?: boolean;
   onItem?: (item: ActivityItem) => void;
   className?: string;
   style?: CSSProperties;
@@ -44,6 +46,7 @@ export function ActivityFeed({
   right,
   dense = false,
   max,
+  flip = false,
   onItem,
   className,
   style,
@@ -66,6 +69,7 @@ export function ActivityFeed({
           return (
             <div
               key={item.id ?? i}
+              data-flip-id={flip ? item.id : undefined}
               data-kind={item.kind}
               className={styles.row}
               role={onItem ? 'button' : undefined}
