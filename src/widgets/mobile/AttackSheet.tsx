@@ -56,7 +56,7 @@ export function AttackSheet({
   onClose,
   onConfirm,
 }: AttackSheetProps) {
-  // On the desktop the dialog leaves with what it last showed (useLingering).
+  // Cleared in the click that closes the sheet — kept for its way out.
   const target = useLingering(targetProp, open);
   const [step, setStep] = useState<1 | 2>(1);
   /** null — человек ещё не трогал ползунок, показываем предложенную сумму. */

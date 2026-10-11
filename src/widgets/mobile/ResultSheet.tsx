@@ -33,7 +33,7 @@ export interface ResultSheetProps {
  * (design/ui_kits/mini_app/Sheets.jsx). Одна цифра во весь экран: новая позиция.
  */
 export function ResultSheet({ open, result: resultProp, onClose }: ResultSheetProps) {
-  // On the desktop the dialog leaves with what it last showed (useLingering).
+  // Cleared in the click that closes the sheet — kept for its way out.
   const result = useLingering(resultProp, open);
   if (!result) return null;
 

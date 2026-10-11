@@ -1,21 +1,17 @@
 import { useEffect, useState } from 'react';
-import { useLayout } from './layout';
 import { motionMs } from './motion';
 
 /**
  * The last value a sheet was drawn with, kept while it is on its way out.
  * The pages clear a sheet's subject in the same click that closes it — the
  * attack target, the payment, the receipt — and a sheet without a subject
- * renders nothing, so the dialog vanished in one frame instead of leaving.
- *
- * Desktop only: on a phone the value comes back as it is, and the mini app's
- * sheets behave exactly as they did.
+ * renders nothing, so it vanished in one frame instead of leaving: the
+ * dialog on the site, the bottom sheet's slide down in the mini app.
  */
 export function useLingering<T>(value: T | null | undefined, open: boolean): T | null | undefined {
-  const desktop = useLayout() === 'desktop';
   const [last, setLast] = useState(value);
   if (value != null && value !== last) setLast(value);
-  return value ?? (desktop && !open ? last : value);
+  return value ?? (open ? value : last);
 }
 
 export interface Presence {
