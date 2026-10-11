@@ -12,6 +12,7 @@ import {
 } from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
 import type { ProjectListItem } from '@/entities/project';
+import { useLingering } from '@/shared/lib/presence';
 import { Sheet } from './Sheet';
 import { SheetHeader } from './SheetHeader';
 import { SheetActions, SheetFootnote, SheetRows } from './SheetParts';
@@ -45,7 +46,7 @@ export interface RaiseSheetProps {
  */
 export function RaiseSheet({
   open,
-  project,
+  project: projectProp,
   mode = 'own',
   rank,
   preset,
@@ -54,6 +55,8 @@ export function RaiseSheet({
   onClose,
   onConfirm,
 }: RaiseSheetProps) {
+  // On the desktop the dialog leaves with what it last showed (useLingering).
+  const project = useLingering(projectProp, open);
   const [amount, setAmount] = useState(preset ?? minAmount);
 
   // Кит переустанавливает сумму на каждом открытии — сравнением в рендере,

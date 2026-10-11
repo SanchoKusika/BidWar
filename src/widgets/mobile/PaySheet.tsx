@@ -10,6 +10,7 @@ import {
 } from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
 import { getPaymentMethods } from '@/shared/content';
+import { useLingering } from '@/shared/lib/presence';
 import { Sheet } from './Sheet';
 import { SheetHeader } from './SheetHeader';
 import { SheetActions, SheetField, SheetFootnote, SheetNote, SheetRows } from './SheetParts';
@@ -61,11 +62,13 @@ function title(kind: PayPayload['kind']): string {
  */
 export function PaySheet({
   open,
-  payload,
+  payload: payloadProp,
   currency = DEFAULT_CURRENCY,
   onClose,
   onConfirm,
 }: PaySheetProps) {
+  // On the desktop the dialog leaves with what it last showed (useLingering).
+  const payload = useLingering(payloadProp, open);
   const methods = getPaymentMethods();
   const [providerId, setProviderId] = useState(methods[0].id);
   // Находка I4 финального ревью: без своего "в полёте" второй тап по Pay на

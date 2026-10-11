@@ -83,6 +83,8 @@ export function DesktopProject({
   const sinceShort = project.createdAt ? formatShortDate(project.createdAt) : null;
   const topName = paid ? strings.showcase.paidTitle : strings.showcase.freeTitle;
   const [copied, setCopied] = useState(false);
+  /** The label has changed at least once — only then does it fade on a change. */
+  const [swapped, setSwapped] = useState(false);
 
   useEffect(() => {
     if (!copied) return;
@@ -93,7 +95,10 @@ export function DesktopProject({
   const copy = () => {
     navigator.clipboard
       ?.writeText(project.url)
-      .then(() => setCopied(true))
+      .then(() => {
+        setCopied(true);
+        setSwapped(true);
+      })
       .catch(() => {});
   };
 
@@ -236,7 +241,9 @@ export function DesktopProject({
               {t.open(displayUrl(project.url))}
             </Button>
             <Button variant="secondary" size="lg" icon={copied ? 'check' : 'copy'} onClick={copy}>
-              {copied ? w.linkCopied : w.copyLink}
+              <span key={String(copied)} className={swapped ? styles.swap : undefined}>
+                {copied ? w.linkCopied : w.copyLink}
+              </span>
             </Button>
             <span className={styles.linkNote}>{w.clicksNote}</span>
           </div>

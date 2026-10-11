@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { getPlatform } from '@/shared/platform';
 import { useJoinOnline } from '@/shared/lib/online';
 import { setSetting, useSettings } from '@/shared/settings';
@@ -12,6 +12,7 @@ import { TasksPage } from '@/pages/tasks/ui/Mobile';
 import { ProfilePage } from '@/pages/profile/ui/Mobile';
 import { ProjectPage } from '@/pages/project/ui/Mobile';
 import { SiteFooter, TopBar, type TopBarItem } from '@/widgets/desktop/Chrome';
+import { DialogScrim } from '@/widgets/desktop/Dialog';
 import { DocPage, RulesPage } from '@/widgets/desktop/InfoPages';
 import { bindTheme } from '../theme';
 import { useWebNavigation } from './navigation';
@@ -58,6 +59,18 @@ function Site() {
   useEffect(() => {
     document.documentElement.lang = HTML_LANG[language];
   }, [language]);
+
+  // Desktop-only tokens hang off this (motion.css): the mini app and the
+  // site on a phone never set it, so nothing there moves differently.
+  // Before the first paint, or the first frame has the phone's press scale
+  // and no scrollbar gutter.
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    root.dataset['layout'] = 'desktop';
+    return () => {
+      delete root.dataset['layout'];
+    };
+  }, []);
 
   const dark = theme === 'auto' ? systemDark : theme === 'dark';
   const route = nav.current;
@@ -119,6 +132,7 @@ function Site() {
       </div>
 
       <SiteFooter onDoc={(id) => nav.push({ name: 'doc', id })} />
+      <DialogScrim />
     </div>
   );
 }

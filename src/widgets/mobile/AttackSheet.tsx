@@ -12,6 +12,7 @@ import {
 import { strings } from '@/shared/i18n/strings';
 import { creditedFromBp, type AttackQuote } from '@/features/attack';
 import type { ProjectListItem } from '@/entities/project';
+import { useLingering } from '@/shared/lib/presence';
 import { Sheet } from './Sheet';
 import { SheetHeader } from './SheetHeader';
 import { SheetActions, SheetFootnote, SheetNote, SheetRows } from './SheetParts';
@@ -47,7 +48,7 @@ export interface AttackSheetProps {
  */
 export function AttackSheet({
   open,
-  target,
+  target: targetProp,
   rank,
   quote,
   quoteError,
@@ -55,6 +56,8 @@ export function AttackSheet({
   onClose,
   onConfirm,
 }: AttackSheetProps) {
+  // On the desktop the dialog leaves with what it last showed (useLingering).
+  const target = useLingering(targetProp, open);
   const [step, setStep] = useState<1 | 2>(1);
   /** null — человек ещё не трогал ползунок, показываем предложенную сумму. */
   const [amount, setAmount] = useState<number | null>(null);

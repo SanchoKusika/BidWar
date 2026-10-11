@@ -6,6 +6,7 @@ import { OgPreview } from '@/shared/ui/OgPreview';
 import { formatVotes } from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
 import type { ProjectListItem } from '@/entities/project';
+import { useLingering } from '@/shared/lib/presence';
 import { Sheet } from './Sheet';
 import { SheetHeader } from './SheetHeader';
 import { SheetActions, SheetNote, SheetRows } from './SheetParts';
@@ -32,7 +33,7 @@ export interface VoteSheetProps {
  */
 export function VoteSheet({
   open,
-  project,
+  project: projectProp,
   rank,
   balance,
   preset,
@@ -40,6 +41,8 @@ export function VoteSheet({
   onClose,
   onConfirm,
 }: VoteSheetProps) {
+  // On the desktop the dialog leaves with what it last showed (useLingering).
+  const project = useLingering(projectProp, open);
   const [amount, setAmount] = useState(preset ?? 10);
   const [busy, setBusy] = useState(false);
 
