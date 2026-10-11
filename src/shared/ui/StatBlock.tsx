@@ -9,6 +9,8 @@ import {
   DEFAULT_CURRENCY,
 } from '@/shared/lib/format';
 import { cx } from '@/shared/lib/cx';
+import { useLayout } from '@/shared/lib/layout';
+import { useTicker } from '@/shared/lib/ticker';
 import { strings } from '@/shared/i18n/strings';
 import type { Segment } from './OgPreview';
 import styles from './StatBlock.module.css';
@@ -46,6 +48,12 @@ export interface StatBlockProps {
   inline?: boolean;
   /** The number is not known yet: caption and unit stay, the value is a placeholder. */
   loading?: boolean;
+  /**
+   * What the number measures, when the same block can show another number:
+   * the top bid of another category is not a change of this one, and is put
+   * down at once instead of counted to (useTicker).
+   */
+  series?: string;
   className?: string;
   style?: CSSProperties;
 }
@@ -63,15 +71,19 @@ export function StatBlock({
   showIcon = false,
   inline = false,
   loading = false,
+  series,
   className,
   style,
 }: StatBlockProps) {
   const seg = SEG[segment];
   const isPaid = segment === 'paid';
+  // On the site a number that changes in view counts to its new value; the
+  // mini app swaps it, as it always has.
+  const tick = useTicker(value, useLayout() === 'desktop' && !loading, series);
 
   const text = isPaid
-    ? formatMoney(value, { currency, compact })
-    : formatVotes(value, { compact: compact ?? true });
+    ? formatMoney(tick.shown, { currency, compact })
+    : formatVotes(tick.shown, { compact: compact ?? true });
   // Read at render, like the caption above it: a module-level value would
   // keep the language of the first launch, and this unit sits right under a
   // caption that does not.
@@ -99,7 +111,7 @@ export function StatBlock({
             style={{ alignSelf: 'center' }}
           />
         )}
-        <span className={styles.value}>
+        <span className={styles.value} data-trend={tick.trend ?? undefined}>
           {loading ? <SkeletonText>{isPaid ? '000 000' : '000'}</SkeletonText> : text}
         </span>
         {showUnit && <span className={styles.unit}>{unit}</span>}

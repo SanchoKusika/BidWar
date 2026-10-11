@@ -67,6 +67,20 @@
   white-space: nowrap;
 }
 
+/* Counting to a new value (useTicker — the site only), the number takes the
+   colour of its change and settles back into its own as it lands. */
+.value[data-trend='up'] {
+  --flash-tone: var(--delta-up);
+
+  animation: ds-flash var(--dur-ticker) linear;
+}
+
+.value[data-trend='down'] {
+  --flash-tone: var(--delta-down);
+
+  animation: ds-flash var(--dur-ticker) linear;
+}
+
 /*
   Единица — часть числа, а не сноска под ним: она держит примерно 55-60% от
   кегля суммы. До этого она была фиксированно мелкой (13px под 40px суммы), и

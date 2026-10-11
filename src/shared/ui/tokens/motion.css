@@ -51,6 +51,14 @@
     transform: none;
   }
 }
+/* A changed number in the colour of its change: held for the first part of
+   the count, then back to the element's own colour (the missing `to`). */
+@keyframes ds-flash {
+  from,
+  40% {
+    color: var(--flash-tone);
+  }
+}
 @keyframes ds-fade-in {
   from {
     opacity: 0;
