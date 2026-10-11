@@ -67,7 +67,7 @@ export function PaySheet({
   onClose,
   onConfirm,
 }: PaySheetProps) {
-  // On the desktop the dialog leaves with what it last showed (useLingering).
+  // Cleared in the click that closes the sheet — kept for its way out.
   const payload = useLingering(payloadProp, open);
   const methods = getPaymentMethods();
   const [providerId, setProviderId] = useState(methods[0].id);

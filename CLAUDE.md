@@ -169,7 +169,8 @@ style={{ '--og-size': `${size}px` } as CSSProperties}
 `:root[data-layout='desktop']` (ставит `WebShell`), общие компоненты — при
 `useLayout() === 'desktop'`; мини-апп и сайт на телефоне не меняются.
 Инструменты: `Dialog` + `DialogScrim` (одно затемнение на цепочку окон
-оплаты), `usePresence` и `useLingering` (уход окна с его содержимым),
+оплаты), `usePresence` (уход окна), `useLingering` (шторка держит свой
+предмет, пока уходит, — единственное, что работает и в мини-аппе),
 `withViewTransition` (страницы, тема), `FlipGroup` (перестановка списка),
 `useTicker` и `useRankSwap` (числа и место). Под открытым окном движение ждёт
 (`shared/lib/overlay`). Правила и длительности — `07 Экраны`, «Движение».

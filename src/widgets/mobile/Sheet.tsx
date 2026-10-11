@@ -124,6 +124,12 @@ function BottomSheet({ open, onClose, children }: SheetProps) {
     return () => observer.disconnect();
   }, [mounted]);
 
+  // A sheet sliding away shows what it showed while open: the page changes
+  // its props in the same tap that closes it, and a raise of someone else's
+  // project turned into «raise yours» halfway down.
+  const [kept, setKept] = useState(children);
+  if (open && kept !== children) setKept(children);
+
   if (!mounted) return null;
 
   const canStartDrag = (target: EventTarget | null) => {
@@ -212,7 +218,7 @@ function BottomSheet({ open, onClose, children }: SheetProps) {
           <span className={styles.grabber} />
         </div>
         <div ref={contentRef} className={styles.content} data-scrollable={scrollable}>
-          {children}
+          {open ? children : kept}
         </div>
       </div>
     </div>,

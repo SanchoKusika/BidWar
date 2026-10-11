@@ -55,7 +55,7 @@ export function RaiseSheet({
   onClose,
   onConfirm,
 }: RaiseSheetProps) {
-  // On the desktop the dialog leaves with what it last showed (useLingering).
+  // Cleared in the click that closes the sheet — kept for its way out.
   const project = useLingering(projectProp, open);
   const [amount, setAmount] = useState(preset ?? minAmount);
 
