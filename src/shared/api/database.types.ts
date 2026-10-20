@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   graphql_public: {
     Tables: {
@@ -624,7 +624,7 @@ export type Database = {
           referred_user_id?: string | null
           reward_votes: number
           status: string
-          step: number | null
+          step?: number | null
           task_id: number
           user_id: string
         }
@@ -1143,11 +1143,6 @@ export type Database = {
           payload: Json
         }[]
       }
-      drain_notifications: { Args: never; Returns: undefined }
-      drop_notification: {
-        Args: { p_error: string; p_id: number }
-        Returns: undefined
-      }
       claim_task: {
         Args: { p_facts?: Json; p_task_id: number; p_user_id: string }
         Returns: {
@@ -1156,6 +1151,11 @@ export type Database = {
           granted: number
           referral_granted: number
         }[]
+      }
+      drain_notifications: { Args: never; Returns: undefined }
+      drop_notification: {
+        Args: { p_error: string; p_id: number }
+        Returns: undefined
       }
       enqueue_notification: {
         Args: {
