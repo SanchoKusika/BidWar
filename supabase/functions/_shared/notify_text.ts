@@ -216,51 +216,15 @@ function referral(p: Record<string, unknown>, locale: NotifyLocale): string {
 
 /**
  * The «let the bot write to you» task is checked by writing: the message is
- * both the proof and the answer to what the person just allowed.
- *
- * The task allows the bot to write; it does not switch the notifications on.
- * Someone who turned them all off in the profile made that choice on purpose,
- * and a hello promising attacks and votes «here» would be a promise the queue
- * then breaks — so with everything off the hello says so and where to change it.
+ * both the proof and the answer to what the person just allowed. Completing
+ * the task switches every notification kind on (claim-task), so the hello can
+ * name them all.
  */
-export interface HelloKinds {
-  attacked: boolean;
-  rankLost: boolean;
-  votes: boolean;
-  referral: boolean;
-}
-
-const HELLO_KINDS: Record<NotifyLocale, Record<keyof HelloKinds, string>> = {
-  RU: {
-    attacked: 'атаки на твой проект',
-    rankLost: 'потеря первого места',
-    votes: 'новые голоса',
-    referral: 'награды за друзей',
-  },
-  EN: {
-    attacked: 'attacks on your project',
-    rankLost: 'a lost first place',
-    votes: 'new votes',
-    referral: 'rewards for friends',
-  },
-};
-
-/** The hello names exactly the kinds that are on — a partial opt-out included. */
-export function botHelloText(locale: NotifyLocale, kinds: HelloKinds): string {
-  const on = (Object.keys(HELLO_KINDS[locale]) as (keyof HelloKinds)[])
-    .filter((kind) => kinds[kind])
-    .map((kind) => HELLO_KINDS[locale][kind]);
-  const and = locale === 'RU' ? ' и ' : ' and ';
-  const list = on.length > 1 ? `${on.slice(0, -1).join(', ')}${and}${on.at(-1)}` : on[0];
-
+export function botHelloText(locale: NotifyLocale): string {
   if (locale === 'RU') {
-    return list
-      ? `🔔 Готово: сюда придут ${list}.`
-      : '🔔 Готово: бот может тебе писать. Уведомления сейчас выключены — включить их можно в профиле.';
+    return '🔔 Готово: уведомления включены. Сюда придут атаки на твой проект, потеря первого места, новые голоса и награды за друзей.';
   }
-  return list
-    ? `🔔 Done: ${list} will arrive here.`
-    : '🔔 Done: the bot can write to you. Notifications are off right now — turn them on in the profile.';
+  return '🔔 Done: notifications are on. Attacks on your project, a lost first place, new votes and rewards for friends will arrive here.';
 }
 
 /** Подпись кнопки, открывающей мини-апп. */

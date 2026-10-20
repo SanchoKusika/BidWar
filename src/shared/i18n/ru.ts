@@ -402,7 +402,7 @@ export const ru: PartialStrings = {
     addProjectTitle: 'Добавь свой бесплатный проект',
     addProjectNote: 'Канал, бот или сайт в бесплатном топе.',
     botDmTitle: 'Разреши боту писать тебе',
-    botDmNote: 'Атаки, потеря первого места и новые голоса — сразу в чат.',
+    botDmNote: 'Включит все уведомления: атаки, потерю первого места, голоса, друзей.',
     boostTitle: 'Забусти @BidWar_world',
     boostNote: 'Буст канала с Telegram Premium.',
     siteLoginTitle: 'Зайди на bidwar.world',

@@ -73,19 +73,13 @@ serve('claim-task', async (req, ctx) => {
   if (task.type === 'bot_dm') {
     const { data: user, error: userError } = await db
       .from('users')
-      .select('language, notify_attacked, notify_rank_lost, notify_votes, notify_referral')
+      .select('language')
       .eq('id', userId)
       .single();
     if (userError) throw userError;
 
     const locale = localeFromCode(user.language);
-    const hello = botHelloText(locale, {
-      attacked: user.notify_attacked,
-      rankLost: user.notify_rank_lost,
-      votes: user.notify_votes,
-      referral: user.notify_referral,
-    });
-    const sent = await sendMessage(botToken, String(verified.user.id), hello, {
+    const sent = await sendMessage(botToken, String(verified.user.id), botHelloText(locale), {
       text: buttonText(locale),
       url: Deno.env.get('APP_URL') ?? 'https://app.bidwar.world/',
     });
@@ -96,6 +90,20 @@ serve('claim-task', async (req, ctx) => {
       ctx.log('bot cannot write', { userId });
       return await answer(false, 'bot_unreachable');
     }
+    // The task is «let the bot write to you»: doing it switches every kind of
+    // notification on, after the hello went through — a bot that cannot write
+    // would leave the toggles promising messages that never come.
+    const { error: notifyError } = await db
+      .from('users')
+      .update({
+        notify_attacked: true,
+        notify_rank_lost: true,
+        notify_votes: true,
+        notify_referral: true,
+      })
+      .eq('id', userId);
+    if (notifyError) throw notifyError;
+
     facts.bot_reachable = true;
   }
 
