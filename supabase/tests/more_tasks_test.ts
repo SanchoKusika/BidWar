@@ -119,7 +119,7 @@ Deno.test('daily bonus: yesterday continues the streak, a gap restarts it', asyn
     const kept = await addUser(tx, 'kept');
     await checkinOn(tx, kept, 1, 3);
     const day4 = await progressOf(tx, kept, 'daily_checkin');
-    assertEquals([day4.claim_step, day4.current_value, Number(day4.reward)], [4, 3, 2]);
+    assertEquals([day4.claim_step, day4.current_value, Number(day4.reward)], [4, 3, 4]);
 
     const lapsed = await addUser(tx, 'lapsed');
     await checkinOn(tx, lapsed, 2, 5);
@@ -128,12 +128,17 @@ Deno.test('daily bonus: yesterday continues the streak, a gap restarts it', asyn
   });
 });
 
-Deno.test('daily bonus: day eight pays like day one but keeps counting', async () => {
+Deno.test('daily bonus: every day pays one more, then holds at the ceiling', async () => {
   await inRollback(async (tx) => {
-    const user = await addUser(tx, 'week');
-    await checkinOn(tx, user, 1, 7);
-    const day8 = await progressOf(tx, user, 'daily_checkin');
-    assertEquals([day8.claim_step, day8.current_value, Number(day8.reward)], [8, 0, 1]);
+    const week = await addUser(tx, 'week');
+    await checkinOn(tx, week, 1, 7);
+    const day8 = await progressOf(tx, week, 'daily_checkin');
+    assertEquals([day8.claim_step, day8.current_value, Number(day8.reward)], [8, 7, 8]);
+
+    const long = await addUser(tx, 'long');
+    await checkinOn(tx, long, 1, 12);
+    const day13 = await progressOf(tx, long, 'daily_checkin');
+    assertEquals([day13.claim_step, day13.current_value, Number(day13.reward)], [13, 10, 10]);
   });
 });
 
@@ -282,7 +287,7 @@ Deno.test('add project: ready once the free project exists', async () => {
     const user = await addUser(tx, 'maker');
     assertEquals((await progressOf(tx, user, 'add_project')).state, 'available');
     await addProject(tx, user, 'free');
-    assertEquals((await claim(tx, user, 'add_project')).claimed, true);
+    assertEquals(await claim(tx, user, 'add_project'), { claimed: true, granted: 10 });
     assertEquals((await progressOf(tx, user, 'add_project')).state, 'done');
   });
 });

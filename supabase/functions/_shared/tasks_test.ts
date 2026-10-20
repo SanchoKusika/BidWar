@@ -130,7 +130,6 @@ const progressRow = (taskId: number, over: Partial<ProgressRow> = {}): ProgressR
   goal: null,
   reward: 1,
   target_project_id: null,
-  quest: null,
   ...over,
 });
 
@@ -181,13 +180,4 @@ Deno.test('an unknown state from SQL falls back to available', () => {
     progressRow(4, { state: 'bogus' }),
   ]);
   assertEquals(item?.state, 'available');
-});
-
-Deno.test('the quest of the day is passed on, a stray value is not', () => {
-  const board = buildTaskBoard([task(6, 'daily_quest'), task(8, 'daily_votes')], [], ctx(), [
-    progressRow(6, { quest: 'categories', current_value: 1, goal: 3 }),
-    progressRow(8, { quest: 'whatever', current_value: 0, goal: 5 }),
-  ]);
-  assertEquals(board.find((item) => item.type === 'daily_quest')?.quest, 'categories');
-  assertEquals(board.find((item) => item.type === 'daily_votes')?.quest, undefined);
 });

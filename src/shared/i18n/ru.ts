@@ -376,7 +376,7 @@ export const ru: PartialStrings = {
     subscribeTitle: (channel: string) => `Подпишись на ${channel}`,
     subscribeNote: 'Оставайся подписанным, чтобы голоса не пропали.',
     checkinTitle: 'Ежедневный бонус',
-    checkinNote: 'Каждый день подряд — больше. Пропуск начинает заново.',
+    checkinNote: 'Каждый день подряд — на голос больше, до потолка. Пропуск начинает заново.',
     dailyVisitsTitle: 'Обойди витрину целиком',
     dailyVisitsNote: 'Открой все платные проекты из задания выше — бонус сверху.',
     scoutTitle: 'Загляни к новичкам',
@@ -384,12 +384,6 @@ export const ru: PartialStrings = {
     dailyVotesTitle: (goal: number) =>
       `Отдай ${goal} ${plural(goal, 'голос', 'голоса', 'голосов')} за день`,
     dailyVotesNote: 'Любым проектам бесплатного топа, хоть своему.',
-    questBackedTitle: (goal: number) =>
-      `Задание дня: поддержи ${goal} ${plural(goal, 'проект', 'проекта', 'проектов')}`,
-    questBackedNote: 'Голоса разным проектам бесплатного топа. Завтра — другое задание.',
-    questCategoriesTitle: (goal: number) =>
-      `Задание дня: ${goal} ${plural(goal, 'категория', 'категории', 'категорий')}`,
-    questCategoriesNote: 'Открой платные проекты разных категорий. Завтра — другое задание.',
     friendStreakTitle: (goal: number) =>
       goal === 1 ? 'Друг на серии' : `${goal} ${plural(goal, 'друг', 'друга', 'друзей')} на серии`,
     friendStreakNote: 'Приглашённые, которые неделю не пропускают ежедневный бонус.',
@@ -405,9 +399,6 @@ export const ru: PartialStrings = {
     visitsLadderTitle: (goal: number) =>
       `Сделай ${goal} ${plural(goal, 'переход', 'перехода', 'переходов')}`,
     visitsLadderNote: 'Засчитанные переходы в платные проекты за всё время.',
-    subscriptionsLadderTitle: (goal: number) =>
-      `Подпишись на ${goal} ${plural(goal, 'канал', 'канала', 'каналов')}`,
-    subscriptionsLadderNote: 'Каналы из заданий на подписку.',
     addProjectTitle: 'Добавь свой бесплатный проект',
     addProjectNote: 'Канал, бот или сайт в бесплатном топе.',
     botDmTitle: 'Разреши боту писать тебе',

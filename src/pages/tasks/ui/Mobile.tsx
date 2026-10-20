@@ -30,7 +30,7 @@ export interface TasksPageProps {
  * the tap claims the reward (`claim-task`, checked by the server). Otherwise
  * the tap leads to where the task is done:
  *
- * - visits and the categories quest — to the Paid Top, where the links are;
+ * - visits — to the Paid Top, where the links are;
  * - votes and projects — to the Free Top;
  * - the newcomer task — to the page of the newest project not opened yet;
  * - friends — to the link in the profile;
@@ -131,8 +131,6 @@ export function TasksPage({ nav }: TasksPageProps) {
       case 'daily_visits':
       case 'ladder_visits':
         return () => nav.setTab('paid');
-      case 'daily_quest':
-        return () => nav.setTab(task.quest === 'categories' ? 'paid' : 'free');
       case 'daily_scout': {
         const id = task.targetProjectId;
         return id === null
@@ -155,7 +153,7 @@ export function TasksPage({ nav }: TasksPageProps) {
       case 'site_login':
         return () => getPlatform().openLink(`${brand.siteLink}/tasks`);
       default:
-        // The streak record and the channels ladder grow by other tasks.
+        // The streak record grows by the daily bonus itself.
         return undefined;
     }
   };

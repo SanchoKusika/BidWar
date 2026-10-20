@@ -14,12 +14,10 @@ export type TaskType =
   | 'daily_votes'
   | 'daily_visits'
   | 'daily_scout'
-  | 'daily_quest'
   | 'ladder_streak'
   | 'ladder_votes'
   | 'ladder_backed'
   | 'ladder_visits'
-  | 'ladder_subscriptions'
   | 'referral_streak'
   | 'add_project'
   | 'bot_dm'
@@ -33,9 +31,6 @@ export type TaskState = 'available' | 'ready' | 'pending' | 'done' | 'locked';
 /** Section of the board: renews daily, a goal that steps up, or once. */
 export type TaskGroup = 'daily' | 'goal' | 'once';
 
-/** Today's quest of `daily_quest` (task_progress in SQL picks it). */
-export type TaskQuest = 'backed' | 'categories';
-
 /**
  * Board order and section, by type. Order is fixed rather than by id: the
  * daily bonus was added last and still belongs at the top of the day.
@@ -46,14 +41,12 @@ const LAYOUT: readonly (readonly [TaskType, TaskGroup])[] = [
   ['daily_visits', 'daily'],
   ['daily_scout', 'daily'],
   ['daily_votes', 'daily'],
-  ['daily_quest', 'daily'],
   ['referral', 'goal'],
   ['referral_streak', 'goal'],
   ['ladder_streak', 'goal'],
   ['ladder_votes', 'goal'],
   ['ladder_backed', 'goal'],
   ['ladder_visits', 'goal'],
-  ['ladder_subscriptions', 'goal'],
   ['subscribe', 'once'],
   ['bot_dm', 'once'],
   ['add_project', 'once'],
@@ -97,7 +90,6 @@ export interface ProgressRow {
   goal: number | null;
   reward: number;
   target_project_id: number | null;
-  quest: string | null;
 }
 
 export interface TaskPayload {
@@ -111,7 +103,6 @@ export interface TaskPayload {
   targetUrl: string | null;
   state: TaskState;
   progress?: { current: number; total: number };
-  quest?: TaskQuest;
 }
 
 export interface BoardContext {
@@ -201,7 +192,6 @@ function progressItem(task: TaskRow, group: TaskGroup, row: ProgressRow): TaskPa
   if (row.goal !== null && row.current_value !== null) {
     item.progress = { current: Number(row.current_value), total: Number(row.goal) };
   }
-  if (row.quest === 'backed' || row.quest === 'categories') item.quest = row.quest;
   return item;
 }
 

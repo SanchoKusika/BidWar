@@ -16,8 +16,8 @@
 alter table public.tasks drop constraint tasks_type_check;
 alter table public.tasks add constraint tasks_type_check check (type in (
   'visit', 'subscribe', 'referral',
-  'daily_checkin', 'daily_votes', 'daily_visits', 'daily_scout', 'daily_quest',
-  'ladder_streak', 'ladder_votes', 'ladder_backed', 'ladder_visits', 'ladder_subscriptions',
+  'daily_checkin', 'daily_votes', 'daily_visits', 'daily_scout',
+  'ladder_streak', 'ladder_votes', 'ladder_backed', 'ladder_visits',
   'referral_streak',
   'add_project', 'bot_dm', 'boost', 'site_login', 'premium'
 ));
@@ -65,32 +65,39 @@ create unique index task_completions_once_a_day_idx
 -- friend 3, and an active day of visits brings about ten. The new daily tasks
 -- add roughly as much again for someone who comes back every day and gives
 -- votes away; ladders pay rarely and grow slowly, so they cannot outrun it.
+--
+-- The boards start small: one project per person per top means as many
+-- projects as people. Nothing here asks for more projects than exist — goals
+-- that count other people's projects start at two and hide above the board,
+-- and the quest of the day and the subscriptions ladder were dropped before
+-- release for needing more of the board than the start has.
+--
+-- The daily bonus grows by one every day in a row and holds at ten: strictly
+-- more each day with no ceiling would be thirty a day after a month, three
+-- times a whole day of visits. Adding your own free project is the largest
+-- single step of a newcomer and pays ten.
 insert into public.tasks (type, title, description, reward_votes, params, target_chat_id, target_url)
 select v.type, v.title, v.description, v.reward_votes, v.params::jsonb, v.target_chat_id, v.target_url
   from (values
-    ('daily_checkin', 'Daily bonus', 'Grows to day seven; a missed day starts over.', 1,
-     '{"rewards": [1, 1, 2, 2, 3, 3, 5]}', null::bigint, null::text),
+    ('daily_checkin', 'Daily bonus', 'One more every day in a row, up to ten; a missed day starts over.', 1,
+     '{"rewards": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}', null::bigint, null::text),
     ('daily_votes', 'Give votes today', 'Give votes to any free projects.', 2,
      '{"goal": 5}', null, null),
     ('daily_visits', 'Finish the day''s visits', 'Open every paid project the visit task asks for.', 2,
-     '{"min_goal": 3}', null, null),
+     '{"min_goal": 2}', null, null),
     ('daily_scout', 'Scout new projects', 'Open a paid project added in the last 24 hours.', 1,
      '{"window_hours": 24}', null, null),
-    ('daily_quest', 'Quest of the day', 'Changes every day.', 2,
-     '{"goal": 3}', null, null),
     ('ladder_streak', 'Streak record', 'Days in a row with the daily bonus.', 2,
      '{"goals": [3, 7, 14, 30], "rewards": [2, 5, 10, 20], "step": 30}', null, null),
     ('ladder_votes', 'Votes given', 'All votes given, to any projects.', 2,
      '{"goals": [10, 50, 100, 250, 500], "rewards": [2, 5, 8, 15, 25], "step": 500}', null, null),
     ('ladder_backed', 'Projects backed', 'Different free projects you gave votes to.', 2,
-     '{"goals": [3, 5, 10, 25], "rewards": [2, 3, 5, 10], "step": 25}', null, null),
+     '{"goals": [2, 3, 5, 10], "rewards": [2, 3, 5, 10], "step": 10}', null, null),
     ('ladder_visits', 'Projects opened', 'All counted visits to paid projects.', 2,
-     '{"goals": [25, 100, 250, 500], "rewards": [2, 5, 10, 15], "step": 500}', null, null),
-    ('ladder_subscriptions', 'Channels joined', 'Counted subscription tasks.', 2,
-     '{"goals": [3, 5, 10], "rewards": [2, 3, 5], "step": 5}', null, null),
+     '{"goals": [10, 25, 50, 100, 250], "rewards": [2, 3, 5, 10, 15], "step": 250}', null, null),
     ('referral_streak', 'Friends on a streak', 'An invited friend keeps the daily bonus seven days in a row.', 5,
      '{"streak": 7}', null, null),
-    ('add_project', 'Add your free project', 'Put your channel, bot or site on the Free Top.', 3,
+    ('add_project', 'Add your free project', 'Put your channel, bot or site on the Free Top.', 10,
      '{}', null, null),
     ('bot_dm', 'Let the bot write to you', 'Attacks, lost first place and votes arrive in the chat.', 2,
      '{}', null, null),
@@ -175,8 +182,7 @@ returns table (
   reward            bigint,
   claim_step        int,
   claim_period      date,
-  target_project_id bigint,
-  quest             text
+  target_project_id bigint
 )
 language plpgsql
 stable
@@ -190,16 +196,11 @@ declare
   v_visit_limit    int;
   v_paid_available int;
   v_free_available int;
-  v_cat_available  int;
   v_visits_today   int;
   v_visits_total   int;
-  v_cats_today     int;
   v_votes_today    bigint;
   v_votes_total    bigint;
-  v_backed_today   int;
   v_backed_total   int;
-  v_subs_done      int;
-  v_subs_active    int;
   v_checkin_today  int;
   v_checkin_prev   int;
   v_best_streak    int;
@@ -227,8 +228,7 @@ begin
 
   -- What there is to do at all. Own projects are left out of the paid side:
   -- a click on them does not count (register_project_click).
-  select count(*)::int, count(distinct p.category_id)::int
-    into v_paid_available, v_cat_available
+  select count(*)::int into v_paid_available
     from public.projects p
    where p.type = 'paid' and p.status = 'active' and p.user_id <> p_user_id;
 
@@ -240,27 +240,12 @@ begin
     from public.task_completions tc
    where tc.user_id = p_user_id and tc.task_id = v_visit_task and tc.status = 'completed';
 
-  select count(distinct p.category_id)::int into v_cats_today
-    from public.task_completions tc
-    join public.projects p on p.id = tc.project_id
-   where tc.user_id = p_user_id and tc.task_id = v_visit_task
-     and tc.period_day = v_today and tc.status = 'completed';
-
   select coalesce(sum(vt.amount) filter (where vt.created_at >= v_today), 0),
          coalesce(sum(vt.amount), 0),
-         count(distinct vt.project_id) filter (where vt.created_at >= v_today)::int,
          count(distinct vt.project_id)::int
-    into v_votes_today, v_votes_total, v_backed_today, v_backed_total
+    into v_votes_today, v_votes_total, v_backed_total
     from public.vote_transactions vt
    where vt.user_id = p_user_id;
-
-  select count(*)::int into v_subs_done
-    from public.task_completions tc
-    join public.tasks t on t.id = tc.task_id
-   where tc.user_id = p_user_id and t.type = 'subscribe' and tc.status = 'completed';
-
-  select count(*)::int into v_subs_active
-    from public.tasks t where t.type = 'subscribe' and t.is_active;
 
   select max(tc.step) filter (where tc.period_day = v_today),
          max(tc.step) filter (where tc.period_day = v_today - 1),
@@ -290,7 +275,6 @@ begin
     claim_step := null;
     claim_period := null;
     target_project_id := null;
-    quest := null;
 
     select exists (
       select 1 from public.task_completions tc
@@ -303,18 +287,20 @@ begin
 
     case v_task.type
     when 'daily_checkin' then
-      -- Seven-day cycle: day eight pays like day one again, but the streak
-      -- itself keeps counting for the record ladder.
+      -- Day N of the streak pays the N-th entry, and past the list the last
+      -- one for as long as the streak lasts. The bar fills towards that
+      -- ceiling and stays full there; the streak itself keeps counting for
+      -- the record ladder.
       v_len := greatest(1, jsonb_array_length(v_task.params -> 'rewards'));
       v_day := coalesce(v_checkin_today, coalesce(v_checkin_prev, 0) + 1);
       goal := v_len;
-      reward := (v_task.params -> 'rewards' ->> ((v_day - 1) % v_len))::bigint;
+      reward := (v_task.params -> 'rewards' ->> (least(v_day, v_len) - 1))::bigint;
       if v_checkin_today is not null then
         -- The bar counts days reached, like a ladder: today's is in once paid.
-        current_value := (v_day - 1) % v_len + 1;
+        current_value := least(v_day, v_len);
         state := 'done';
       else
-        current_value := (v_day - 1) % v_len;
+        current_value := least(v_day - 1, v_len);
         state := 'ready';
         claim_step := v_day;
         claim_period := v_today;
@@ -356,26 +342,7 @@ begin
       if goal = 0 then continue; end if;
       state := case when current_value >= goal then 'done' else 'available' end;
 
-    when 'daily_quest' then
-      -- Two quests take turns by the day. When today's cannot be done — the
-      -- Free Top has one project, the paid one a single category — the other
-      -- stands in, and with neither the card is hidden.
-      quest := case when (v_today - date '2026-01-01') % 2 = 0 then 'backed' else 'categories' end;
-      goal := coalesce((v_task.params ->> 'goal')::int, 3);
-      if quest = 'backed' and least(goal, v_free_available) < 2 then quest := 'categories'; end if;
-      if quest = 'categories' and least(goal, v_cat_available) < 2 then
-        quest := case when least(goal, v_free_available) >= 2 then 'backed' end;
-      end if;
-      if quest is null then continue; end if;
-      goal := least(goal, case quest when 'backed' then v_free_available else v_cat_available end);
-      v_metric := case quest when 'backed' then v_backed_today else v_cats_today end;
-      current_value := least(v_metric, goal);
-      claim_period := v_today;
-      state := case when v_done_today then 'done'
-                    when v_metric >= goal then 'ready'
-                    else 'available' end;
-
-    when 'ladder_streak', 'ladder_votes', 'ladder_backed', 'ladder_visits', 'ladder_subscriptions' then
+    when 'ladder_streak', 'ladder_votes', 'ladder_backed', 'ladder_visits' then
       select coalesce(max(tc.step), 0) into v_claimed
         from public.task_completions tc
        where tc.user_id = p_user_id and tc.task_id = v_task.id and tc.status = 'completed';
@@ -384,15 +351,13 @@ begin
         when 'ladder_streak' then v_best_streak
         when 'ladder_votes' then v_votes_total
         when 'ladder_backed' then v_backed_total
-        when 'ladder_visits' then v_visits_total
-        else v_subs_done
+        else v_visits_total
       end;
       goal := public.ladder_next_goal(v_task.params, v_claimed);
 
       -- A goal above everything that exists cannot be reached: ten projects
       -- to back on a Free Top of six.
       if v_task.type = 'ladder_backed' and goal > greatest(v_free_available, v_metric) then continue; end if;
-      if v_task.type = 'ladder_subscriptions' and goal > greatest(v_subs_active, v_metric) then continue; end if;
 
       current_value := least(v_metric, goal);
       reward := public.ladder_reward(v_task.params, goal);

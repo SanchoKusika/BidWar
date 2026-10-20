@@ -1227,7 +1227,6 @@ export type Database = {
           claim_step: number
           current_value: number
           goal: number
-          quest: string
           reward: number
           state: string
           target_project_id: number
