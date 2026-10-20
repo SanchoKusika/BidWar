@@ -431,7 +431,7 @@ export const en = {
     addProjectTitle: 'Add your free project',
     addProjectNote: 'Your channel, bot or site on the Free Top.',
     botDmTitle: 'Let the bot write to you',
-    botDmNote: 'Attacks, a lost first place and new votes, right in the chat.',
+    botDmNote: 'Turns every notification on: attacks, a lost first place, votes, friends.',
     boostTitle: 'Boost @BidWar_world',
     boostNote: 'A channel boost with Telegram Premium.',
     siteLoginTitle: 'Sign in on bidwar.world',

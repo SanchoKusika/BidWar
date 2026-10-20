@@ -3,6 +3,7 @@ import { useSession } from '@/entities/user';
 import { checkSubscription } from '@/features/subscribe';
 import { claimTask } from '@/features/claim-task';
 import { getPlatform } from '@/shared/platform';
+import { dropQueryCache } from '@/shared/lib/query';
 import { haptic } from '@/shared/lib/haptic';
 import { strings } from '@/shared/i18n/strings';
 import { brand } from '@/shared/content';
@@ -96,6 +97,9 @@ export function TasksPage({ nav }: TasksPageProps) {
 
       if (result.claimed) {
         haptic('success');
+        // The bot task switched the notifications on server-side: the
+        // profile's cached toggles would show them off until the next refetch.
+        if (task.type === 'bot_dm') dropQueryCache('preferences:');
       } else {
         // Like an unpaid subscription: the tap meant «do it», so the place
         // where it gets done opens rather than a scolding.
