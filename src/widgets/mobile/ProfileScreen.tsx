@@ -111,8 +111,6 @@ export interface ProfileScreenProps {
    */
   onShareReferral?: () => void;
   currency?: DisplayCurrency;
-  /** «12.5 mln» вместо «12 500 000» — настройка профиля (shared/settings). */
-  compactAmounts?: boolean;
   settings: SettingsPanelProps;
   onEarn: () => void;
   onAdd?: () => void;
@@ -157,7 +155,6 @@ export function ProfileScreen({
   referralReward,
   onShareReferral,
   currency = DEFAULT_CURRENCY,
-  compactAmounts = false,
   settings,
   onEarn,
   projectsLoading = false,
@@ -169,7 +166,7 @@ export function ProfileScreen({
   onRaise,
   onVote,
 }: ProfileScreenProps) {
-  const money = (v: number) => formatMoney(v, { currency, compact: compactAmounts });
+  const money = (v: number) => formatMoney(v, { currency });
   const receiptsRef = useRef<HTMLDivElement>(null);
   const referralRef = useRef<HTMLDivElement>(null);
   const handledFocus = useRef<object | null>(null);
@@ -203,7 +200,7 @@ export function ProfileScreen({
             label={t.votesLabel}
             value={
               voteBalance !== null ? (
-                formatVotes(voteBalance, { compact: compactAmounts })
+                formatVotes(voteBalance)
               ) : voteBalanceLoading ? (
                 <SkeletonText>000</SkeletonText>
               ) : (
@@ -282,7 +279,6 @@ export function ProfileScreen({
                   ogImage={project.ogImageUrl ?? undefined}
                   value={project.type === 'paid' ? project.paidAmount : project.votes}
                   currency={currency}
-                  compactAmounts={compactAmounts}
                   clicks={project.clicks}
                   isOwn
                   onDetails={() => onOpenProject(project)}

@@ -73,13 +73,16 @@ serve('claim-task', async (req, ctx) => {
   if (task.type === 'bot_dm') {
     const { data: user, error: userError } = await db
       .from('users')
-      .select('language')
+      .select('language, notify_attacked, notify_rank_lost, notify_votes, notify_referral')
       .eq('id', userId)
       .single();
     if (userError) throw userError;
 
     const locale = localeFromCode(user.language);
-    const sent = await sendMessage(botToken, String(verified.user.id), botHelloText(locale), {
+    const notificationsOn =
+      user.notify_attacked || user.notify_rank_lost || user.notify_votes || user.notify_referral;
+    const hello = botHelloText(locale, notificationsOn);
+    const sent = await sendMessage(botToken, String(verified.user.id), hello, {
       text: buttonText(locale),
       url: Deno.env.get('APP_URL') ?? 'https://app.bidwar.world/',
     });

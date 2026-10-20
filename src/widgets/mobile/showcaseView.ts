@@ -34,17 +34,13 @@ export function metricOf(item: Pick<ProjectListItem, 'type' | 'paidAmount' | 'vo
   return item.type === 'paid' ? item.paidAmount : item.votes;
 }
 
-/**
- * Валюта показа и «сокращать ли суммы» — обе из настроек профиля, и ходят
- * вместе везде, где число попадает на экран.
- */
+/** The display currency — every number on screen goes out in it. */
 interface MoneyFormat {
   currency: DisplayCurrency;
-  compact: boolean;
 }
 
 function formatMetric(value: number, segment: ShowcaseType, money: MoneyFormat): string {
-  return segment === 'paid' ? formatMoney(value, money) : formatVotes(value, money);
+  return segment === 'paid' ? formatMoney(value, money) : formatVotes(value);
 }
 
 function unitOf(segment: ShowcaseType, currency: DisplayCurrency): string {
@@ -162,7 +158,6 @@ export function useShowcaseView(props: ShowcaseScreenProps) {
   const {
     segment,
     currency = DEFAULT_CURRENCY,
-    compactAmounts = false,
     minStep,
     categories,
     categoryId,
@@ -184,10 +179,7 @@ export function useShowcaseView(props: ShowcaseScreenProps) {
     ? rows.reduce((sum, item) => sum + (item.todayAmount ?? 0), 0)
     : null;
   const ownMetric = ownProject ? metricOf(ownProject) : null;
-  const money: MoneyFormat = { currency, compact: compactAmounts };
-  // The spot price and the gap to the next row are numbers people pay by:
-  // shortening them would make someone underpay.
-  const exact: MoneyFormat = { currency, compact: false };
+  const money: MoneyFormat = { currency };
   const categoryById: CategoryById = new Map(categories.map((c) => [c.categoryId, c]));
   const globalTotals = totalsFor(categories, categoryById, null);
   const scopedTotals = totalsFor(categories, categoryById, categoryId);
@@ -208,7 +200,7 @@ export function useShowcaseView(props: ShowcaseScreenProps) {
   // The exact price of the last position is honest only when the list is
   // loaded to the end — otherwise the last LOADED row need not be the last.
   const lastItem = items.at(-1);
-  const cheapest = !hasMore && lastItem ? spotFor(lastItem, segment, exact, minStep, unit) : null;
+  const cheapest = !hasMore && lastItem ? spotFor(lastItem, segment, money, minStep, unit) : null;
   const entryHint =
     segment === 'paid'
       ? cheapest
@@ -218,7 +210,7 @@ export function useShowcaseView(props: ShowcaseScreenProps) {
 
   const ownValue = ownProject ? formatMetric(metricOf(ownProject), segment, money) : undefined;
   const ownHint = ownProject
-    ? gapHint(ownRank, ownNeighborAbove, ownProject, segment, exact, minStep, unit)
+    ? gapHint(ownRank, ownNeighborAbove, ownProject, segment, money, minStep, unit)
     : undefined;
 
   return {
@@ -228,7 +220,6 @@ export function useShowcaseView(props: ShowcaseScreenProps) {
     todayPool,
     ownMetric,
     money,
-    exact,
     categoryById,
     globalTotals,
     scopedTotals,

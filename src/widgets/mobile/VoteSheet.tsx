@@ -68,7 +68,7 @@ export function VoteSheet({
 
   if (!project) return null;
 
-  const votes = (v: number) => formatVotes(v, { compact: false });
+  const votes = (v: number) => formatVotes(v);
   const over = amount > balance;
 
   return (

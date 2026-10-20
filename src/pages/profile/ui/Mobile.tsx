@@ -134,8 +134,7 @@ export function ProfilePage({ nav }: ProfilePageProps) {
         // bar's toggle; the mini app switches at once, as it always has.
         if (desktop) withViewTransition('theme', apply);
         else apply();
-      } else if (key === 'compactAmounts') setSetting('compactAmounts', next as boolean);
-      else if (key === 'haptics') setSetting('haptics', next as boolean);
+      } else if (key === 'haptics') setSetting('haptics', next as boolean);
       else if (key === 'language') {
         setSetting('language', next as Locale);
         // Язык уезжает и на сервер: тем же языком бот пишет уведомления,
@@ -237,7 +236,6 @@ export function ProfilePage({ nav }: ProfilePageProps) {
         // прямо в карточке и объясняет, почему «приглашено 5, получено 9».
         referralEarned={referral.rewarded * referral.reward}
         referralReward={referral.reward}
-        compactAmounts={settings.compactAmounts}
         settings={settingsPanel}
         onEarn={() => nav.setTab('tasks')}
         onOpenProject={(project) =>

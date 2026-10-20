@@ -69,7 +69,6 @@ export function DesktopProfile({
   referralReward,
   onShareReferral,
   currency = DEFAULT_CURRENCY,
-  compactAmounts = false,
   settings,
   onEarn,
   projectsLoading = false,
@@ -83,7 +82,7 @@ export function DesktopProfile({
   onVote,
 }: ProfileScreenProps) {
   const t = strings.profile;
-  const money = (v: number) => formatMoney(v, { currency, compact: compactAmounts });
+  const money = (v: number) => formatMoney(v, { currency });
   const unit = CURRENCY_SUFFIX[currency];
   const showSpending = Boolean(spending) || spendingLoading;
   const referralRef = useRef<HTMLDivElement>(null);
@@ -136,7 +135,7 @@ export function DesktopProfile({
                   label={strings.web.availableNow}
                   value={
                     voteBalance !== null ? (
-                      formatVotes(voteBalance, { compact: compactAmounts })
+                      formatVotes(voteBalance)
                     ) : voteBalanceLoading ? (
                       <SkeletonText>000</SkeletonText>
                     ) : (
@@ -258,7 +257,6 @@ export function DesktopProfile({
                   ogImage={project.ogImageUrl ?? undefined}
                   value={project.type === 'paid' ? project.paidAmount : project.votes}
                   currency={currency}
-                  compactAmounts={compactAmounts}
                   clicks={project.clicks}
                   isOwn
                   onDetails={() => onOpenProject(project)}

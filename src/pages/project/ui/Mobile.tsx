@@ -10,7 +10,6 @@ import {
 import { useProjectActivity } from '@/entities/activity';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { PREVIEW } from '@/shared/config/preview';
-import { useSettings } from '@/shared/settings';
 import { formatMoney, formatReceiptDate } from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
 import {
@@ -58,7 +57,6 @@ export function ProjectPage({
   // Raising, attacking and voting need an account: on the site a viewer
   // without one is asked to sign in, not sent to a sheet that cannot pay.
   const signIn = useGuestSignIn();
-  const { compactAmounts } = useSettings();
   const categories = useCategoryStats(segment);
   const { project, rank, otherEntry, otherRank, status } = useProject(id, segment);
   // Хук стоит до ранних возвратов ниже и потому берёт id из пропа, а не из
@@ -114,7 +112,7 @@ export function ProjectPage({
           ? strings.project.activityAttackIn(event.targetName ?? '—')
           : strings.project.activityAttackOut,
     when: formatReceiptDate(event.createdAt),
-    amount: formatMoney(event.amount, { compact: compactAmounts }),
+    amount: formatMoney(event.amount),
     up: event.type !== 'attack_out',
   }));
 
@@ -125,7 +123,6 @@ export function ProjectPage({
       rank={rank}
       categoryTitle={category ? categoryTitle(category.slug, category.title) : null}
       isOwn={userId !== null && project.userId === userId}
-      compactAmounts={compactAmounts}
       owner={PREVIEW.ownerHandle ? OWNER_FIXTURE : undefined}
       activity={activity}
       otherEntry={otherEntry}

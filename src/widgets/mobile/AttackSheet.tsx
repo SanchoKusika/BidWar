@@ -74,7 +74,7 @@ export function AttackSheet({
   if (!target) return null;
 
   const unit = CURRENCY_SUFFIX[currency];
-  const money = (v: number) => formatMoney(v, { currency, compact: false });
+  const money = (v: number) => formatMoney(v, { currency });
 
   const header = (
     <SheetHeader

@@ -36,8 +36,6 @@ export interface ProjectCardProps {
   value: number;
   valueDelta?: number;
   currency?: DisplayCurrency;
-  /** «12.5 mln» вместо «12 500 000» — настройка профиля (shared/settings). */
-  compactAmounts?: boolean;
   /** Публичный счётчик переходов. На позицию не влияет. */
   clicks?: number;
   /** Сколько лидер держит первое место. Только для rank === 1. */
@@ -75,7 +73,6 @@ export function ProjectCard({
   value,
   valueDelta,
   currency,
-  compactAmounts,
   clicks,
   heldFor,
   spotPrice,
@@ -145,7 +142,6 @@ export function ProjectCard({
           value={value}
           delta={valueDelta}
           currency={currency}
-          compact={compactAmounts}
           size="lg"
           align="left"
           label={null}

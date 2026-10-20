@@ -246,6 +246,12 @@ Deno.test('имена из базы экранируются — разметк�
 });
 
 Deno.test('the bot hello speaks the chosen language', () => {
-  assertEquals(botHelloText('EN').startsWith('🔔 Done'), true);
-  assertEquals(botHelloText('RU').startsWith('🔔 Готово'), true);
+  assertEquals(botHelloText('EN', true).startsWith('🔔 Done'), true);
+  assertEquals(botHelloText('RU', true).startsWith('🔔 Готово'), true);
+});
+
+Deno.test('the bot hello does not promise notifications that are off', () => {
+  assertStringIncludes(botHelloText('RU', true), 'атаки');
+  assertStringIncludes(botHelloText('RU', false), 'выключены');
+  assertStringIncludes(botHelloText('EN', false), 'off');
 });

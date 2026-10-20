@@ -250,7 +250,7 @@ src/
     config/       preview-флаги: что нарисовано, но не подключено
     api/          supabase client, вызовы Edge Functions
     platform/     единственное место, знающее про Telegram (и вход виджетом)
-    settings/     тема, компактные суммы, вибрация, язык (localStorage)
+    settings/     тема, вибрация, язык (localStorage)
     lib/          форматирование сумм и дат, кэш ответов (stale-while-revalidate),
                   тактильный отклик поверх platform.haptic()
 supabase/

@@ -27,7 +27,6 @@ const rates: Record<DisplayCurrency, number> = {
 
 export interface MoneyOptions {
   currency?: DisplayCurrency;
-  compact?: boolean;
 }
 
 /** Разряды разделяются тонким пробелом, не запятой. */
@@ -44,13 +43,17 @@ export function convert(points: number, currency: DisplayCurrency): number {
   return (Number(points) || 0) * rates[currency];
 }
 
+/**
+ * Amounts are always written out in full: «110 000», not «110 тыс». Rouble
+ * stakes read fine in full; the shortening and its setting were removed on
+ * 20.10.2026 and come back with the sum market, whose numbers run to
+ * millions (13 Выход за пределы РФ).
+ */
 export function formatMoney(
   points: number,
-  { currency = DEFAULT_CURRENCY, compact = true }: MoneyOptions = {},
+  { currency = DEFAULT_CURRENCY }: MoneyOptions = {},
 ): string {
   const n = convert(points, currency);
-  if (compact && n >= 1_000_000) return `${trim(n / 1_000_000)} ${strings.units.million}`;
-  if (compact && n >= 100_000) return `${trim(n / 1000)} ${strings.units.thousand}`;
   if (n > 0 && n < 100) return trim(n);
   return group(Math.round(n));
 }
@@ -76,11 +79,8 @@ export function formatEditable(points: number, currency: DisplayCurrency): strin
   return group(Math.round(convert(points, currency)));
 }
 
-export function formatVotes(value: number, { compact = true }: { compact?: boolean } = {}): string {
-  const n = Number(value) || 0;
-  if (compact && n >= 10_000)
-    return `${(n / 1000).toFixed(n >= 100_000 ? 0 : 1)} ${strings.units.thousand}`;
-  return group(n);
+export function formatVotes(value: number): string {
+  return group(Number(value) || 0);
 }
 
 /** Нейтральные счётчики — клики, просмотры. Не экономика: цвета единицы нет. */

@@ -157,18 +157,6 @@ export function SettingsPanel({
             }
           />
         )}
-        <SettingsRow
-          icon="hash"
-          title={t.compact}
-          description={t.compactNote}
-          control={
-            <Switch
-              checked={value.compactAmounts}
-              onChange={(v) => onChange('compactAmounts', v)}
-              label={t.compact}
-            />
-          }
-        />
       </SettingsGroup>
 
       {notifications && (

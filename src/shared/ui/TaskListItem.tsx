@@ -115,7 +115,7 @@ export function TaskListItemSkeleton({ subtitle = true }: { subtitle?: boolean }
         </span>
         {subtitle && (
           <span className={styles.subtitle}>
-            <SkeletonText>A short note about the task</SkeletonText>
+            <SkeletonText>A note about the task that usually runs to a second line</SkeletonText>
           </span>
         )}
       </div>

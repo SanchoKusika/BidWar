@@ -217,12 +217,21 @@ function referral(p: Record<string, unknown>, locale: NotifyLocale): string {
 /**
  * The «let the bot write to you» task is checked by writing: the message is
  * both the proof and the answer to what the person just allowed.
+ *
+ * The task allows the bot to write; it does not switch the notifications on.
+ * Someone who turned them all off in the profile made that choice on purpose,
+ * and a hello promising attacks and votes «here» would be a promise the queue
+ * then breaks — so with everything off the hello says so and where to change it.
  */
-export function botHelloText(locale: NotifyLocale): string {
+export function botHelloText(locale: NotifyLocale, notificationsOn: boolean): string {
   if (locale === 'RU') {
-    return '🔔 Готово: сюда придут атаки на твой проект, потеря первого места и новые голоса.';
+    return notificationsOn
+      ? '🔔 Готово: сюда придут атаки на твой проект, потеря первого места и новые голоса.'
+      : '🔔 Готово: бот может тебе писать. Уведомления сейчас выключены — включить их можно в профиле.';
   }
-  return '🔔 Done: attacks on your project, a lost first place and new votes will arrive here.';
+  return notificationsOn
+    ? '🔔 Done: attacks on your project, a lost first place and new votes will arrive here.'
+    : '🔔 Done: the bot can write to you. Notifications are off right now — turn them on in the profile.';
 }
 
 /** Подпись кнопки, открывающей мини-апп. */

@@ -54,21 +54,22 @@
   gap: 2px;
 }
 
+/*
+  Title and note wrap rather than end in an ellipsis: the note is the task's
+  condition, and a condition cut at «Открой все платные проекты из…» cannot
+  be met. Long words still break inside the card instead of widening it.
+*/
 .title {
   font: var(--type-body);
   font-weight: var(--fw-bold);
   color: var(--text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .subtitle {
   font: var(--type-caption);
   color: var(--text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .progress {

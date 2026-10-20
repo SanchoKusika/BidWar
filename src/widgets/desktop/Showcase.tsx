@@ -211,7 +211,6 @@ export function DesktopShowcase(screenProps: ShowcaseScreenProps) {
                 series={String(props.categoryId)}
                 label={paid ? w.topBid : w.topProject}
                 size="md"
-                compact
               />
             )}
             {/* Summed from the categories: until they answer the sum is not
@@ -222,7 +221,6 @@ export function DesktopShowcase(screenProps: ShowcaseScreenProps) {
               loading={props.categoriesLoading}
               label={paid ? w.moneyInPlay : w.votesInPlay}
               size="md"
-              compact
             />
             {paid ? (
               entry !== null && (
@@ -232,7 +230,6 @@ export function DesktopShowcase(screenProps: ShowcaseScreenProps) {
                   series={String(props.categoryId)}
                   label={w.entryFrom}
                   size="lg"
-                  compact
                 />
               )
             ) : (

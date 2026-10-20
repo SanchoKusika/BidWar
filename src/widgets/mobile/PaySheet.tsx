@@ -91,7 +91,7 @@ export function PaySheet({
   const tone = attack ? 'attack' : 'paid';
   const provider = methods.find((p) => p.id === providerId) ?? methods[0];
   const mock = provider.id === 'mock';
-  const amount = formatMoney(payload.amount, { currency, compact: false });
+  const amount = formatMoney(payload.amount, { currency });
 
   const handleClose = () => {
     if (submitting) return;

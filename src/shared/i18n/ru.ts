@@ -494,8 +494,6 @@ export const ru: PartialStrings = {
     themeDark: 'Тёмная',
     vibration: 'Вибрация',
     vibrationNote: 'Короткий отклик, когда ставка, атака или голос прошли',
-    compact: 'Компактные суммы',
-    compactNote: '12,5 млн вместо 12 500 000',
 
     notifications: 'Уведомления',
     notificationsNote: 'Приходят через бота. Об атаке узнать иначе нельзя — только из уведомления.',

@@ -35,7 +35,6 @@ export interface StatBlockProps {
   size?: StatSize;
   align?: 'left' | 'right';
   delta?: number;
-  compact?: boolean;
   /**
    * Единицу можно убрать ровно в одном случае: когда её уже назвала подпись
    * («ТВОИ ГОЛОСА» над числом, а под ним ещё раз «голосов»). Правило «число
@@ -66,7 +65,6 @@ export function StatBlock({
   size = 'md',
   align = 'right',
   delta,
-  compact,
   showUnit = true,
   showIcon = false,
   inline = false,
@@ -81,9 +79,7 @@ export function StatBlock({
   // mini app swaps it, as it always has.
   const tick = useTicker(value, useLayout() === 'desktop' && !loading, series);
 
-  const text = isPaid
-    ? formatMoney(tick.shown, { currency, compact })
-    : formatVotes(tick.shown, { compact: compact ?? true });
+  const text = isPaid ? formatMoney(tick.shown, { currency }) : formatVotes(tick.shown);
   // Read at render, like the caption above it: a module-level value would
   // keep the language of the first launch, and this unit sits right under a
   // caption that does not.
@@ -120,9 +116,7 @@ export function StatBlock({
       {!loading && d !== 0 && (
         <span data-dir={d > 0 ? 'up' : 'down'} className={styles.delta}>
           <Icon name={d > 0 ? 'arrow-up' : 'arrow-down'} size={9} />
-          {isPaid
-            ? formatMoney(Math.abs(d), { currency, compact: true })
-            : formatVotes(Math.abs(d))}
+          {isPaid ? formatMoney(Math.abs(d), { currency }) : formatVotes(Math.abs(d))}
         </span>
       )}
     </div>
