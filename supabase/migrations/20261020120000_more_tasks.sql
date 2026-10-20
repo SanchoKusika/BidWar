@@ -68,7 +68,7 @@ create unique index task_completions_once_a_day_idx
 --
 -- The boards start small: one project per person per top means as many
 -- projects as people. Nothing here asks for more projects than exist — goals
--- that count other people's projects start at two and hide above the board,
+-- that count projects start at two and hide above the board,
 -- and the quest of the day and the subscriptions ladder were dropped before
 -- release for needing more of the board than the start has.
 --
@@ -317,7 +317,7 @@ begin
 
     when 'daily_visits' then
       goal := least(v_visit_limit, v_paid_available);
-      if goal < coalesce((v_task.params ->> 'min_goal')::int, 3) and not v_done_today then
+      if goal < coalesce((v_task.params ->> 'min_goal')::int, 2) and not v_done_today then
         continue;
       end if;
       current_value := least(v_visits_today, goal);
@@ -356,8 +356,17 @@ begin
       goal := public.ladder_next_goal(v_task.params, v_claimed);
 
       -- A goal above everything that exists cannot be reached: ten projects
-      -- to back on a Free Top of six.
+      -- to back on a Free Top of six (your own counts — voting for it is
+      -- allowed). And a ladder with nothing on its board to move it is hidden
+      -- too, unless a step is already waiting: visits with no paid project of
+      -- someone else's, votes with an empty Free Top.
       if v_task.type = 'ladder_backed' and goal > greatest(v_free_available, v_metric) then continue; end if;
+      if v_metric < goal and (
+           (v_task.type = 'ladder_visits' and v_paid_available = 0)
+        or (v_task.type in ('ladder_votes', 'ladder_backed') and v_free_available = 0)
+      ) then
+        continue;
+      end if;
 
       current_value := least(v_metric, goal);
       reward := public.ladder_reward(v_task.params, goal);

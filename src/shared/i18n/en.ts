@@ -410,7 +410,7 @@ export const en = {
     subscribeTitle: (channel: string) => `Subscribe to ${channel}`,
     subscribeNote: 'Stay subscribed to keep the votes.',
     checkinTitle: 'Daily bonus',
-    checkinNote: 'One vote more every day in a row, up to the ceiling. A missed day starts over.',
+    checkinNote: 'One vote more every day in a row, then it holds. A missed day starts over.',
     dailyVisitsTitle: "Finish the day's visits",
     dailyVisitsNote: 'Open every paid project the task above asks for — a bonus on top.',
     scoutTitle: 'Scout the newcomers',

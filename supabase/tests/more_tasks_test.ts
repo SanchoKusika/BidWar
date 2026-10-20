@@ -338,3 +338,43 @@ Deno.test('task_progress narrowed to one task returns that task alone', async ()
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// Small boards: the tops start with as many projects as people
+// ---------------------------------------------------------------------------
+
+/** Hide the whole live board, so the test sets the exact number of projects. */
+const emptyBoards = (tx: Tx) => tx`update projects set status = 'hidden' where status = 'active'`;
+
+Deno.test('small board: two paid projects are enough for the day-of-visits bonus', async () => {
+  await inRollback(async (tx) => {
+    await emptyBoards(tx);
+    const visitor = await addUser(tx, 'visitor');
+    assertEquals(await progressOf(tx, visitor, 'daily_visits'), undefined, 'nothing to visit');
+
+    await addProject(tx, await addUser(tx, 'a'), 'paid');
+    assertEquals(await progressOf(tx, visitor, 'daily_visits'), undefined, 'one is not a round');
+
+    await addProject(tx, await addUser(tx, 'b'), 'paid');
+    const two = await progressOf(tx, visitor, 'daily_visits');
+    assertEquals([two.state, two.goal], ['available', 2]);
+  });
+});
+
+Deno.test('small board: ladders without anything to move them are hidden', async () => {
+  await inRollback(async (tx) => {
+    await emptyBoards(tx);
+    const user = await addUser(tx, 'alone');
+    assertEquals(await progressOf(tx, user, 'ladder_visits'), undefined);
+    assertEquals(await progressOf(tx, user, 'ladder_votes'), undefined);
+    assertEquals(await progressOf(tx, user, 'ladder_backed'), undefined);
+
+    // One free project: votes can go somewhere, backing two cannot yet.
+    await addProject(tx, await addUser(tx, 'maker'), 'free');
+    assertEquals((await progressOf(tx, user, 'ladder_votes')).goal, 10);
+    assertEquals(await progressOf(tx, user, 'ladder_backed'), undefined);
+
+    await addProject(tx, await addUser(tx, 'maker-2'), 'free');
+    assertEquals((await progressOf(tx, user, 'ladder_backed')).goal, 2);
+  });
+});

@@ -376,7 +376,7 @@ export const ru: PartialStrings = {
     subscribeTitle: (channel: string) => `Подпишись на ${channel}`,
     subscribeNote: 'Оставайся подписанным, чтобы голоса не пропали.',
     checkinTitle: 'Ежедневный бонус',
-    checkinNote: 'Каждый день подряд — на голос больше, до потолка. Пропуск начинает заново.',
+    checkinNote: 'Каждый день подряд — на голос больше, потом держится. Пропуск начинает заново.',
     dailyVisitsTitle: 'Обойди витрину целиком',
     dailyVisitsNote: 'Открой все платные проекты из задания выше — бонус сверху.',
     scoutTitle: 'Загляни к новичкам',
