@@ -11,12 +11,10 @@ export type TaskType =
   | 'daily_votes'
   | 'daily_visits'
   | 'daily_scout'
-  | 'daily_quest'
   | 'ladder_streak'
   | 'ladder_votes'
   | 'ladder_backed'
   | 'ladder_visits'
-  | 'ladder_subscriptions'
   | 'referral_streak'
   | 'add_project'
   | 'bot_dm'
@@ -29,9 +27,6 @@ export type TaskState = 'available' | 'ready' | 'pending' | 'done' | 'locked';
 
 /** Section of the board: renews daily, a goal that steps up, or once. */
 export type TaskGroup = 'daily' | 'goal' | 'once';
-
-/** Today's quest of `daily_quest`, picked by the server. */
-export type TaskQuest = 'backed' | 'categories';
 
 export interface TaskItem {
   id: number;
@@ -49,5 +44,4 @@ export interface TaskItem {
   state: TaskState;
   /** The goal and the way to it: friends, a ladder step, days of the streak. */
   progress?: { current: number; total: number };
-  quest?: TaskQuest;
 }

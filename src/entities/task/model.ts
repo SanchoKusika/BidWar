@@ -10,12 +10,10 @@ export const TASK_ICON: Record<TaskType, IconName> = {
   daily_votes: 'vote',
   daily_visits: 'list-checks',
   daily_scout: 'sparkles',
-  daily_quest: 'target',
   ladder_streak: 'flame',
   ladder_votes: 'trophy',
   ladder_backed: 'heart-handshake',
   ladder_visits: 'mouse-pointer-click',
-  ladder_subscriptions: 'send',
   referral_streak: 'users',
   add_project: 'folder-plus',
   bot_dm: 'bot',
@@ -83,10 +81,6 @@ export function taskCopy(task: TaskItem): { title: string; note: string | null }
       return { title: t.scoutTitle, note: t.scoutNote };
     case 'daily_votes':
       return { title: t.dailyVotesTitle(goal), note: t.dailyVotesNote };
-    case 'daily_quest':
-      return task.quest === 'categories'
-        ? { title: t.questCategoriesTitle(goal), note: t.questCategoriesNote }
-        : { title: t.questBackedTitle(goal), note: t.questBackedNote };
     case 'referral_streak':
       return { title: t.friendStreakTitle(goal), note: t.friendStreakNote };
     case 'ladder_streak':
@@ -97,8 +91,6 @@ export function taskCopy(task: TaskItem): { title: string; note: string | null }
       return { title: t.backedLadderTitle(goal), note: t.backedLadderNote };
     case 'ladder_visits':
       return { title: t.visitsLadderTitle(goal), note: t.visitsLadderNote };
-    case 'ladder_subscriptions':
-      return { title: t.subscriptionsLadderTitle(goal), note: t.subscriptionsLadderNote };
     case 'add_project':
       return { title: t.addProjectTitle, note: t.addProjectNote };
     case 'bot_dm':
