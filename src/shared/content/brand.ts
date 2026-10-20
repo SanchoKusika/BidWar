@@ -5,5 +5,5 @@ export const brand: Brand = {
   bot: '@bidwar_bot',
   botLink: 'https://t.me/bidwar_bot',
   year: 2026,
-  legalVersion: 'v1.2',
+  legalVersion: 'v1.3',
 };
