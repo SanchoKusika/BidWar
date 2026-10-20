@@ -1,5 +1,10 @@
 import { assertEquals, assertThrows } from 'jsr:@std/assert@1';
-import { parseRequest, assertMinPaidAmount, parsePaidLimits } from './validate.ts';
+import {
+  parseRequest,
+  assertMinPaidAmount,
+  assertMaxPaymentAmount,
+  parsePaidLimits,
+} from './validate.ts';
 
 const base = { initData: 'x', amount: 50000 };
 
@@ -88,14 +93,43 @@ Deno.test('parsePaidLimits: ключ отсутствует — явная ош�
 });
 
 Deno.test('parsePaidLimits: значение не число — явная ошибка', () => {
-  assertThrows(() => parsePaidLimits({ min_paid_amount: '50000' }), Error, 'min_paid_amount');
+  assertThrows(
+    () => parsePaidLimits({ min_paid_amount: '50000', max_payment_amount: 10000 }),
+    Error,
+    'min_paid_amount',
+  );
 });
 
 Deno.test('parsePaidLimits: ноль и отрицательное значение отвергаются', () => {
-  assertThrows(() => parsePaidLimits({ min_paid_amount: 0 }), Error, 'min_paid_amount');
-  assertThrows(() => parsePaidLimits({ min_paid_amount: -1 }), Error, 'min_paid_amount');
+  assertThrows(
+    () => parsePaidLimits({ min_paid_amount: 0, max_payment_amount: 10000 }),
+    Error,
+    'min_paid_amount',
+  );
+  assertThrows(
+    () => parsePaidLimits({ min_paid_amount: -1, max_payment_amount: 10000 }),
+    Error,
+    'min_paid_amount',
+  );
+});
+
+Deno.test('parsePaidLimits: потолок платежа обязателен и не ниже минимума', () => {
+  assertThrows(() => parsePaidLimits({ min_paid_amount: 300 }), Error, 'max_payment_amount');
+  assertThrows(
+    () => parsePaidLimits({ min_paid_amount: 300, max_payment_amount: 100 }),
+    Error,
+    'max_payment_amount',
+  );
 });
 
 Deno.test('parsePaidLimits: корректное значение принимается как есть', () => {
-  assertEquals(parsePaidLimits({ min_paid_amount: 50000 }), { minPaidAmount: 50000 });
+  assertEquals(parsePaidLimits({ min_paid_amount: 300, max_payment_amount: 10000 }), {
+    minPaidAmount: 300,
+    maxPaymentAmount: 10000,
+  });
+});
+
+Deno.test('assertMaxPaymentAmount: ровно потолок проходит, на рубль больше — отказ', () => {
+  assertMaxPaymentAmount(10000n, 10000);
+  assertThrows(() => assertMaxPaymentAmount(10001n, 10000), Error, 'Максимум');
 });

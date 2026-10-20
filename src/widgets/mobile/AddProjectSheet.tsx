@@ -39,6 +39,8 @@ export interface AddProjectSheetProps {
    * выбрать его нельзя.
    */
   minPaidAmount?: number;
+  /** Provider ceiling for one payment; the opening bid cannot exceed it. */
+  maxPaymentAmount?: number;
   /** Валюта показа: суммы рисуются в ней, платёж всё равно идёт в очках. */
   currency?: DisplayCurrency;
   /**
@@ -58,6 +60,12 @@ export interface AddProjectSheetProps {
     /** Открывающая ставка платного входа — значимо только при segment === 'paid'. */
     bid: number;
   }) => Promise<void>;
+}
+
+/** A take-the-spot price can exceed one payment; start from what can be paid. */
+function initialBid(preset: number | null | undefined, min?: number, max?: number): number {
+  const bid = preset ?? min ?? 0;
+  return max === undefined ? bid : Math.min(bid, max);
 }
 
 /**
@@ -83,6 +91,7 @@ export function AddProjectSheet({
   categories,
   taken = {},
   minPaidAmount,
+  maxPaymentAmount,
   currency = DEFAULT_CURRENCY,
   preferredSegment,
   bidPreset,
@@ -97,7 +106,7 @@ export function AddProjectSheet({
    * шторки: дальнейшие правки ссылки больше не перебивают выбор человека.
    */
   const [categoryTouched, setCategoryTouched] = useState(false);
-  const [bid, setBid] = useState(bidPreset ?? minPaidAmount ?? 0);
+  const [bid, setBid] = useState(initialBid(bidPreset, minPaidAmount, maxPaymentAmount));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -111,7 +120,7 @@ export function AddProjectSheet({
       setSegment(preferredSegment ?? (taken.free ? 'paid' : 'free'));
       setCategoryId(null);
       setCategoryTouched(false);
-      setBid(bidPreset ?? minPaidAmount ?? 0);
+      setBid(initialBid(bidPreset, minPaidAmount, maxPaymentAmount));
       setError(null);
     }
   }
@@ -220,6 +229,7 @@ export function AddProjectSheet({
           currency={currency}
           step={minPaidAmount}
           min={minPaidAmount}
+          max={maxPaymentAmount}
           presets={[minPaidAmount, minPaidAmount * 2, minPaidAmount * 10]}
           label={t.openingBidLabel}
           error={

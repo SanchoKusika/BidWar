@@ -36,7 +36,7 @@ import {
   usePaidShowcase,
   usePaidTodayBoard,
   usePaidTopProject,
-  useMinPaidAmount,
+  usePaymentBounds,
 } from '../model';
 import styles from './Mobile.module.css';
 
@@ -73,7 +73,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
   // врала, даже если бесплатный проект у пользователя уже есть).
   const ownFree = useOwnPosition('free', null, userId);
   const topProject = usePaidTopProject();
-  const minStep = useMinPaidAmount();
+  const { min: minStep, max: maxPayment } = usePaymentBounds();
   const [scope, setScope] = useState<Scope>('all');
   const today = usePaidTodayBoard(scope === 'today', showcase.categoryId);
   const activity = useRecentActivity(true);
@@ -440,6 +440,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
         rank={boostTarget ? boostRank : own.rank}
         preset={raisePreset}
         minAmount={minStep}
+        maxAmount={maxPayment}
         onClose={() => {
           setRaiseOpen(false);
           setBoostTarget(null);
@@ -477,6 +478,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
         categories={categories.categories}
         taken={{ paid: Boolean(own.project), free: Boolean(ownFree.project) }}
         minPaidAmount={minStep}
+        maxPaymentAmount={maxPayment}
         bidPreset={takeSpotBid}
         preferredSegment="paid"
         onSubmit={async ({ url, categoryId, segment, bid }) => {

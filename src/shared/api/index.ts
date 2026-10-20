@@ -1,7 +1,7 @@
 export { getSupabase } from './client';
 export { fetchHealth } from './health';
 export { authenticate, exchangeWebLogin } from './auth';
-export { fetchPaidLimits } from './config';
+export { fetchPaidLimits, PAID_LIMITS_FALLBACK } from './config';
 export { fetchMySpending } from './spending';
 export { fetchPreferences, savePreferences } from './preferences';
 export {

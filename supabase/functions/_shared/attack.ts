@@ -20,6 +20,8 @@ export interface AttackLimits {
   /** Минимум платного топа: пол атаки никогда не опускается ниже него. */
   minPaidAmount: number;
   minAttackAmount: number;
+  /** Provider ceiling for one transaction; an attack is one charge. */
+  maxPaymentAmount: number;
   maxAttacksPerTargetPerDay: number;
   maxAttacksTotalPerDay: number;
   /** Целые проценты, ровно как в app_config.paid_limits. */
@@ -48,6 +50,7 @@ export function parseAttackLimits(value: unknown): AttackLimits {
   return {
     minPaidAmount: intField(v, 'min_paid_amount', 1, Number.MAX_SAFE_INTEGER),
     minAttackAmount: intField(v, 'min_attack_amount', 1, Number.MAX_SAFE_INTEGER),
+    maxPaymentAmount: intField(v, 'max_payment_amount', 1, Number.MAX_SAFE_INTEGER),
     maxAttacksPerTargetPerDay: intField(v, 'max_attacks_per_target_per_day', 1, 1000),
     maxAttacksTotalPerDay: intField(v, 'max_attacks_total_per_day', 1, 1000),
     attackFloorPctOfInitial: intField(v, 'attack_floor_pct_of_initial', 0, 100),

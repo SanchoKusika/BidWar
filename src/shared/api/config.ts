@@ -5,6 +5,8 @@ export interface PaidLimits {
   minPaidAmount: number;
   /** Минимальная сумма атаки. */
   minAttackAmount: number;
+  /** Provider ceiling for a single payment (entry, Raise or Attack). */
+  maxPaymentAmount: number;
   maxAttacksPerTargetPerDay: number;
   maxAttacksTotalPerDay: number;
   /** Доля от начальной ставки, ниже которой ставку жертвы не опустить. */
@@ -20,6 +22,7 @@ export interface PaidLimits {
 const FALLBACK: PaidLimits = {
   minPaidAmount: 300,
   minAttackAmount: 50,
+  maxPaymentAmount: 10_000,
   maxAttacksPerTargetPerDay: 3,
   maxAttacksTotalPerDay: 10,
   attackFloorOfInitial: 0.5,
@@ -31,6 +34,7 @@ const FALLBACK: PaidLimits = {
 interface PaidLimitsRow {
   min_paid_amount?: number;
   min_attack_amount?: number;
+  max_payment_amount?: number;
   max_attacks_per_target_per_day?: number;
   max_attacks_total_per_day?: number;
   attack_floor_pct_of_initial?: number;
@@ -63,6 +67,7 @@ export async function fetchPaidLimits(): Promise<PaidLimits> {
   return {
     minPaidAmount: v.min_paid_amount ?? FALLBACK.minPaidAmount,
     minAttackAmount: v.min_attack_amount ?? FALLBACK.minAttackAmount,
+    maxPaymentAmount: v.max_payment_amount ?? FALLBACK.maxPaymentAmount,
     maxAttacksPerTargetPerDay:
       v.max_attacks_per_target_per_day ?? FALLBACK.maxAttacksPerTargetPerDay,
     maxAttacksTotalPerDay: v.max_attacks_total_per_day ?? FALLBACK.maxAttacksTotalPerDay,

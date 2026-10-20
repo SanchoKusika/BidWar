@@ -11,6 +11,7 @@ import type { MockCommand } from '../_shared/payments/mock.ts';
 import {
   parseRequest,
   assertMinPaidAmount,
+  assertMaxPaymentAmount,
   parsePaidLimits,
   type CreatePaymentBody,
 } from './validate.ts';
@@ -34,7 +35,9 @@ async function assertPaidMinimum(db: ReturnType<typeof getAdminClient>, amount: 
     .eq('key', 'paid_limits')
     .single();
   if (error) throw error;
-  assertMinPaidAmount(amount, parsePaidLimits(data.value).minPaidAmount);
+  const limits = parsePaidLimits(data.value);
+  assertMinPaidAmount(amount, limits.minPaidAmount);
+  assertMaxPaymentAmount(amount, limits.maxPaymentAmount);
 }
 
 /**

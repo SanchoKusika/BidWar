@@ -104,10 +104,10 @@ export function AttackSheet({
     );
   }
 
-  const suggested = Math.min(
-    Math.max(quote.minAttackAmount, quote.minAttackAmount * 25),
-    Math.max(quote.minAttackAmount, quote.room),
-  );
+  // Neither the floor of the target nor the provider's per-payment ceiling may
+  // be crossed: the lower of the two is the most one attack can be paid with.
+  const ceiling = Math.max(quote.minAttackAmount, Math.min(quote.room, quote.maxPaymentAmount));
+  const suggested = Math.min(Math.max(quote.minAttackAmount, quote.minAttackAmount * 25), ceiling);
   const value = amount ?? suggested;
 
   /* Урезаем до того, что реально долетит: за упор в пол платить не надо. */
@@ -154,7 +154,7 @@ export function AttackSheet({
             currency={currency}
             step={quote.minAttackAmount * 5}
             min={quote.minAttackAmount}
-            max={Math.max(quote.minAttackAmount, quote.room)}
+            max={ceiling}
             presets={[
               quote.minAttackAmount * 10,
               quote.minAttackAmount * 25,

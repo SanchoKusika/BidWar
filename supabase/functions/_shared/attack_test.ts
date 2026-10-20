@@ -12,6 +12,7 @@ import {
 const RAW = {
   min_paid_amount: 50000,
   min_attack_amount: 10000,
+  max_payment_amount: 1000000,
   max_attacks_per_target_per_day: 3,
   max_attacks_total_per_day: 10,
   attack_floor_pct_of_initial: 50,
@@ -26,6 +27,7 @@ Deno.test('parseAttackLimits: разбирает засеянный конфиг
   assertEquals(LIMITS, {
     minPaidAmount: 50000,
     minAttackAmount: 10000,
+    maxPaymentAmount: 1000000,
     maxAttacksPerTargetPerDay: 3,
     maxAttacksTotalPerDay: 10,
     attackFloorPctOfInitial: 50,
