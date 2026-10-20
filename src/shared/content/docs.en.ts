@@ -1,5 +1,5 @@
 import type { DocPage } from './types';
-import { brand } from './brand';
+import { brand, reviewFact } from './brand';
 
 export const docsEn = {
   about: {
@@ -10,7 +10,7 @@ export const docsEn = {
       ['Revenue source', 'Every payment'],
       ['Cut taken from your bid', 'None'],
       ['Bids by the operator', 'Never'],
-      ...(brand.reviewCode ? ([['Review code', brand.reviewCode]] as const) : []),
+      ...reviewFact('Review code'),
     ],
     sections: [
       {
@@ -115,11 +115,11 @@ export const docsEn = {
       },
       {
         h: '4. Payments',
-        p: '4.1. An opening bid, a raise and an attack are each paid separately. Prices and limits are on the Tariffs page and are shown before payment. 4.2. Payment is accepted in roubles through the payment provider Platega: SBP and cryptocurrency. 1 point equals 1 ₽. The provider fee is paid by the Service and is not added to the payment. 4.3. There is no money balance: a paid amount becomes the bid at once and counts as spent at the moment the provider confirms the payment. 4.4. The Service stores the payment id and the amount, not payment credentials.',
+        p: '4.1. An opening bid, a raise and an attack are each paid separately. Prices and limits are on the Tariffs page and are shown before payment. 4.2. Payment is accepted in roubles through the payment provider Platega; the payment methods are listed on the Tariffs page. 1 point equals 1 ₽. The provider fee is paid by the Service and is not added to the payment. 4.3. There is no money balance: a paid amount becomes the bid at once and counts as spent at the moment the provider confirms the payment. 4.4. The Service stores the payment id and the amount, not payment credentials.',
       },
       {
         h: '5. Refunds',
-        p: '5.1. Refunds are not provided: a paid amount is not returned, in full or in part, including after leaving a ranking, being outbid, changing the link or deleting the project or the account. 5.2. An attack cannot be withdrawn: the rival’s bid changes the moment the payment is confirmed. 5.3. The user undertakes not to dispute a payment through payment systems without first contacting support. A disputed payment may freeze the account until the provider decides.',
+        p: '5.1. Refunds are not provided: a paid amount is not returned, in full or in part, including after leaving a ranking, being outbid, changing the link or deleting the project. 5.2. An attack cannot be withdrawn: the rival’s bid changes the moment the payment is confirmed. 5.3. The user undertakes not to dispute a payment through payment systems without first contacting support. A disputed payment may freeze the account until the provider decides.',
       },
       {
         h: '6. Votes',

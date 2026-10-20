@@ -1,4 +1,4 @@
-import type { Brand } from './types';
+import type { Brand, Fact } from './types';
 
 export const brand: Brand = {
   name: 'BidWar',
@@ -11,3 +11,8 @@ export const brand: Brand = {
   year: 2026,
   legalVersion: 'v2.0',
 };
+
+/** The temporary review row of the About facts; empty once the code is gone. */
+export function reviewFact(label: string): readonly Fact[] {
+  return brand.reviewCode ? [[label, brand.reviewCode]] : [];
+}
