@@ -245,6 +245,7 @@ export function SiteFooter({ onDoc }: { onDoc: (id: DocId) => void }) {
           <a href={`mailto:${brand.supportEmail}`} className={styles.footerLink}>
             {brand.supportEmail}
           </a>
+          {brand.reviewCode && <> · {brand.reviewCode}</>}
         </span>
         <span>{strings.web.footerTagline}</span>
       </div>
