@@ -10,6 +10,7 @@ export const docsEn = {
       ['Revenue source', 'Every payment'],
       ['Cut taken from your bid', 'None'],
       ['Bids by the operator', 'Never'],
+      ...(brand.reviewCode ? ([['Review code', brand.reviewCode]] as const) : []),
     ],
     sections: [
       {
@@ -92,39 +93,64 @@ export const docsEn = {
   terms: {
     icon: 'file-text',
     title: 'Terms of use',
-    lead: 'Plain summary first, the legal text is sent by the bot on request.',
+    lead: 'The user agreement of BidWar. The full text is below and is always available, no request needed.',
     facts: [
       ['Entries per account', '2'],
-      ['Money account', 'None'],
+      ['Money balance', 'None'],
       ['Votes ↔ money', 'Never'],
+      ['Refunds', 'Not provided'],
     ],
     sections: [
       {
-        h: 'Two economies',
-        p: 'The Paid Top runs on money, the Free Top runs on votes. The two never convert into each other in any direction. We hold no money account for you: nothing sits with us and nothing can be cashed out.',
+        h: '1. General provisions',
+        p: `1.1. This Agreement governs the use of BidWar: the Telegram Mini App ${brand.bot}, the site bidwar.world and the related pages (the Service), provided by the Administration. 1.2. Using the Service, including launching the bot, signing in with Telegram, paying and voting, means the user has read the Agreement and accepts it in full. 1.3. A user who does not agree must stop using the Service.`,
       },
       {
-        h: 'Your project',
-        p: 'You confirm you own or represent the link you submit, and one account holds two entries at most — one per top. We may reject or remove projects that mislead, break local law, or copy another project’s identity.',
+        h: '2. What the Service does',
+        p: 'The Service runs two rankings of projects — channels, bots, sites, businesses. The Paid ranking is ordered by the amount of the bids: a place and a higher position in it is a digital promotion service. The Free ranking is ordered by votes earned by completing tasks. The Service does not guarantee any number of clicks, audience or financial result from a place in a ranking.',
       },
       {
-        h: 'Payments',
-        p: 'Each raise, attack and opening bid is a separate charge in roubles processed by Platega. We store the payment id and amount, never payment credentials, and never a balance. Money is spent at the moment the provider confirms it. Refunds are not provided.',
+        h: '3. Account and projects',
+        p: '3.1. Sign-in is through Telegram. 3.2. One account holds two entries at most — one per ranking. 3.3. The user confirms they own the link they add or represent its owner. 3.4. The Administration may reject or remove a project that misleads, breaks the law or impersonates another brand.',
       },
       {
-        h: 'Prohibited',
-        p: 'Automated vote farming, multiple accounts for one project, paid vote trading, and any attempt to buy votes for money.',
+        h: '4. Payments',
+        p: '4.1. An opening bid, a raise and an attack are each paid separately. Prices and limits are on the Tariffs page and are shown before payment. 4.2. Payment is accepted in roubles through the payment provider Platega: SBP and cryptocurrency. 1 point equals 1 ₽. The provider fee is paid by the Service and is not added to the payment. 4.3. There is no money balance: a paid amount becomes the bid at once and counts as spent at the moment the provider confirms the payment. 4.4. The Service stores the payment id and the amount, not payment credentials.',
       },
       {
-        h: 'Termination',
-        p: 'You can delete your account at any time from Profile. Live bids are not returned on voluntary deletion.',
+        h: '5. Refunds',
+        p: '5.1. Refunds are not provided: a paid amount is not returned, in full or in part, including after leaving a ranking, being outbid, changing the link or deleting the project or the account. 5.2. An attack cannot be withdrawn: the rival’s bid changes the moment the payment is confirmed. 5.3. The user undertakes not to dispute a payment through payment systems without first contacting support. A disputed payment may freeze the account until the provider decides.',
+      },
+      {
+        h: '6. Votes',
+        p: 'Votes are earned by tasks and spent on projects of the Free ranking. They are not money, are not sold, are not exchanged for money and cannot be withdrawn, and money does not turn into votes either.',
+      },
+      {
+        h: '7. Prohibited',
+        p: 'Automated vote farming, multiple accounts for one project, vote trading, any attempt to buy votes for money, using the Service for unlawful activity, interfering with its operation, copying and reselling its materials.',
+      },
+      {
+        h: '8. Disclaimer and liability',
+        p: '8.1. The Service is provided “as is”. Uninterrupted operation, absence of errors and fit to the user’s expectations are not guaranteed. 8.2. The Administration is not liable for indirect losses and lost profit, for the actions of third parties or for temporary technical failures. 8.3. The user takes placement and bidding decisions at their own risk and answers for the lawfulness of their project.',
+      },
+      {
+        h: '9. Restricting access',
+        p: 'The Administration may suspend or restrict access on a breach of the Agreement, on abuse, or when the law or the payment provider requires it. This does not release the user from obligations that arose earlier. Bids already placed are not returned.',
+      },
+      {
+        h: '10. Changes to the terms',
+        p: 'The Administration may amend the Agreement. The current version is published in the Service; continuing to use it means accepting the new version.',
+      },
+      {
+        h: '11. Contacts',
+        p: `Questions about the Agreement and payments: ${brand.supportEmail}, or the Telegram bot ${brand.bot}.`,
       },
     ],
   },
   privacy: {
     icon: 'lock',
     title: 'Privacy',
-    lead: 'We keep the smallest set of data that lets a ranking be trusted.',
+    lead: 'The privacy policy of BidWar. We keep the smallest set of data that lets a ranking be trusted.',
     facts: [
       ['Data region', 'Germany · Frankfurt'],
       ['Retention', '18 months'],
@@ -132,20 +158,40 @@ export const docsEn = {
     ],
     sections: [
       {
-        h: 'What we store',
-        p: 'Telegram id and username, your project links, your vote balance, bids, attacks, votes, and payment ids from Platega.',
+        h: '1. General provisions',
+        p: '1.1. This Policy describes what data BidWar receives and how it is used. 1.2. Using the Service means accepting the Policy. A user who does not agree must stop using the Service.',
       },
       {
-        h: 'What we never store',
-        p: 'Card and wallet numbers, CVV, bank statements, your Telegram messages, or contact lists. Referral links carry a code, not your identity.',
+        h: '2. What data we receive',
+        p: '2.1. Telegram account data: the numeric id, username and name that Telegram passes on sign-in. 2.2. Data about use of the Service: the links of added projects, bids, attacks, votes, tasks, vote balance, settings and interface language. 2.3. Payment data limited to the payment number and amount reported by the provider Platega. 2.4. Technical data: IP address, device and browser in server logs. 2.5. We do not ask for passport data, documents or photos. We do not store card or wallet numbers, CVV, bank statements, your Telegram messages or contact lists.',
       },
       {
-        h: 'Who else sees it',
-        p: 'Public: project name, link, position, bid or vote total, click count, verification badge. Private: your vote balance, payment receipts and settings.',
+        h: '3. How we use data',
+        p: 'To run the Service and the rankings, to accept and record payments, to contact the user (notifications, support), to protect against vote farming and abuse, and to improve the Service.',
       },
       {
-        h: 'Your rights',
-        p: 'Ask the bot for an export or a deletion. Deletion removes the account and hides the projects; ledger rows stay for accounting in an anonymised form.',
+        h: '4. What others can see',
+        p: 'Public: project name, link, position, bid or vote count, click counter, verification mark. Private: your vote balance, receipts and settings. A referral link carries a code, not your identity.',
+      },
+      {
+        h: '5. Disclosure to third parties',
+        p: '5.1. We do not sell data. 5.2. Data goes only to: Telegram (sign-in and notifications), the payment provider Platega (payments), the hosting and infrastructure providers the Service runs on, and public authorities when the law requires it. 5.3. We do not receive data from payment systems and banks beyond the payment number and amount.',
+      },
+      {
+        h: '6. Storage and protection',
+        p: '6.1. Data is kept in a data centre in Germany (Frankfurt) for no longer than 18 months after the last activity, unless a longer period is needed for payment records. 6.2. We take reasonable protection measures, but absolute security of data over the internet cannot be guaranteed.',
+      },
+      {
+        h: '7. User rights',
+        p: `The user may ask for an export or deletion of their data from the bot ${brand.bot} or by email to ${brand.supportEmail}. Deletion removes the account and hides the projects; payment records stay in anonymised form.`,
+      },
+      {
+        h: '8. Liability',
+        p: 'Sending data over the internet always carries risk. The Administration is not liable for loss or disclosure of data caused by third parties or by the user.',
+      },
+      {
+        h: '9. Changes and contacts',
+        p: `The Administration may change the Policy; the current version is published in the Service. Contact for questions about data: ${brand.supportEmail}.`,
       },
     ],
   },
