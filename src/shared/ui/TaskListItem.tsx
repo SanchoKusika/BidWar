@@ -114,8 +114,13 @@ export function TaskListItemSkeleton({ subtitle = true }: { subtitle?: boolean }
           <SkeletonText>Visit projects</SkeletonText>
         </span>
         {subtitle && (
+          // Two lines: a condition usually wraps once, and a one-line
+          // placeholder would make every row grow when the board lands.
           <span className={styles.subtitle}>
-            <SkeletonText>A note about the task that usually runs to a second line</SkeletonText>
+            <SkeletonText block>A note about the task, the first line</SkeletonText>
+            <SkeletonText block width="60%">
+              and the second
+            </SkeletonText>
           </span>
         )}
       </div>

@@ -223,14 +223,43 @@ function referral(p: Record<string, unknown>, locale: NotifyLocale): string {
  * and a hello promising attacks and votes «here» would be a promise the queue
  * then breaks — so with everything off the hello says so and where to change it.
  */
-export function botHelloText(locale: NotifyLocale, notificationsOn: boolean): string {
+export interface HelloKinds {
+  attacked: boolean;
+  rankLost: boolean;
+  votes: boolean;
+  referral: boolean;
+}
+
+const HELLO_KINDS: Record<NotifyLocale, Record<keyof HelloKinds, string>> = {
+  RU: {
+    attacked: 'атаки на твой проект',
+    rankLost: 'потеря первого места',
+    votes: 'новые голоса',
+    referral: 'награды за друзей',
+  },
+  EN: {
+    attacked: 'attacks on your project',
+    rankLost: 'a lost first place',
+    votes: 'new votes',
+    referral: 'rewards for friends',
+  },
+};
+
+/** The hello names exactly the kinds that are on — a partial opt-out included. */
+export function botHelloText(locale: NotifyLocale, kinds: HelloKinds): string {
+  const on = (Object.keys(HELLO_KINDS[locale]) as (keyof HelloKinds)[])
+    .filter((kind) => kinds[kind])
+    .map((kind) => HELLO_KINDS[locale][kind]);
+  const and = locale === 'RU' ? ' и ' : ' and ';
+  const list = on.length > 1 ? `${on.slice(0, -1).join(', ')}${and}${on.at(-1)}` : on[0];
+
   if (locale === 'RU') {
-    return notificationsOn
-      ? '🔔 Готово: сюда придут атаки на твой проект, потеря первого места и новые голоса.'
+    return list
+      ? `🔔 Готово: сюда придут ${list}.`
       : '🔔 Готово: бот может тебе писать. Уведомления сейчас выключены — включить их можно в профиле.';
   }
-  return notificationsOn
-    ? '🔔 Done: attacks on your project, a lost first place and new votes will arrive here.'
+  return list
+    ? `🔔 Done: ${list} will arrive here.`
     : '🔔 Done: the bot can write to you. Notifications are off right now — turn them on in the profile.';
 }
 

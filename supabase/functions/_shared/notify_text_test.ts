@@ -245,13 +245,29 @@ Deno.test('имена из базы экранируются — разметк�
   );
 });
 
+const ALL_ON = { attacked: true, rankLost: true, votes: true, referral: true };
+const ALL_OFF = { attacked: false, rankLost: false, votes: false, referral: false };
+
 Deno.test('the bot hello speaks the chosen language', () => {
-  assertEquals(botHelloText('EN', true).startsWith('🔔 Done'), true);
-  assertEquals(botHelloText('RU', true).startsWith('🔔 Готово'), true);
+  assertEquals(botHelloText('EN', ALL_ON).startsWith('🔔 Done'), true);
+  assertEquals(botHelloText('RU', ALL_ON).startsWith('🔔 Готово'), true);
 });
 
 Deno.test('the bot hello does not promise notifications that are off', () => {
-  assertStringIncludes(botHelloText('RU', true), 'атаки');
-  assertStringIncludes(botHelloText('RU', false), 'выключены');
-  assertStringIncludes(botHelloText('EN', false), 'off');
+  assertStringIncludes(botHelloText('RU', ALL_OFF), 'выключены');
+  assertStringIncludes(botHelloText('EN', ALL_OFF), 'off');
+});
+
+Deno.test('the bot hello names only the kinds that are on', () => {
+  const onlyFriends = { ...ALL_OFF, referral: true };
+  assertEquals(botHelloText('RU', onlyFriends), '🔔 Готово: сюда придут награды за друзей.');
+  const two = { ...ALL_OFF, attacked: true, votes: true };
+  assertEquals(
+    botHelloText('EN', two),
+    '🔔 Done: attacks on your project and new votes will arrive here.',
+  );
+  assertEquals(
+    botHelloText('RU', ALL_ON),
+    '🔔 Готово: сюда придут атаки на твой проект, потеря первого места, новые голоса и награды за друзей.',
+  );
 });

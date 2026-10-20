@@ -34,9 +34,9 @@ export function group(n: number): string {
   return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
+/** Amounts under a hundred keep one decimal, without a trailing «.0». */
 function trim(n: number): string {
-  const s = n >= 100 ? String(Math.round(n)) : n.toFixed(1);
-  return s.replace(/\.0$/, '');
+  return n.toFixed(1).replace(/\.0$/, '');
 }
 
 export function convert(points: number, currency: DisplayCurrency): number {
@@ -63,8 +63,8 @@ export function formatMoney(
  * только показывают, но и правят: поле ввода держит ОЧКИ (по ним считает
  * сервер), а человек видит и набирает свою валюту.
  *
- * `formatMoney` для этого не годится: он сокращает и округляет для читаемости,
- * а из его вывода нельзя вернуться к исходному числу.
+ * `formatMoney` does not fit here: it groups digits and rounds for reading,
+ * and its output is not a number to edit.
  */
 export function fromDisplay(amount: number, currency: DisplayCurrency): number {
   return Math.round((Number(amount) || 0) / rates[currency]);
