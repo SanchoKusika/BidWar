@@ -73,7 +73,7 @@ export const docsEn = {
       },
       {
         h: 'Payments',
-        p: 'Each raise, attack and opening bid is a separate charge in roubles processed by Platega. We store the payment id and amount, never payment credentials, and never a balance. Money is spent at the moment the provider confirms it.',
+        p: 'Each raise, attack and opening bid is a separate charge in roubles processed by Platega. We store the payment id and amount, never payment credentials, and never a balance. Money is spent at the moment the provider confirms it. Refunds are not provided.',
       },
       {
         h: 'Prohibited',
