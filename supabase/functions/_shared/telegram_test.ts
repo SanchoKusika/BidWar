@@ -45,6 +45,7 @@ Deno.test('валидный initData принимается и отдаёт по
   const result = await verifyInitData(initData, BOT_TOKEN);
   assertNotEquals(result, null);
   assertEquals(result?.user.id, 42);
+  assertEquals(result?.source, 'mini_app');
 });
 
 Deno.test('подделанный initData отвергается', async () => {
@@ -100,6 +101,7 @@ Deno.test('вход на сайте через Login Widget принимаетс
   assertEquals(result?.user.id, 42);
   assertEquals(result?.user.username, 'tester');
   assertEquals(result?.startParam, null, 'реферал на сайте не применяется');
+  assertEquals(result?.source, 'site', 'the site task is counted by this');
 });
 
 Deno.test('подделанный вход на сайте отвергается', async () => {

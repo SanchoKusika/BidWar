@@ -1,5 +1,11 @@
 import { assertEquals } from 'jsr:@std/assert@1';
-import { buildTaskBoard, nextReferralGoal, type CompletionRow, type TaskRow } from './tasks.ts';
+import {
+  buildTaskBoard,
+  nextReferralGoal,
+  type CompletionRow,
+  type ProgressRow,
+  type TaskRow,
+} from './tasks.ts';
 
 const TODAY = '2026-09-10';
 
@@ -111,4 +117,77 @@ Deno.test('visit: десять переходов из восемнадцати 
   const [item] = buildTaskBoard([task(1, 'visit')], rows, ctx({ paidProjects: 18 }));
   assertEquals(item.state, 'done');
   assertEquals(item.progress, { current: 10, total: 10 });
+});
+
+// ---------------------------------------------------------------------------
+// Newer tasks: state from task_progress, layout from the type
+// ---------------------------------------------------------------------------
+
+const progressRow = (taskId: number, over: Partial<ProgressRow> = {}): ProgressRow => ({
+  task_id: taskId,
+  state: 'available',
+  current_value: null,
+  goal: null,
+  reward: 1,
+  target_project_id: null,
+  quest: null,
+  ...over,
+});
+
+Deno.test('a newer task without a task_progress row is hidden', () => {
+  const board = buildTaskBoard([task(1, 'visit'), task(2, 'boost')], [], ctx(), []);
+  assertEquals(
+    board.map((item) => item.type),
+    ['visit'],
+  );
+});
+
+Deno.test('a type this build does not know is left out', () => {
+  const board = buildTaskBoard([task(1, 'visit'), task(2, 'from_the_future')], [], ctx());
+  assertEquals(board.length, 1);
+});
+
+Deno.test('a ladder takes the reward and goal of its current step', () => {
+  const [item] = buildTaskBoard([task(5, 'ladder_votes', 2)], [], ctx(), [
+    progressRow(5, { state: 'ready', current_value: 50, goal: 50, reward: 5 }),
+  ]);
+  assertEquals(item?.state, 'ready');
+  assertEquals(item?.rewardVotes, 5, 'the step pays 5, not the row first 2');
+  assertEquals(item?.progress, { current: 50, total: 50 });
+  assertEquals(item?.group, 'goal');
+});
+
+Deno.test('a one-time task without a goal has no progress bar', () => {
+  const [item] = buildTaskBoard([task(7, 'bot_dm', 2)], [], ctx(), [progressRow(7)]);
+  assertEquals(item?.progress, undefined);
+  assertEquals(item?.group, 'once');
+});
+
+Deno.test('the daily bonus leads the day whatever its id', () => {
+  const board = buildTaskBoard(
+    [task(1, 'visit'), task(3, 'subscribe'), task(9, 'daily_checkin')],
+    [],
+    ctx(),
+    [progressRow(9, { state: 'ready', current_value: 1, goal: 7 })],
+  );
+  assertEquals(
+    board.map((item) => item.type),
+    ['daily_checkin', 'visit', 'subscribe'],
+  );
+});
+
+Deno.test('an unknown state from SQL falls back to available', () => {
+  const [item] = buildTaskBoard([task(4, 'premium')], [], ctx(), [
+    progressRow(4, { state: 'bogus' }),
+  ]);
+  assertEquals(item?.state, 'available');
+});
+
+Deno.test('the quest of the day is passed on, a stray value is not', () => {
+  const board = buildTaskBoard([task(6, 'daily_quest'), task(8, 'daily_votes')], [], ctx(), [
+    progressRow(6, { quest: 'categories', current_value: 1, goal: 3 }),
+    progressRow(8, { quest: 'whatever', current_value: 0, goal: 5 }),
+  ]);
+  assertEquals(board.find((item) => item.type === 'daily_quest')?.quest, 'categories');
+  assertEquals(board.find((item) => item.type === 'daily_votes')?.quest, undefined);
 });

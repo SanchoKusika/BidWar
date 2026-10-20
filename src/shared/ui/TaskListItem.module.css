@@ -40,7 +40,8 @@
   color: var(--text-muted);
 }
 
-.task[data-state='available'] .badge {
+.task[data-state='available'] .badge,
+.task[data-state='ready'] .badge {
   background: var(--free-tint);
   color: var(--free-accent);
 }
@@ -117,7 +118,8 @@
   color: var(--text-muted);
 }
 
-.task[data-state='available'] .reward {
+.task[data-state='available'] .reward,
+.task[data-state='ready'] .reward {
   background: var(--free-tint);
   border-color: var(--free-tint-border);
   color: var(--free-text);
@@ -138,4 +140,13 @@
   font: var(--type-label);
   letter-spacing: var(--ls-caps);
   color: var(--text-muted);
+}
+
+/* A reward waiting for the tap: the row's one accent, so it reads at a glance. */
+.task[data-state='ready'] {
+  border-color: var(--free-tint-border);
+}
+
+.task[data-state='ready'] .status {
+  color: var(--free-text);
 }

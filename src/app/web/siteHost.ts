@@ -1,8 +1,8 @@
 import { getPlatform } from '@/shared/platform';
+import { brand } from '@/shared/content';
 
 /** The mini app's address in BotFather — the same deployment as the site. */
 const MINI_APP_HOST = 'app.bidwar.world';
-const SITE_ORIGIN = 'https://bidwar.world';
 
 /**
  * The mini app's address opened in a plain browser goes to the site. The
@@ -14,6 +14,6 @@ const SITE_ORIGIN = 'https://bidwar.world';
 export function leaveMiniAppHost(): boolean {
   if (window.location.hostname !== MINI_APP_HOST || getPlatform().name !== 'web') return false;
   const { pathname, search, hash } = window.location;
-  window.location.replace(SITE_ORIGIN + pathname + search + hash);
+  window.location.replace(brand.siteLink + pathname + search + hash);
   return true;
 }

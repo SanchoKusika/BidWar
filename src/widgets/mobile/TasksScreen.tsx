@@ -23,7 +23,13 @@ export interface TasksScreenProps {
   onRetry?: () => void;
   /** Ответ на проверку задания: «ещё не подписан» или отказ функции. */
   notice?: string | null;
-  onTask: (task: TaskItem) => void;
+  /** The task whose check or claim is in flight — drawn as «checking». */
+  busyTaskId?: number | null;
+  /**
+   * What a tap on the task does, or nothing: a row without an action is not
+   * drawn as a button (a streak record grows by itself).
+   */
+  actionFor: (task: TaskItem) => (() => void) | undefined;
   onRules: () => void;
 }
 
@@ -39,10 +45,13 @@ export function TasksScreen({
   error = false,
   onRetry,
   notice,
-  onTask,
+  busyTaskId = null,
+  actionFor,
   onRules,
 }: TasksScreenProps) {
-  const { daily, oneTime } = splitTasks(tasks);
+  const { daily, goal, once } = splitTasks(tasks);
+  const shown = daily.length + goal.length + once.length;
+  const row = { busyTaskId, actionFor };
   // Tasks pay an account. Without one the board has no answer at all, and
   // «that's all for today» in its place would be a claim about nothing.
   const signIn = useGuestSignIn();
@@ -74,15 +83,17 @@ export function TasksScreen({
           </Gutter>
         )}
 
-        {daily.length > 0 && <Group label={t.daily} items={daily} onTask={onTask} />}
-        {oneTime.length > 0 && <Group label={t.oneTime} items={oneTime} onTask={onTask} />}
+        {daily.length > 0 && <Group label={t.daily} items={daily} {...row} />}
+        {goal.length > 0 && <Group label={t.goals} items={goal} {...row} />}
+        {once.length > 0 && <Group label={t.oneTime} items={once} {...row} />}
 
-        {tasks.length === 0 && loading && (
-          // The board's own shape: a daily group with one row, a one-time group
-          // with two. Project cards stood here before — twice as tall as a task
-          // row, so the list shrank under the finger when it arrived.
+        {shown === 0 && loading && (
+          // The board's own shape: four daily rows, three goals, two one-time.
+          // Project cards stood here before — twice as tall as a task row, so
+          // the list shrank under the finger when it arrived.
           <>
-            <SkeletonGroup label={t.daily} rows={1} />
+            <SkeletonGroup label={t.daily} rows={4} />
+            <SkeletonGroup label={t.goals} rows={3} />
             <SkeletonGroup label={t.oneTime} rows={2} />
           </>
         )}
@@ -93,7 +104,7 @@ export function TasksScreen({
           </Gutter>
         )}
 
-        {!signIn && tasks.length === 0 && !loading && (
+        {!signIn && shown === 0 && !loading && (
           <Gutter>
             {/* Три разных пустых экрана, а не один: «ещё грузится», «не
                 загрузилось» и «всё сделано» — разные новости, и подменять
@@ -140,11 +151,13 @@ function SkeletonGroup({ label, rows }: { label: string; rows: number }) {
 function Group({
   label,
   items,
-  onTask,
+  busyTaskId,
+  actionFor,
 }: {
   label: string;
   items: TaskItem[];
-  onTask: (task: TaskItem) => void;
+  busyTaskId: number | null;
+  actionFor: TasksScreenProps['actionFor'];
 }) {
   return (
     <Section>
@@ -162,9 +175,9 @@ function Group({
               subtitle={copy.note ?? undefined}
               reward={task.rewardVotes}
               icon={TASK_ICON[task.type]}
-              state={task.state}
+              state={task.id === busyTaskId ? 'pending' : task.state}
               progress={task.progress}
-              onPress={() => onTask(task)}
+              onPress={actionFor(task)}
             />
           );
         })}

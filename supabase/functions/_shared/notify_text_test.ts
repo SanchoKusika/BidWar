@@ -1,5 +1,5 @@
 import { assertEquals, assertStringIncludes } from 'jsr:@std/assert@1';
-import { localeFromCode, renderNotification } from './notify_text.ts';
+import { botHelloText, localeFromCode, renderNotification } from './notify_text.ts';
 
 // Разряды в сообщении бота разделены неразрывным пробелом: в Telegram сумма не
 // имеет права переехать на вторую строку половиной. В приложении для этого
@@ -243,4 +243,9 @@ Deno.test('имена из базы экранируются — разметк�
     text!,
     '<a href="https://example.com/?a=1&amp;b=2">A &quot;quoted&quot; &lt;site&gt;</a>',
   );
+});
+
+Deno.test('the bot hello speaks the chosen language', () => {
+  assertEquals(botHelloText('EN').startsWith('🔔 Done'), true);
+  assertEquals(botHelloText('RU').startsWith('🔔 Готово'), true);
 });

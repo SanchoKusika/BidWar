@@ -11,6 +11,17 @@ import type { PartialStrings } from './strings';
  * не интерфейс, а тексты, за которые отвечает автор продукта. До их перевода
  * они показываются по-английски.
  */
+
+/** Russian plural form: 1 голос, 2 голоса, 5 голосов, 21 голос, 12 голосов. */
+function plural(n: number, one: string, few: string, many: string): string {
+  const tens = n % 100;
+  const units = n % 10;
+  if (tens >= 11 && tens <= 14) return many;
+  if (units === 1) return one;
+  if (units >= 2 && units <= 4) return few;
+  return many;
+}
+
 export const ru: PartialStrings = {
   card: {
     takeSpot: 'Занять это место',
@@ -21,6 +32,7 @@ export const ru: PartialStrings = {
     medalSilver: 'Серебро',
     medalBronze: 'Бронза',
     taskPending: 'Проверяем',
+    taskReady: 'Забрать',
     taskDone: 'Готово',
     taskLocked: 'Закрыто',
     amount: 'Сумма',
@@ -360,13 +372,60 @@ export const ru: PartialStrings = {
     visitNote: 'Открывай проекты из платного топа. Голос за проект, десять в сутки.',
     referralTitle: (goal: number) => (goal === 1 ? 'Пригласи друга' : `Пригласи ${goal} друзей`),
     referralNote:
-      'Голоса приходят, когда друг выполнит первое задание, а не когда откроет приложение.',
+      'Голоса приходят после первого действия друга — перехода, подписки или буста, — а не когда он откроет приложение.',
     subscribeTitle: (channel: string) => `Подпишись на ${channel}`,
     subscribeNote: 'Оставайся подписанным, чтобы голоса не пропали.',
+    checkinTitle: 'Ежедневный бонус',
+    checkinNote: 'Каждый день подряд — больше. Пропуск начинает заново.',
+    dailyVisitsTitle: 'Обойди витрину целиком',
+    dailyVisitsNote: 'Открой все платные проекты из задания выше — бонус сверху.',
+    scoutTitle: 'Загляни к новичкам',
+    scoutNote: 'Платные проекты моложе суток: голос за каждый открытый.',
+    dailyVotesTitle: (goal: number) =>
+      `Отдай ${goal} ${plural(goal, 'голос', 'голоса', 'голосов')} за день`,
+    dailyVotesNote: 'Любым проектам бесплатного топа, хоть своему.',
+    questBackedTitle: (goal: number) =>
+      `Задание дня: поддержи ${goal} ${plural(goal, 'проект', 'проекта', 'проектов')}`,
+    questBackedNote: 'Голоса разным проектам бесплатного топа. Завтра — другое задание.',
+    questCategoriesTitle: (goal: number) =>
+      `Задание дня: ${goal} ${plural(goal, 'категория', 'категории', 'категорий')}`,
+    questCategoriesNote: 'Открой платные проекты разных категорий. Завтра — другое задание.',
+    friendStreakTitle: (goal: number) =>
+      goal === 1 ? 'Друг на серии' : `${goal} ${plural(goal, 'друг', 'друга', 'друзей')} на серии`,
+    friendStreakNote: 'Приглашённые, которые неделю не пропускают ежедневный бонус.',
+    streakLadderTitle: (goal: number) =>
+      `Серия ${goal} ${plural(goal, 'день', 'дня', 'дней')} подряд`,
+    streakLadderNote: 'Твоя лучшая серия ежедневного бонуса.',
+    votesLadderTitle: (goal: number) =>
+      `Отдай ${goal} ${plural(goal, 'голос', 'голоса', 'голосов')} всего`,
+    votesLadderNote: 'Все отданные голоса, любым проектам.',
+    backedLadderTitle: (goal: number) =>
+      `Поддержи ${goal} ${plural(goal, 'проект', 'проекта', 'проектов')}`,
+    backedLadderNote: 'Разные проекты бесплатного топа, которым ты отдал голоса.',
+    visitsLadderTitle: (goal: number) =>
+      `Сделай ${goal} ${plural(goal, 'переход', 'перехода', 'переходов')}`,
+    visitsLadderNote: 'Засчитанные переходы в платные проекты за всё время.',
+    subscriptionsLadderTitle: (goal: number) =>
+      `Подпишись на ${goal} ${plural(goal, 'канал', 'канала', 'каналов')}`,
+    subscriptionsLadderNote: 'Каналы из заданий на подписку.',
+    addProjectTitle: 'Добавь свой бесплатный проект',
+    addProjectNote: 'Канал, бот или сайт в бесплатном топе.',
+    botDmTitle: 'Разреши боту писать тебе',
+    botDmNote: 'Атаки, потеря первого места и новые голоса — сразу в чат.',
+    boostTitle: 'Забусти @BidWar_world',
+    boostNote: 'Буст канала с Telegram Premium.',
+    siteLoginTitle: 'Зайди на bidwar.world',
+    siteLoginNote: 'Тот же аккаунт на сайте, вход через Telegram.',
+    premiumTitle: 'Бонус Telegram Premium',
+    premiumNote: 'Один раз, за Premium-аккаунт.',
+    notReady: 'Пока рано — в списке уже свежие цифры.',
+    botUnreachable: 'Бот пока не может тебе написать. Мы открыли его — нажми «Старт» и вернись.',
+    notBoosted: 'Буста пока нет. Мы открыли канал — забусти его и нажми снова.',
     daily: 'Каждый день',
+    goals: 'Цели',
     oneTime: 'Разовые',
     emptyTitle: 'На сегодня всё',
-    emptyNote: 'Новые задания появляются каждый день в 09:00.',
+    emptyNote: 'Ежедневные задания обновляются в 03:00 по Москве.',
     notSubscribed: 'Похоже, ты ещё не подписан. Мы открыли канал — подпишись и нажми снова.',
     errorTitle: 'Задания не загрузились',
     errorNote: 'Список лежит на сервере, и он не ответил. Попробуй ещё раз.',

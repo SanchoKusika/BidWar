@@ -122,6 +122,30 @@ export async function isSubscribed(
   return SUBSCRIBED.includes(status as (typeof SUBSCRIBED)[number]);
 }
 
+/**
+ * Whether the person boosts the channel right now (`getUserChatBoosts`, needs
+ * the bot to be an admin there). Only a successful answer says «no»: for a
+ * user without boosts Telegram answers `ok` with an empty list. Any refusal —
+ * a network hiccup, the bot no longer an admin, a wrong chat — is `unknown`
+ * with Telegram's words, so a setup mistake reads as «try again» in the app
+ * and as the reason in the log, instead of telling everyone who boosted that
+ * they did not.
+ */
+export async function boostStatus(
+  botToken: string,
+  chatId: number,
+  telegramUserId: number,
+): Promise<{ status: 'yes' | 'no' | 'unknown'; description?: string }> {
+  let data: { ok?: boolean; result?: { boosts?: unknown[] }; description?: string };
+  try {
+    data = await call(botToken, 'getUserChatBoosts', { chat_id: chatId, user_id: telegramUserId });
+  } catch (error) {
+    return { status: 'unknown', description: error instanceof Error ? error.message : 'network' };
+  }
+  if (!data.ok) return { status: 'unknown', description: data.description };
+  return { status: (data.result?.boosts?.length ?? 0) > 0 ? 'yes' : 'no' };
+}
+
 export interface SendResult {
   ok: boolean;
   /** Текст отказа Telegram — уходит в `notifications.last_error` как есть. */

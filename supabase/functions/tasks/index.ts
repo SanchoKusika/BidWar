@@ -3,7 +3,7 @@ import { serve, badRequest, unauthorized } from '../_shared/http.ts';
 import { verifyInitData } from '../_shared/telegram.ts';
 import { resolveTelegramUser } from '../_shared/identity.ts';
 import { getAdminClient } from '../_shared/db.ts';
-import { buildTaskBoard } from '../_shared/tasks.ts';
+import { buildTaskBoard, type ProgressRow } from '../_shared/tasks.ts';
 
 interface TasksRequest {
   initData?: string;
@@ -35,7 +35,12 @@ serve('tasks', async (req, ctx) => {
   const { userId } = await resolveTelegramUser(verified.user, verified.startParam);
   const db = getAdminClient();
 
-  const [tasks, user, completions, paidCount, limits] = await Promise.all([
+  // Facts only this function knows: where the request came from and the
+  // Premium flag of the signed initData. The site format carries no Premium
+  // flag at all, so there the Premium tasks stay hidden.
+  const facts = { site: verified.source === 'site', premium: verified.user.is_premium === true };
+
+  const [tasks, user, completions, paidCount, limits, progress] = await Promise.all([
     db
       .from('tasks')
       .select('id, type, title, description, reward_votes, target_project_id, target_url')
@@ -58,11 +63,19 @@ serve('tasks', async (req, ctx) => {
       .neq('user_id', userId),
     // Предел переходов — продуктовое число, и живёт там же, где награды.
     db.from('app_config').select('value').eq('key', 'task_limits').maybeSingle(),
+    // Where every newer task stands, by the same SQL the claim runs.
+    db.rpc('task_progress', { p_user_id: userId, p_facts: facts }),
   ]);
 
   for (const result of [tasks, user, completions, paidCount, limits]) {
     if (result.error) throw result.error;
   }
+  // Functions go out before the migration that adds `task_progress`: the old
+  // function drew every new row as a subscription. Until the migration lands
+  // there is no such function and no new rows either, so the board is the
+  // three older tasks — anything else is a real error.
+  const progressMissing = progress.error?.code === 'PGRST202';
+  if (progress.error && !progressMissing) throw progress.error;
 
   // Ссылки целевых проектов — только для subscribe: по ним экран открывает
   // канал, когда человек ещё не подписан. Отдельным запросом, а не встроенным
@@ -97,19 +110,24 @@ serve('tasks', async (req, ctx) => {
     referral_milestone_step?: number;
   };
 
-  const payload = buildTaskBoard(rows, completions.data ?? [], {
-    // Дата в том же виде, в каком её пишет `current_date` на сервере базы.
-    today: new Date().toISOString().slice(0, 10),
-    paidProjects: paidCount.count ?? 0,
-    visitPerDay: Number(taskLimits.visit_per_day ?? 10),
-    // Falls back to the same goals the migration seeds: a missing key should
-    // still give a ladder, not a single goal of one friend forever.
-    referralMilestones: (taskLimits.referral_milestones ?? [1, 3, 5, 10])
-      .map(Number)
-      .filter((n) => Number.isFinite(n) && n > 0)
-      .sort((a, b) => a - b),
-    referralStep: Number(taskLimits.referral_milestone_step ?? 10),
-  });
+  const payload = buildTaskBoard(
+    rows,
+    completions.data ?? [],
+    {
+      // Дата в том же виде, в каком её пишет `current_date` на сервере базы.
+      today: new Date().toISOString().slice(0, 10),
+      paidProjects: paidCount.count ?? 0,
+      visitPerDay: Number(taskLimits.visit_per_day ?? 10),
+      // Falls back to the same goals the migration seeds: a missing key should
+      // still give a ladder, not a single goal of one friend forever.
+      referralMilestones: (taskLimits.referral_milestones ?? [1, 3, 5, 10])
+        .map(Number)
+        .filter((n) => Number.isFinite(n) && n > 0)
+        .sort((a, b) => a - b),
+      referralStep: Number(taskLimits.referral_milestone_step ?? 10),
+    },
+    (progress.data ?? []) as ProgressRow[],
+  );
 
   ctx.log('tasks listed', { userId, count: payload.length });
 

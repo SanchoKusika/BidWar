@@ -42,10 +42,13 @@ async function addProject(
   status: 'active' | 'hidden' = 'active',
 ): Promise<number> {
   const [category] = await tx`select id from categories order by sort_order limit 1`;
+  // Two days old: a click on a paid project younger than a day also scouts
+  // it (daily_scout), and these tests count the visit alone.
   const [row] = await tx`
-    insert into projects (user_id, category_id, name, url, type, status, paid_amount, votes)
+    insert into projects (user_id, category_id, name, url, type, status, paid_amount, votes, created_at)
     values (${userId}, ${category.id}, 'T', ${'https://t.example/' + crypto.randomUUID()},
-            ${type}, ${status}, ${type === 'paid' ? metric : 0}, ${type === 'free' ? metric : 0})
+            ${type}, ${status}, ${type === 'paid' ? metric : 0}, ${type === 'free' ? metric : 0},
+            now() - interval '2 days')
     returning id`;
   return Number(row.id);
 }
