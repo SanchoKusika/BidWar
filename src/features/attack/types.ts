@@ -16,6 +16,8 @@ export interface AttackQuote {
   /** Сколько ещё поместится в цель: `targetAmount − floor`. */
   room: number;
   minAttackAmount: number;
+  /** Provider ceiling for one payment: the amount field is capped by it. */
+  maxPaymentAmount: number;
   /** Коэффициент зачисления в базисных пунктах: 10000 = 100%. */
   coefficientBp: number;
   attacksLeftOnTarget: number;

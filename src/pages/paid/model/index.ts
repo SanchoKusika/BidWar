@@ -7,7 +7,7 @@ import {
   useMovement24h,
 } from '@/entities/project';
 import { useCategoryStats } from '@/entities/category';
-import { fetchPaidLimits } from '@/shared/api';
+import { fetchPaidLimits, PAID_LIMITS_FALLBACK } from '@/shared/api';
 import { useQuery } from '@/shared/lib/query';
 import type {
   ShowcaseState,
@@ -47,20 +47,32 @@ export function usePaidMovement(): ReadonlyMap<number, Movement24h> {
   return useMovement24h(true);
 }
 
+export interface PaymentBounds {
+  /** Минимальный шаг ставки — цена «занять место» и подсказки. */
+  min: number;
+  /** Provider ceiling for a single payment. */
+  max: number;
+}
+
+const FALLBACK_BOUNDS: PaymentBounds = {
+  min: PAID_LIMITS_FALLBACK.minPaidAmount,
+  max: PAID_LIMITS_FALLBACK.maxPaymentAmount,
+};
+
 /**
- * Минимальный шаг ставки (app_config.paid_limits) — цена «занять место» и
- * подсказки. Через общий кэш: конфиг не меняется в пределах сессии, а без
- * него каждый возврат на вкладку заново ходил за одним и тем же числом.
+ * Границы одного платежа (app_config.paid_limits). Через общий кэш: конфиг не
+ * меняется в пределах сессии, а без него каждый возврат на вкладку заново
+ * ходил за одним и тем же числом.
  */
-export function useMinPaidAmount(): number {
+export function usePaymentBounds(): PaymentBounds {
   const fetcher = useCallback(
     () =>
       fetchPaidLimits()
-        .then((limits) => limits.minPaidAmount)
+        .then((limits) => ({ min: limits.minPaidAmount, max: limits.maxPaymentAmount }))
         // Остаёмся с запасным значением — это подсказка, не расчёт платежа.
-        .catch(() => 300),
+        .catch(() => FALLBACK_BOUNDS),
     [],
   );
 
-  return useQuery<number>('paid_limits', fetcher).data ?? 300;
+  return useQuery<PaymentBounds>('paid_limits', fetcher).data ?? FALLBACK_BOUNDS;
 }

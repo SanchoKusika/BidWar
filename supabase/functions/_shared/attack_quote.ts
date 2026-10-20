@@ -23,6 +23,8 @@ export interface AttackQuote {
   /** Сколько ещё можно снять с цели: `paid_amount − floor`. */
   room: number;
   minAttackAmount: number;
+  /** Provider ceiling for one transaction; the sheet caps the amount by it. */
+  maxPaymentAmount: number;
   /** Коэффициент зачисления в базисных пунктах: 10000 = 100%. */
   coefficientBp: number;
   attacksLeftOnTarget: number;
@@ -125,6 +127,7 @@ export async function loadAttackQuote(
     floor,
     room,
     minAttackAmount: limits.minAttackAmount,
+    maxPaymentAmount: limits.maxPaymentAmount,
     coefficientBp: haircutBp(hitsInHaircutWindow, limits),
     attacksLeftOnTarget: Math.max(0, limits.maxAttacksPerTargetPerDay - hitsOnTargetToday),
     attacksLeftToday: Math.max(0, limits.maxAttacksTotalPerDay - hitsToday),
@@ -148,6 +151,9 @@ export function assertAttackAllowed(quote: AttackQuote, amount: number): void {
   }
   if (amount < quote.minAttackAmount) {
     throw badRequest(`Минимум атаки — ${quote.minAttackAmount}`);
+  }
+  if (amount > quote.maxPaymentAmount) {
+    throw badRequest(`Максимум одного платежа — ${quote.maxPaymentAmount}`);
   }
   // Урезать уже выставленный инвойс нельзя, а списать полную сумму и применить
   // частичный эффект — тем более (01 Механики). Поэтому не «подгоняем», а

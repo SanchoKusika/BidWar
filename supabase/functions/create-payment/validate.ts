@@ -99,8 +99,19 @@ export function assertMinPaidAmount(amount: bigint, minPaidAmount: number): void
   }
 }
 
+/**
+ * The provider's ceiling for one transaction. Applies to every kind of payment
+ * (entry, Raise, Attack) because they all end up as one charge at the provider.
+ */
+export function assertMaxPaymentAmount(amount: bigint, maxPaymentAmount: number): void {
+  if (amount > BigInt(maxPaymentAmount)) {
+    throw badRequest(`Максимум одного платежа — ${maxPaymentAmount}`);
+  }
+}
+
 export interface PaidLimits {
   minPaidAmount: number;
+  maxPaymentAmount: number;
 }
 
 /**
@@ -113,7 +124,7 @@ export interface PaidLimits {
  * нечисловое/неположительное значение — явная ошибка, а не молчаливый дефолт.
  */
 export function parsePaidLimits(value: unknown): PaidLimits {
-  const v = value as { min_paid_amount?: unknown };
+  const v = value as { min_paid_amount?: unknown; max_payment_amount?: unknown };
   if (
     typeof v.min_paid_amount !== 'number' ||
     !Number.isFinite(v.min_paid_amount) ||
@@ -123,5 +134,16 @@ export function parsePaidLimits(value: unknown): PaidLimits {
       'app_config.paid_limits.min_paid_amount отсутствует, не число или не положительно',
     );
   }
-  return { minPaidAmount: v.min_paid_amount };
+  // No default here either: a missing cap would silently let through a payment
+  // the provider then rejects after the pending rows are already written.
+  if (
+    typeof v.max_payment_amount !== 'number' ||
+    !Number.isFinite(v.max_payment_amount) ||
+    v.max_payment_amount < v.min_paid_amount
+  ) {
+    throw new Error(
+      'app_config.paid_limits.max_payment_amount отсутствует, не число или меньше минимума',
+    );
+  }
+  return { minPaidAmount: v.min_paid_amount, maxPaymentAmount: v.max_payment_amount };
 }

@@ -34,6 +34,8 @@ export interface RaiseSheetProps {
   preset?: number | null;
   /** Минимальный шаг ставки из app_config, а не из константы в клиенте. */
   minAmount: number;
+  /** Provider ceiling for one payment, also from app_config. */
+  maxAmount: number;
   currency?: DisplayCurrency;
   onClose: () => void;
   onConfirm: (amount: number) => void;
@@ -51,20 +53,22 @@ export function RaiseSheet({
   rank,
   preset,
   minAmount,
+  maxAmount,
   currency = DEFAULT_CURRENCY,
   onClose,
   onConfirm,
 }: RaiseSheetProps) {
   // Cleared in the click that closes the sheet — kept for its way out.
   const project = useLingering(projectProp, open);
-  const [amount, setAmount] = useState(preset ?? minAmount);
+  const initial = Math.min(preset ?? minAmount, maxAmount);
+  const [amount, setAmount] = useState(initial);
 
   // Кит переустанавливает сумму на каждом открытии — сравнением в рендере,
   // без эффекта (react-hooks/set-state-in-effect).
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
     setPrevOpen(open);
-    if (open) setAmount(preset ?? minAmount);
+    if (open) setAmount(initial);
   }
 
   if (!project) return null;
@@ -89,6 +93,7 @@ export function RaiseSheet({
         currency={currency}
         step={minAmount}
         min={minAmount}
+        max={maxAmount}
         presets={[minAmount, minAmount * 2, minAmount * 10]}
         label={t.amountLabel}
         // Минимум печатается тем же форматом, что и само поле: `formatMoney`
@@ -96,6 +101,12 @@ export function RaiseSheet({
         // выглядело бы как два разных минимума.
         error={low ? t.amountError(`${formatEditable(minAmount, currency)} ${unit}`) : undefined}
       />
+
+      {preset != null && preset > maxAmount && (
+        <SheetFootnote tone="muted">
+          {t.capNote(`${formatEditable(maxAmount, currency)} ${unit}`)}
+        </SheetFootnote>
+      )}
 
       <SheetRows>
         <KeyRow label={boost ? t.boostBidNow : t.bidNow} value={money(project.paidAmount)} />
