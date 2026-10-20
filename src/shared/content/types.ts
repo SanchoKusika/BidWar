@@ -54,6 +54,8 @@ export interface Brand {
   name: string;
   bot: string;
   botLink: string;
+  /** The website, where Telegram sign-in is allowed (`app/web/siteHost.ts`). */
+  siteLink: string;
   /** The contact the payment provider's bank asks for: a mailbox, not a group. */
   supportEmail: string;
   /** Temporary word the payment provider's bank asks to show during review. */

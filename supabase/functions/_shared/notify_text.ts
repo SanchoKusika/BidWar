@@ -3,7 +3,7 @@
  *
  * Свой словарь, а не `src/shared/i18n`: у функций другой рантайм и другой
  * корень, и тянуть туда клиентский модуль нельзя. Дублирование здесь
- * осознанное и маленькое — четыре сообщения против трёхсот строк интерфейса.
+ * осознанное и маленькое — пять сообщений против трёхсот строк интерфейса.
  *
  * Сообщение написано человеку и про него: «тебя атаковали», «ты больше не
  * первый». Раньше оно было в третьем лице («„Aleksandr K“ больше не первый») —
@@ -212,6 +212,17 @@ function referral(p: Record<string, unknown>, locale: NotifyLocale): string {
   return friends > 1
     ? `🤝 +${amount} votes: ${friends} people you invited finished their first task.`
     : `🤝 +${amount} votes: someone you invited finished their first task.`;
+}
+
+/**
+ * The «let the bot write to you» task is checked by writing: the message is
+ * both the proof and the answer to what the person just allowed.
+ */
+export function botHelloText(locale: NotifyLocale): string {
+  if (locale === 'RU') {
+    return '🔔 Готово: сюда придут атаки на твой проект, потеря первого места и новые голоса.';
+  }
+  return '🔔 Done: attacks on your project, a lost first place and new votes will arrive here.';
 }
 
 /** Подпись кнопки, открывающей мини-апп. */

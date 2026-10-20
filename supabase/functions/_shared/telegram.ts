@@ -34,6 +34,12 @@ export interface VerifiedInitData {
   authDate: number;
   /** Внутренний users.id реферера, если ссылка его содержала и он валиден по формату. */
   startParam: string | null;
+  /**
+   * Which of the two signed formats came in: the mini app's initData or the
+   * site's sign-in. The «sign in on the site» task is counted by this alone —
+   * the site format is minted only by `auth-web`.
+   */
+  source: 'mini_app' | 'site';
 }
 
 // Явный ArrayBuffer вместо ArrayBufferLike: в свежих версиях TS параметр без
@@ -140,7 +146,7 @@ export async function verifyInitData(
   }
   if (typeof user.id !== 'number') return null;
 
-  return { user, authDate, startParam: params.get('start_param') };
+  return { user, authDate, startParam: params.get('start_param'), source: 'mini_app' };
 }
 
 /**
@@ -177,7 +183,7 @@ async function verifyLogin(
     ...(photoUrl ? { photo_url: photoUrl } : {}),
   };
 
-  return { user, authDate, startParam: null };
+  return { user, authDate, startParam: null, source: 'site' };
 }
 
 /**

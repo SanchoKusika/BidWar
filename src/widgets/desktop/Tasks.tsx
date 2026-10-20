@@ -14,11 +14,13 @@ import styles from './Tasks.module.css';
 function Group({
   label,
   items,
-  onTask,
+  busyTaskId,
+  actionFor,
 }: {
   label: string;
   items: readonly TaskItem[];
-  onTask: (task: TaskItem) => void;
+  busyTaskId: number | null;
+  actionFor: TasksScreenProps['actionFor'];
 }) {
   return (
     <FeedSection label={label}>
@@ -32,12 +34,25 @@ function Group({
               subtitle={copy.note ?? undefined}
               reward={task.rewardVotes}
               icon={TASK_ICON[task.type]}
-              state={task.state}
+              state={task.id === busyTaskId ? 'pending' : task.state}
               progress={task.progress}
-              onPress={() => onTask(task)}
+              onPress={actionFor(task)}
             />
           );
         })}
+      </div>
+    </FeedSection>
+  );
+}
+
+/** The section's own grid with placeholder rows, as many as the board usually has. */
+function SkeletonSection({ label, rows }: { label: string; rows: number }) {
+  return (
+    <FeedSection label={label}>
+      <div className={styles.grid}>
+        {Array.from({ length: rows }, (_, i) => (
+          <TaskListItemSkeleton key={i} />
+        ))}
       </div>
     </FeedSection>
   );
@@ -56,14 +71,18 @@ export function DesktopTasks({
   error = false,
   onRetry,
   notice,
-  onTask,
+  busyTaskId = null,
+  actionFor,
   onRules,
 }: TasksScreenProps) {
   const t = strings.tasks;
   const w = strings.web;
   const signIn = useGuestSignIn();
-  const { daily, oneTime } = splitTasks(tasks);
+  const { daily, goal, once } = splitTasks(tasks);
+  const shown = daily.length + goal.length + once.length;
+  const row = { busyTaskId, actionFor };
   const referral = tasks.find((task) => task.type === 'referral');
+  const invite = referral ? actionFor(referral) : undefined;
 
   return (
     <>
@@ -106,16 +125,10 @@ export function DesktopTasks({
                 />
               </div>
             </RailCard>
-            {referral && (
+            {referral && invite && (
               <RailCard title={w.referrals} footnote={t.referralNote}>
                 <span className={styles.text}>{w.referralPitch(referral.rewardVotes)}</span>
-                <Button
-                  variant="free"
-                  size="md"
-                  block
-                  icon="user-plus"
-                  onClick={() => onTask(referral)}
-                >
+                <Button variant="free" size="md" block icon="user-plus" onClick={invite}>
                   {w.inviteFriends}
                 </Button>
               </RailCard>
@@ -130,29 +143,22 @@ export function DesktopTasks({
       >
         {notice && <p className={styles.notice}>{notice}</p>}
 
-        {daily.length > 0 && <Group label={t.daily} items={daily} onTask={onTask} />}
-        {oneTime.length > 0 && <Group label={t.oneTime} items={oneTime} onTask={onTask} />}
+        {daily.length > 0 && <Group label={t.daily} items={daily} {...row} />}
+        {goal.length > 0 && <Group label={t.goals} items={goal} {...row} />}
+        {once.length > 0 && <Group label={t.oneTime} items={once} {...row} />}
 
-        {tasks.length === 0 && loading && (
+        {shown === 0 && loading && (
           <>
-            <FeedSection label={t.daily}>
-              <div className={styles.grid}>
-                <TaskListItemSkeleton />
-              </div>
-            </FeedSection>
-            <FeedSection label={t.oneTime}>
-              <div className={styles.grid}>
-                <TaskListItemSkeleton />
-                <TaskListItemSkeleton />
-              </div>
-            </FeedSection>
+            <SkeletonSection label={t.daily} rows={4} />
+            <SkeletonSection label={t.goals} rows={3} />
+            <SkeletonSection label={t.oneTime} rows={2} />
           </>
         )}
 
         {signIn && <SignInCard onSignIn={signIn} note={w.signInTasks} />}
 
         {!signIn &&
-          tasks.length === 0 &&
+          shown === 0 &&
           !loading &&
           (error ? (
             <EmptyState

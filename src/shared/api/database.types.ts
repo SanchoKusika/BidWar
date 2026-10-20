@@ -611,6 +611,7 @@ export type Database = {
           referred_user_id: string | null
           reward_votes: number
           status: string
+          step: number | null
           task_id: number
           user_id: string
         }
@@ -623,6 +624,7 @@ export type Database = {
           referred_user_id?: string | null
           reward_votes: number
           status: string
+          step: number | null
           task_id: number
           user_id: string
         }
@@ -635,6 +637,7 @@ export type Database = {
           referred_user_id?: string | null
           reward_votes?: number
           status?: string
+          step?: number | null
           task_id?: number
           user_id?: string
         }
@@ -696,6 +699,7 @@ export type Database = {
           description: string | null
           id: number
           is_active: boolean
+          params: Json
           reward_votes: number
           target_chat_id: number | null
           target_project_id: number | null
@@ -708,6 +712,7 @@ export type Database = {
           description?: string | null
           id?: number
           is_active?: boolean
+          params?: Json
           reward_votes: number
           target_chat_id?: number | null
           target_project_id?: number | null
@@ -720,6 +725,7 @@ export type Database = {
           description?: string | null
           id?: number
           is_active?: boolean
+          params?: Json
           reward_votes?: number
           target_chat_id?: number | null
           target_project_id?: number | null
@@ -1105,7 +1111,10 @@ export type Database = {
       }
       apply_task_completion: {
         Args: {
+          p_period?: string
           p_project_id?: number
+          p_reward?: number
+          p_step?: number
           p_task_id?: number
           p_task_type: string
           p_user_id: string
@@ -1139,6 +1148,15 @@ export type Database = {
         Args: { p_error: string; p_id: number }
         Returns: undefined
       }
+      claim_task: {
+        Args: { p_facts?: Json; p_task_id: number; p_user_id: string }
+        Returns: {
+          balance_after: number
+          claimed: boolean
+          granted: number
+          referral_granted: number
+        }[]
+      }
       enqueue_notification: {
         Args: {
           p_group_key: string
@@ -1147,6 +1165,14 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
+      }
+      ladder_next_goal: {
+        Args: { p_claimed: number; p_params: Json }
+        Returns: number
+      }
+      ladder_reward: {
+        Args: { p_goal: number; p_params: Json }
+        Returns: number
       }
       mark_notification_failed: {
         Args: { p_error: string; p_id: number }
@@ -1192,6 +1218,20 @@ export type Database = {
           month: number
           payments: number
           total: number
+        }[]
+      }
+      task_progress: {
+        Args: { p_facts?: Json; p_user_id: string }
+        Returns: {
+          claim_period: string
+          claim_step: number
+          current_value: number
+          goal: number
+          quest: string
+          reward: number
+          state: string
+          target_project_id: number
+          task_id: number
         }[]
       }
     }

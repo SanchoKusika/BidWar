@@ -6,7 +6,7 @@ import { cx } from '@/shared/lib/cx';
 import { strings } from '@/shared/i18n/strings';
 import styles from './TaskListItem.module.css';
 
-export type TaskState = 'available' | 'pending' | 'done' | 'locked';
+export type TaskState = 'available' | 'ready' | 'pending' | 'done' | 'locked';
 
 const t = strings.card;
 
@@ -17,6 +17,7 @@ const t = strings.card;
  * объект, собранный один раз при импорте, застыл бы на языке первого запуска.
  */
 function statusLabel(state: TaskState): string | undefined {
+  if (state === 'ready') return t.taskReady;
   if (state === 'pending') return t.taskPending;
   if (state === 'done') return t.taskDone;
   if (state === 'locked') return t.taskLocked;
@@ -47,7 +48,8 @@ export function TaskListItem({
   className,
   style,
 }: TaskListItemProps) {
-  const interactive = state === 'available' && Boolean(onPress);
+  // `ready` is the tap that pays: the row stays a button, its label says so.
+  const interactive = (state === 'available' || state === 'ready') && Boolean(onPress);
   const status = statusLabel(state);
 
   return (
@@ -90,10 +92,11 @@ export function TaskListItem({
           <Icon name="vote" size={13} />
           <span className={styles.rewardValue}>+{group(reward)}</span>
         </span>
+        {/* A chevron promises a tap; a row with nothing to do shows none. */}
         {status ? (
           <span className={styles.status}>{status}</span>
         ) : (
-          <Icon name="chevron-right" size={16} color="var(--text-muted)" />
+          interactive && <Icon name="chevron-right" size={16} color="var(--text-muted)" />
         )}
       </div>
     </div>
