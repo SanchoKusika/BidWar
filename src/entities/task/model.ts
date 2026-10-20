@@ -126,10 +126,10 @@ function channelHandle(url: string | null): string | null {
 }
 
 /**
- * Сколько заданий сейчас можно выполнить — число на вкладке нижнего меню.
- * `pending` не считается: проверка уже идёт, делать там нечего. A goal counts
- * only once it is ready: a ladder is «available» for weeks, and a badge that
- * never drops below five stops meaning anything.
+ * How many tasks can be done now — the number on the tab bar. `pending` does
+ * not count: the check is under way, there is nothing to do there. A goal
+ * counts only once it is ready: a ladder is «available» for weeks, and a badge
+ * that never drops below five stops meaning anything.
  */
 export function availableCount(tasks: readonly TaskItem[]): number {
   return tasks.filter((task) => {

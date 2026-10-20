@@ -410,7 +410,7 @@ export const en = {
     subscribeTitle: (channel: string) => `Subscribe to ${channel}`,
     subscribeNote: 'Stay subscribed to keep the votes.',
     checkinTitle: 'Daily bonus',
-    checkinNote: 'Each day in a row pays more, +5 on day seven. A missed day starts over.',
+    checkinNote: 'Each day in a row pays more. A missed day starts over.',
     dailyVisitsTitle: "Finish the day's visits",
     dailyVisitsNote: 'Open every paid project the task above asks for — a bonus on top.',
     scoutTitle: 'Scout the newcomers',
@@ -423,8 +423,8 @@ export const en = {
     questCategoriesNote:
       'Open paid projects from different categories. Tomorrow brings another quest.',
     friendStreakTitle: (goal: number) =>
-      goal === 1 ? 'A friend on a 7-day streak' : `${goal} friends on a 7-day streak`,
-    friendStreakNote: 'Friends you invited who take the daily bonus seven days in a row.',
+      goal === 1 ? 'A friend on a streak' : `${goal} friends on a streak`,
+    friendStreakNote: 'Friends you invited who keep a week of the daily bonus.',
     streakLadderTitle: (goal: number) => `A ${goal}-day streak`,
     streakLadderNote: 'Your best run of the daily bonus.',
     votesLadderTitle: (goal: number) => `Give ${goal} votes in total`,

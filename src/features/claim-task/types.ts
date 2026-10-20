@@ -16,5 +16,5 @@ export interface ClaimTaskResult {
    * Why nothing was paid, when the screen has something to do about it:
    * open the bot, open the channel's boost page, or redraw the list.
    */
-  reason?: 'not_ready' | 'bot_unreachable' | 'not_boosted';
+  reason?: 'not_ready' | 'done' | 'bot_unreachable' | 'not_boosted';
 }

@@ -12,7 +12,7 @@ interface ClaimTaskRequest {
 }
 
 /** Why a claim paid nothing, when the screen has something to do about it. */
-type Reason = 'not_ready' | 'bot_unreachable' | 'not_boosted';
+type Reason = 'not_ready' | 'done' | 'bot_unreachable' | 'not_boosted';
 
 /**
  * «Claim» on a task whose condition the server can check: the daily bonus,
@@ -67,7 +67,7 @@ serve('claim-task', async (req, ctx) => {
       .eq('task_id', task.id)
       .eq('status', 'completed');
     if (doneError) throw doneError;
-    if ((count ?? 0) > 0) return await answer(false, 'not_ready');
+    if ((count ?? 0) > 0) return await answer(false, 'done');
   }
 
   if (task.type === 'bot_dm') {
@@ -95,11 +95,12 @@ serve('claim-task', async (req, ctx) => {
 
   if (task.type === 'boost') {
     if (task.target_chat_id === null) throw badRequest('У задания нет канала');
-    const status = await boostStatus(botToken, task.target_chat_id, verified.user.id);
-    if (status === 'unknown') {
+    const boost = await boostStatus(botToken, task.target_chat_id, verified.user.id);
+    if (boost.status === 'unknown') {
+      ctx.log('boost check failed', { userId, description: boost.description });
       throw new HttpError(503, 'upstream_unavailable', 'Telegram не ответил — попробуй ещё раз');
     }
-    if (status === 'no') return await answer(false, 'not_boosted');
+    if (boost.status === 'no') return await answer(false, 'not_boosted');
     facts.boosted = true;
   }
 

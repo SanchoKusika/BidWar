@@ -67,9 +67,15 @@ serve('tasks', async (req, ctx) => {
     db.rpc('task_progress', { p_user_id: userId, p_facts: facts }),
   ]);
 
-  for (const result of [tasks, user, completions, paidCount, limits, progress]) {
+  for (const result of [tasks, user, completions, paidCount, limits]) {
     if (result.error) throw result.error;
   }
+  // Functions go out before the migration that adds `task_progress`: the old
+  // function drew every new row as a subscription. Until the migration lands
+  // there is no such function and no new rows either, so the board is the
+  // three older tasks — anything else is a real error.
+  const progressMissing = progress.error?.code === 'PGRST202';
+  if (progress.error && !progressMissing) throw progress.error;
 
   // Ссылки целевых проектов — только для subscribe: по ним экран открывает
   // канал, когда человек ещё не подписан. Отдельным запросом, а не встроенным

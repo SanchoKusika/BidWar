@@ -157,10 +157,16 @@ $$;
 -- the request came from (`site`), the Premium flag of the signed initData
 -- (`premium`), and Telegram's answers (`boosted`, `bot_reachable`).
 --
+-- `p_task_id` narrows the loop to one task — the claim needs no other row.
+--
 -- Everything is read before `apply_task_completion` takes its lock. That is
 -- safe because every number here only grows within a day, and a second claim
 -- of the same step or day is caught by the key, not by this read.
-create function public.task_progress(p_user_id uuid, p_facts jsonb default '{}'::jsonb)
+create function public.task_progress(
+  p_user_id uuid,
+  p_facts   jsonb  default '{}'::jsonb,
+  p_task_id bigint default null
+)
 returns table (
   task_id           bigint,
   state             text,
@@ -273,6 +279,7 @@ begin
     select * from public.tasks t
      where t.is_active
        and t.type not in ('visit', 'subscribe', 'referral')
+       and (p_task_id is null or t.id = p_task_id)
      order by t.id
   loop
     task_id := v_task.id;
@@ -300,12 +307,14 @@ begin
       -- itself keeps counting for the record ladder.
       v_len := greatest(1, jsonb_array_length(v_task.params -> 'rewards'));
       v_day := coalesce(v_checkin_today, coalesce(v_checkin_prev, 0) + 1);
-      current_value := (v_day - 1) % v_len + 1;
       goal := v_len;
       reward := (v_task.params -> 'rewards' ->> ((v_day - 1) % v_len))::bigint;
       if v_checkin_today is not null then
+        -- The bar counts days reached, like a ladder: today's is in once paid.
+        current_value := (v_day - 1) % v_len + 1;
         state := 'done';
       else
+        current_value := (v_day - 1) % v_len;
         state := 'ready';
         claim_step := v_day;
         claim_period := v_today;
@@ -425,6 +434,11 @@ begin
       continue;
     end case;
 
+    -- A schedule shorter than its goals, or a zero in it, would fail the
+    -- `reward_votes > 0` check at the insert and turn the claim into a 500
+    -- for everyone on that step. Such a task is hidden until the row is fixed.
+    if reward is null or reward <= 0 then continue; end if;
+
     return next;
   end loop;
 end;
@@ -442,7 +456,7 @@ declare
   v_row  record;
   v_type text;
 begin
-  select * into v_row from public.task_progress(p_user_id, p_facts) p where p.task_id = p_task_id;
+  select * into v_row from public.task_progress(p_user_id, p_facts, p_task_id) p;
 
   if v_row.task_id is null or v_row.state <> 'ready' then
     return query
@@ -472,8 +486,10 @@ $$;
 -- the referral rule refused to pay for (01 Механики).
 --
 -- And the friend-streak bonus: when an invited friend's daily streak reaches
--- the `referral_streak` threshold, the inviter is paid once for that friend.
--- Both user rows are already locked here for the referral bonus.
+-- the `referral_streak` threshold, the inviter is paid once for that friend —
+-- provided the friend has also done a first action. A week of opening the app
+-- alone is still «opened the app», only seven times. Both user rows are
+-- already locked here for the referral bonus.
 drop function public.apply_task_completion(uuid, text, bigint, bigint);
 
 create function public.apply_task_completion(
@@ -613,7 +629,14 @@ begin
   end if;
 
   -- The friend's streak reached the threshold: once per friend, by the key.
-  if v_referrer is not null and v_task.type = 'daily_checkin' then
+  if v_referrer is not null and v_task.type = 'daily_checkin' and exists (
+    select 1
+      from public.task_completions tc
+      join public.tasks t on t.id = tc.task_id
+     where tc.user_id = p_user_id
+       and tc.status = 'completed'
+       and t.type in ('visit', 'subscribe', 'boost')
+  ) then
     select * into v_ref_task
       from public.tasks t
      where t.type = 'referral_streak' and t.is_active
@@ -728,14 +751,14 @@ $$;
 -- ---------------------------------------------------------------------------
 revoke execute on function public.apply_task_completion(uuid, text, bigint, bigint, date, int, bigint)
   from public, anon, authenticated;
-revoke execute on function public.task_progress(uuid, jsonb) from public, anon, authenticated;
+revoke execute on function public.task_progress(uuid, jsonb, bigint) from public, anon, authenticated;
 revoke execute on function public.claim_task(uuid, bigint, jsonb) from public, anon, authenticated;
 revoke execute on function public.ladder_next_goal(jsonb, int) from public, anon, authenticated;
 revoke execute on function public.ladder_reward(jsonb, int) from public, anon, authenticated;
 
 grant execute on function public.apply_task_completion(uuid, text, bigint, bigint, date, int, bigint)
   to service_role;
-grant execute on function public.task_progress(uuid, jsonb) to service_role;
+grant execute on function public.task_progress(uuid, jsonb, bigint) to service_role;
 grant execute on function public.claim_task(uuid, bigint, jsonb) to service_role;
 grant execute on function public.ladder_next_goal(jsonb, int) to service_role;
 grant execute on function public.ladder_reward(jsonb, int) to service_role;

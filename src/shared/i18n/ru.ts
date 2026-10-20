@@ -376,7 +376,7 @@ export const ru: PartialStrings = {
     subscribeTitle: (channel: string) => `Подпишись на ${channel}`,
     subscribeNote: 'Оставайся подписанным, чтобы голоса не пропали.',
     checkinTitle: 'Ежедневный бонус',
-    checkinNote: 'Каждый день подряд — больше, на седьмой +5. Пропуск начинает заново.',
+    checkinNote: 'Каждый день подряд — больше. Пропуск начинает заново.',
     dailyVisitsTitle: 'Обойди витрину целиком',
     dailyVisitsNote: 'Открой все платные проекты из задания выше — бонус сверху.',
     scoutTitle: 'Загляни к новичкам',
@@ -391,10 +391,8 @@ export const ru: PartialStrings = {
       `Задание дня: ${goal} ${plural(goal, 'категория', 'категории', 'категорий')}`,
     questCategoriesNote: 'Открой платные проекты разных категорий. Завтра — другое задание.',
     friendStreakTitle: (goal: number) =>
-      goal === 1
-        ? 'Друг на серии 7 дней'
-        : `${goal} ${plural(goal, 'друг', 'друга', 'друзей')} на серии 7 дней`,
-    friendStreakNote: 'Приглашённые, которые забирают бонус семь дней подряд.',
+      goal === 1 ? 'Друг на серии' : `${goal} ${plural(goal, 'друг', 'друга', 'друзей')} на серии`,
+    friendStreakNote: 'Приглашённые, которые неделю не пропускают ежедневный бонус.',
     streakLadderTitle: (goal: number) =>
       `Серия ${goal} ${plural(goal, 'день', 'дня', 'дней')} подряд`,
     streakLadderNote: 'Твоя лучшая серия ежедневного бонуса.',

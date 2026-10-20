@@ -1221,7 +1221,7 @@ export type Database = {
         }[]
       }
       task_progress: {
-        Args: { p_facts?: Json; p_user_id: string }
+        Args: { p_facts?: Json; p_task_id?: number; p_user_id: string }
         Returns: {
           claim_period: string
           claim_step: number

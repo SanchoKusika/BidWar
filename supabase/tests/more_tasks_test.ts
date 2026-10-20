@@ -119,7 +119,7 @@ Deno.test('daily bonus: yesterday continues the streak, a gap restarts it', asyn
     const kept = await addUser(tx, 'kept');
     await checkinOn(tx, kept, 1, 3);
     const day4 = await progressOf(tx, kept, 'daily_checkin');
-    assertEquals([day4.claim_step, day4.current_value, Number(day4.reward)], [4, 4, 2]);
+    assertEquals([day4.claim_step, day4.current_value, Number(day4.reward)], [4, 3, 2]);
 
     const lapsed = await addUser(tx, 'lapsed');
     await checkinOn(tx, lapsed, 2, 5);
@@ -133,7 +133,7 @@ Deno.test('daily bonus: day eight pays like day one but keeps counting', async (
     const user = await addUser(tx, 'week');
     await checkinOn(tx, user, 1, 7);
     const day8 = await progressOf(tx, user, 'daily_checkin');
-    assertEquals([day8.claim_step, day8.current_value, Number(day8.reward)], [8, 1, 1]);
+    assertEquals([day8.claim_step, day8.current_value, Number(day8.reward)], [8, 0, 1]);
   });
 });
 
@@ -204,23 +204,45 @@ Deno.test('referral: the daily bonus is not the first action', async () => {
   });
 });
 
+Deno.test('friend streak: a week of opening the app alone pays the inviter nothing', async () => {
+  await inRollback(async (tx) => {
+    const inviter = await addUser(tx, 'inviter');
+    const friend = await addUser(tx, 'friend', inviter);
+    await checkinOn(tx, friend, 1, 6);
+
+    await claim(tx, friend, 'daily_checkin');
+    assertEquals(await balanceOf(tx, inviter), 0);
+  });
+});
+
 Deno.test(
-  'friend streak: day seven pays the inviter once, without a referral message',
+  'friend streak: day seven after a real action pays once, without a referral message',
   async () => {
     await inRollback(async (tx) => {
       const inviter = await addUser(tx, 'inviter');
       const friend = await addUser(tx, 'friend', inviter);
-      await checkinOn(tx, friend, 1, 6);
+      const owner = await addUser(tx, 'owner');
+      const paid = await addProject(tx, owner, 'paid');
 
+      await tx`select * from apply_task_completion(${friend}, 'visit', ${paid})`;
+      const afterVisit = await balanceOf(tx, inviter);
+      const messagesBefore = await tx`
+        select id, payload from notifications where user_id = ${inviter} and kind = 'referral'`;
+
+      await checkinOn(tx, friend, 1, 6);
       await claim(tx, friend, 'daily_checkin');
       const [bonus] =
         await tx`select reward_votes from tasks where type = 'referral_streak' limit 1`;
-      assertEquals(await balanceOf(tx, inviter), Number(bonus.reward_votes));
+      assertEquals((await balanceOf(tx, inviter)) - afterVisit, Number(bonus.reward_votes));
       assertEquals((await progressOf(tx, inviter, 'referral_streak')).current_value, 1);
 
-      const [messages] = await tx`
-      select count(*)::int as n from notifications where user_id = ${inviter} and kind = 'referral'`;
-      assertEquals(messages.n, 0, 'the streak bonus is not «finished their first task»');
+      const messagesAfter = await tx`
+        select id, payload from notifications where user_id = ${inviter} and kind = 'referral'`;
+      assertEquals(
+        JSON.stringify(messagesAfter),
+        JSON.stringify(messagesBefore),
+        'the streak bonus is not «finished their first task»',
+      );
     });
   },
 );
@@ -297,5 +319,17 @@ Deno.test('a task that is not ready pays nothing and keeps the balance', async (
     const result = await claim(tx, user, 'ladder_visits');
     assertEquals(result, { claimed: false, granted: 0 });
     assertEquals(await balanceOf(tx, user), 7);
+  });
+});
+
+Deno.test('task_progress narrowed to one task returns that task alone', async () => {
+  await inRollback(async (tx) => {
+    const user = await addUser(tx, 'narrow');
+    const id = await taskId(tx, 'daily_checkin');
+    const rows = await tx`select task_id from task_progress(${user}, '{}'::jsonb, ${id})`;
+    assertEquals(
+      rows.map((row) => Number(row.task_id)),
+      [id],
+    );
   });
 });

@@ -18,29 +18,29 @@ export interface TasksPageProps {
 }
 
 /**
- * Задания на настоящих данных (Срез 1.7).
+ * Tasks on live data.
  *
- * Баланс берётся из ответа `tasks`, а не из сессии: сессия грузится один раз
- * при старте мини-аппа, а голоса меняются прямо во время работы — своим
- * заданием, чужим голосом за твой проект, наградой за приглашённого. Пока
- * ответа нет, показывается балансом сессии: он устаревший, но настоящий, а
- * ноль поверх заработанных голосов был бы неправдой.
+ * The balance comes from the `tasks` answer, not the session: the session
+ * loads once at start, while votes move during use — a task of your own,
+ * someone's vote for your project, a friend's reward. Until the answer comes
+ * the session balance stands in: stale but real, where a zero over earned
+ * votes would be false.
  *
- * Тап по заданию сам ничего не «засчитывает», кроме `ready` — там условие уже
- * выполнено, и нажатие забирает награду (`claim-task`, проверяет сервер).
- * В остальных случаях тап ведёт туда, где задание делается:
+ * A tap counts nothing by itself except on `ready`: the condition is met and
+ * the tap claims the reward (`claim-task`, checked by the server). Otherwise
+ * the tap leads to where the task is done:
  *
- * - переходы и задание дня по категориям — на платный топ, где ссылки;
- * - голоса и проекты — на бесплатный топ;
- * - новичок витрины — на страницу самого нового неоткрытого проекта;
- * - друзья — к ссылке в профиле;
- * - `subscribe` проверяется на сервере (`getChatMember` доступен боту, а не
- *   мини-аппу): не подписан — открываем канал, подписан — задание закрывается;
- * - бот и буст тоже проверяет сервер, спрашивая Telegram; отказ открывает
- *   бота или страницу буста.
+ * - visits and the categories quest — to the Paid Top, where the links are;
+ * - votes and projects — to the Free Top;
+ * - the newcomer task — to the page of the newest project not opened yet;
+ * - friends — to the link in the profile;
+ * - `subscribe` is checked by the server (`getChatMember` is the bot's, not
+ *   the mini app's): not subscribed opens the channel;
+ * - the bot and the boost are checked by the server too, asking Telegram; a
+ *   refusal opens the bot or the boost page.
  *
- * Задание, которое тапом не сделать (рекорд серии растёт сам), кнопкой не
- * притворяется: у него нет действия, и строка не нажимается.
+ * A task a tap cannot do (the streak record grows by itself) does not pose as
+ * a button: it has no action, and the row is not pressable.
  */
 export function TasksPage({ nav }: TasksPageProps) {
   const session = useSession();
@@ -106,6 +106,8 @@ export function TasksPage({ nav }: TasksPageProps) {
         } else if (result.reason === 'not_boosted') {
           setNotice(t.notBoosted);
           if (task.targetUrl) getPlatform().openLink(task.targetUrl);
+        } else if (result.reason === 'done') {
+          // Counted already, from another tab or device: the redrawn list says so.
         } else {
           // The card said «claim» on numbers that moved since (a new day).
           setNotice(t.notReady);

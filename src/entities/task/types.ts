@@ -24,10 +24,7 @@ export type TaskType =
   | 'site_login'
   | 'premium';
 
-/**
- * Состояние задания для конкретного аккаунта. `ready` — условие выполнено,
- * награда ждёт нажатия «Забрать».
- */
+/** A task's state for one account. `ready`: the condition is met, the reward waits for «Claim». */
 export type TaskState = 'available' | 'ready' | 'pending' | 'done' | 'locked';
 
 /** Section of the board: renews daily, a goal that steps up, or once. */
@@ -45,12 +42,12 @@ export interface TaskItem {
   description: string | null;
   /** What this step pays: a ladder's current goal, today's streak day. */
   rewardVotes: number;
-  /** Проект, на который ведёт задание: зайти, подписаться, новичок витрины. */
+  /** The project the task leads to: open it, subscribe, the newest newcomer. */
   targetProjectId: number | null;
-  /** Ссылка задания: канал подписки, буст канала. */
+  /** The task's link: the channel to subscribe to, the boost page. */
   targetUrl: string | null;
   state: TaskState;
-  /** Цель и путь к ней: друзья, ступень лестницы, день серии. */
+  /** The goal and the way to it: friends, a ladder step, days of the streak. */
   progress?: { current: number; total: number };
   quest?: TaskQuest;
 }
