@@ -176,13 +176,3 @@ export const docsEn = {
 } satisfies Record<string, DocPage>;
 
 export type DocId = keyof typeof docsEn;
-
-/** Tab and footer order, shared by the mini app and the site. */
-export const DOC_ORDER: readonly DocId[] = [
-  'about',
-  'tariffs',
-  'support',
-  'terms',
-  'privacy',
-  'bot',
-];

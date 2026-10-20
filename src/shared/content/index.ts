@@ -8,7 +8,8 @@ export { brand } from './brand';
 export { getRules, getDocs, getPaymentMethods, getPaymentProviders } from './locale';
 export { ruleHue, type RuleHue } from './ruleHue';
 
-export { DOC_ORDER, type DocId } from './docs.en';
+export { DOC_ORDER } from './docOrder';
+export type { DocId } from './docs.en';
 export type {
   Brand,
   DocBlock,
