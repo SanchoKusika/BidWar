@@ -1,7 +1,7 @@
 import { Button } from '@/shared/ui/Button';
 import type { IconName } from '@/shared/ui/Icon';
 import { KeyRow } from '@/shared/ui/KeyRow';
-import { brand, getDocs, type DocId } from '@/shared/content';
+import { brand, getDocs, DOC_ORDER, type DocId } from '@/shared/content';
 import { getPlatform } from '@/shared/platform';
 import { strings } from '@/shared/i18n/strings';
 import { PageHeader } from './PageHeader';
@@ -17,14 +17,11 @@ export interface DocScreenProps {
   onDoc: (id: DocId) => void;
 }
 
-/** Порядок вкладок задан в ките и держит смысловую последовательность. */
-const ORDER: readonly DocId[] = ['about', 'support', 'terms', 'privacy', 'bot'];
-
 // Функция, а не константа: подписи вкладок берутся из словаря, а он читает язык
 // в момент обращения. Массив, собранный один раз при импорте, застыл бы на
 // языке первого запуска — иконки и порядок при этом от языка не зависят.
 const chips = () =>
-  ORDER.map((id) => ({
+  DOC_ORDER.map((id) => ({
     id,
     label: t.tabs[id],
     icon: getDocs()[id].icon as IconName,

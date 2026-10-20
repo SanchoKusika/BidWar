@@ -332,6 +332,7 @@ export const ru: PartialStrings = {
   docs: {
     tabs: {
       about: 'О проекте',
+      tariffs: 'Тарифы',
       support: 'Поддержка',
       terms: 'Условия',
       privacy: 'Приватность',

@@ -368,6 +368,7 @@ export const en = {
   docs: {
     tabs: {
       about: 'About',
+      tariffs: 'Tariffs',
       support: 'Support',
       terms: 'Terms',
       privacy: 'Privacy',

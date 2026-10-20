@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Icon } from '@/shared/ui/Icon';
-import { brand, type DocId } from '@/shared/content';
+import { brand, DOC_ORDER, type DocId } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
 import { cx } from '@/shared/lib/cx';
 import styles from './Chrome.module.css';
@@ -218,15 +218,13 @@ export function RailLink({
   );
 }
 
-const FOOTER_DOCS: readonly DocId[] = ['about', 'support', 'terms', 'privacy', 'bot'];
-
 export function SiteFooter({ onDoc }: { onDoc: (id: DocId) => void }) {
   return (
     <footer className={styles.footer}>
       <div className={cx(styles.wrap, styles.footerTop)}>
         <Wordmark size="md" />
         <nav className={styles.footerNav}>
-          {FOOTER_DOCS.map((id) => (
+          {DOC_ORDER.map((id) => (
             <a
               key={id}
               href={`/docs/${id}`}
@@ -243,7 +241,10 @@ export function SiteFooter({ onDoc }: { onDoc: (id: DocId) => void }) {
       </div>
       <div className={cx(styles.wrap, styles.footerBottom)}>
         <span>
-          © {brand.year} {brand.name}
+          © {brand.year} {brand.name} ·{' '}
+          <a href={`mailto:${brand.supportEmail}`} className={styles.footerLink}>
+            {brand.supportEmail}
+          </a>
         </span>
         <span>{strings.web.footerTagline}</span>
       </div>
