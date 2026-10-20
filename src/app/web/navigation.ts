@@ -8,7 +8,7 @@ import {
   type RefObject,
 } from 'react';
 import type { TabId } from '@/shared/ui/TabBar';
-import type { DocId } from '@/shared/content';
+import { DOC_ORDER, type DocId } from '@/shared/content';
 import type { ProjectListItem, ShowcaseType } from '@/entities/project';
 import type {
   AttackRequest,
@@ -30,8 +30,6 @@ import type {
  *   /tasks        Tasks             /docs/terms            a legal page
  *   /profile      Profile
  */
-
-const DOC_IDS: readonly DocId[] = ['about', 'support', 'terms', 'privacy', 'bot'];
 
 interface Location {
   tab: TabId;
@@ -70,7 +68,7 @@ function parse(pathname: string, search: string, fallbackTab: TabId): Location {
   if (head === 'rules') {
     return { tab: fallbackTab, route: { name: 'rules', ...(arg ? { anchor: arg } : {}) } };
   }
-  if (head === 'docs' && DOC_IDS.includes(arg as DocId)) {
+  if (head === 'docs' && DOC_ORDER.includes(arg as DocId)) {
     return { tab: fallbackTab, route: { name: 'doc', id: arg as DocId } };
   }
   return { tab: 'paid', route: null };

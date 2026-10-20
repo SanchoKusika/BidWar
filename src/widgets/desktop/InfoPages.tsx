@@ -1,7 +1,7 @@
 import { Button } from '@/shared/ui/Button';
 import { Icon, type IconName } from '@/shared/ui/Icon';
 import { KeyRow } from '@/shared/ui/KeyRow';
-import { brand, getDocs, getRules, ruleHue, type DocId } from '@/shared/content';
+import { brand, getDocs, getRules, ruleHue, DOC_ORDER, type DocId } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
 import { PageBand, PageGrid, RailCard, RailLink } from './Chrome';
 import styles from './InfoPages.module.css';
@@ -99,8 +99,6 @@ export function RulesPage({ anchor, onAnchor, onSupport }: RulesPageProps) {
     </>
   );
 }
-
-const DOC_ORDER: readonly DocId[] = ['about', 'support', 'terms', 'privacy', 'bot'];
 
 export interface DocPageProps {
   id: DocId;

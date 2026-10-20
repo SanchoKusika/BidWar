@@ -54,6 +54,8 @@ export interface Brand {
   name: string;
   bot: string;
   botLink: string;
+  /** The contact the payment provider's bank asks for: a mailbox, not a group. */
+  supportEmail: string;
   year: number;
   /**
    * Редакция правовых страниц. Стоит рядом со ссылкой на них в настройках,

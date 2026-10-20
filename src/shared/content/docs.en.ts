@@ -1,4 +1,5 @@
 import type { DocPage } from './types';
+import { brand } from './brand';
 
 export const docsEn = {
   about: {
@@ -29,11 +30,46 @@ export const docsEn = {
       },
     ],
   },
+  // The figures mirror app_config.paid_limits; the server enforces them, this
+  // page only tells people. Change both together.
+  tariffs: {
+    icon: 'banknote',
+    title: 'Tariffs',
+    lead: 'What you pay and for what. All amounts are in roubles, 1 point = 1 ₽. The payment system fee is paid by the platform and is never added on top.',
+    facts: [
+      ['Currency', 'RUB'],
+      ['Raise or opening bid', '300 – 10 000 ₽'],
+      ['Attack', '50 – 10 000 ₽'],
+    ],
+    sections: [
+      {
+        h: 'Opening bid',
+        p: 'To take a place in the Paid Top you pay an opening bid of 300 to 10 000 ₽. The whole amount becomes the project’s bid.',
+      },
+      {
+        h: 'Raise',
+        p: 'You can raise your own bid or put money into someone else’s with a payment of 300 to 10 000 ₽. A bid can grow past 10 000 ₽ through several payments. The whole amount goes into the bid.',
+      },
+      {
+        h: 'Attack',
+        p: 'An attack of 50 to 10 000 ₽ per payment lowers a rival’s bid and adds part of the amount to yours. The exact effect is shown before you pay; the details are in the rules.',
+      },
+      {
+        h: 'How to pay',
+        p: 'SBP (a QR code or a link from your bank app) and cryptocurrency. One payment is limited to 10 000 ₽.',
+      },
+      {
+        h: 'What is not sold',
+        p: 'Votes are earned by completing tasks in the Free Top and are never sold. Refunds are not provided.',
+      },
+    ],
+  },
   support: {
     icon: 'life-buoy',
     title: 'Support',
     lead: 'One team, two languages, one queue. Payment problems jump the queue.',
     facts: [
+      ['Email', brand.supportEmail],
       ['Response time', 'under 24 h'],
       ['Hours', '09:00 – 21:00 (MSK)'],
       ['Languages', 'RU · EN'],
@@ -41,7 +77,7 @@ export const docsEn = {
     sections: [
       {
         h: 'Fastest route',
-        p: 'Write to the Telegram bot from the account that owns the project — we already see your projects, bids and last payments there.',
+        p: `Write to ${brand.supportEmail}, or to the Telegram bot from the account that owns the project — there we already see your projects, bids and last payments.`,
       },
       {
         h: 'Payment problems',
