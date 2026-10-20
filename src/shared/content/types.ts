@@ -54,7 +54,6 @@ export interface Brand {
   name: string;
   bot: string;
   botLink: string;
-  city: string;
   year: number;
   /**
    * Редакция правовых страниц. Стоит рядом со ссылкой на них в настройках,

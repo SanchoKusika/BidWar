@@ -7,14 +7,15 @@ import type { PaymentProvider } from './types';
 //
 // Platega is the only provider while the product is Russia-only. GlobalPay
 // (Uzbekistan) lived next to it until the pivot — see the `archive/multi-market`
-// tag. Provider and card names are not translated: Mir is Mir everywhere.
+// tag. Only the methods its bank connected are named: cards are not among
+// them, and a card logo on the payment sheet would promise a way that fails.
 const DESC: Record<Locale, { platega: string; mock: string }> = {
   EN: {
-    platega: 'SBP, Mir, Visa, MC — Russia',
+    platega: 'SBP, crypto — Russia',
     mock: 'Confirms instantly — no money moves',
   },
   RU: {
-    platega: 'СБП, Мир, Visa, MC — Россия',
+    platega: 'СБП, криптовалюта — Россия',
     mock: 'Подтверждается мгновенно — деньги не двигаются',
   },
 };

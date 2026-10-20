@@ -32,10 +32,10 @@ export const docsEn = {
   support: {
     icon: 'life-buoy',
     title: 'Support',
-    lead: 'One team, three languages, one queue. Payment problems jump the queue.',
+    lead: 'One team, two languages, one queue. Payment problems jump the queue.',
     facts: [
       ['Response time', 'under 24 h'],
-      ['Hours', '09:00 – 21:00 (UTC+5)'],
+      ['Hours', '09:00 – 21:00 (MSK)'],
       ['Languages', 'RU · EN'],
     ],
     sections: [
@@ -45,7 +45,7 @@ export const docsEn = {
       },
       {
         h: 'Payment problems',
-        p: 'Send the payment id from Profile → Payment receipts. A Platega id is enough to trace a charge without any card details.',
+        p: 'Send the payment id from Profile → Payment receipts. A Platega id is enough to trace a charge without any payment details.',
       },
       {
         h: 'Disputes between projects',
@@ -73,7 +73,7 @@ export const docsEn = {
       },
       {
         h: 'Payments',
-        p: 'Each raise, attack and opening bid is a separate charge in roubles processed by Platega. We store the payment id and amount, never card data, and never a balance. Money is spent at the moment the provider confirms it.',
+        p: 'Each raise, attack and opening bid is a separate charge in roubles processed by Platega. We store the payment id and amount, never payment credentials, and never a balance. Money is spent at the moment the provider confirms it.',
       },
       {
         h: 'Prohibited',
@@ -92,7 +92,7 @@ export const docsEn = {
     facts: [
       ['Data region', 'Germany · Frankfurt'],
       ['Retention', '18 months'],
-      ['Card data stored', 'None'],
+      ['Payment credentials stored', 'None'],
     ],
     sections: [
       {
@@ -101,7 +101,7 @@ export const docsEn = {
       },
       {
         h: 'What we never store',
-        p: 'Card numbers, CVV, bank statements, your Telegram messages, or contact lists. Referral links carry a code, not your identity.',
+        p: 'Card and wallet numbers, CVV, bank statements, your Telegram messages, or contact lists. Referral links carry a code, not your identity.',
       },
       {
         h: 'Who else sees it',
