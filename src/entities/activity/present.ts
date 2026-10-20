@@ -11,7 +11,6 @@ import type { StakeEvent, VoteEvent } from './types';
 
 export interface ActivityFormat {
   currency?: DisplayCurrency;
-  compact?: boolean;
 }
 
 /**
@@ -23,29 +22,27 @@ export interface ActivityFormat {
  */
 export function toActivityItems(
   events: readonly StakeEvent[],
-  { currency = DEFAULT_CURRENCY, compact = true }: ActivityFormat = {},
+  { currency = DEFAULT_CURRENCY }: ActivityFormat = {},
 ): ActivityItem[] {
   return events.map((event) => ({
     id: String(event.id),
     kind: event.type === 'attack_out' ? 'attack' : 'raise',
     name: event.projectName,
-    amount: formatMoney(event.amount, { currency, compact }),
+    amount: formatMoney(event.amount, { currency }),
     unit: CURRENCY_SUFFIX[currency],
     ago: formatAgo(event.createdAt),
   }));
 }
 
 /**
- * Событие голосования → строка ленты. Голоса не форматируются валютой и не
- * сжимаются по умолчанию: они и так небольшие, а «1,2K голосов» на ленте из
- * трёх строк читается хуже точного числа.
+ * A vote event → a feed row. Votes take no currency.
  */
 export function toVoteActivityItems(events: readonly VoteEvent[]): ActivityItem[] {
   return events.map((event) => ({
     id: String(event.id),
     kind: 'votes' as const,
     name: event.projectName,
-    amount: formatVotes(event.amount, { compact: false }),
+    amount: formatVotes(event.amount),
     unit: 'votes',
     ago: formatAgo(event.createdAt),
   }));

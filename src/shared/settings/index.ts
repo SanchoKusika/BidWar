@@ -20,13 +20,6 @@ export interface AppSettings {
   /** `auto` — тема оболочки (Telegram или prefers-color-scheme). */
   theme: ThemeChoice;
   /**
-   * «12.5 mln» вместо «12 500 000». Касается только чисел, на которые смотрят:
-   * суммы платежа, цена «занять это место» и «сколько нужно, чтобы обойти»
-   * остаются точными всегда — по округлённому числу человек действует и
-   * недоплатит.
-   */
-  compactAmounts: boolean;
-  /**
    * Отклик на действия, которые двигают деньги и очки: ставка, атака, голос.
    * Живёт здесь, а не среди заглушек: `platform.haptic()` в слое платформы был
    * всё это время, не хватало только настройки и вызовов.
@@ -43,7 +36,6 @@ export interface AppSettings {
 /** What a first launch starts with; nothing here is guessed from the shell. */
 const DEFAULTS: AppSettings = {
   theme: 'auto',
-  compactAmounts: true,
   haptics: true,
   language: DEFAULT_LOCALE,
 };
@@ -67,10 +59,6 @@ function parse(raw: string | null): AppSettings {
       theme: THEMES.includes(stored.theme as ThemeChoice)
         ? (stored.theme as ThemeChoice)
         : DEFAULTS.theme,
-      compactAmounts:
-        typeof stored.compactAmounts === 'boolean'
-          ? stored.compactAmounts
-          : DEFAULTS.compactAmounts,
       haptics: typeof stored.haptics === 'boolean' ? stored.haptics : DEFAULTS.haptics,
       // Only a language picked by hand survives. Before 09.10.2026 the start
       // language came from the Telegram shell and was stored as if chosen —

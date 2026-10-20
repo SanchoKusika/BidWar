@@ -16,7 +16,6 @@ import {
 import { createAttackPayment, fetchAttackQuote, type AttackQuote } from '@/features/attack';
 import { toActivityItems, useRecentActivity } from '@/entities/activity';
 import { CURRENCY_SUFFIX, DEFAULT_CURRENCY, formatMoney } from '@/shared/lib/format';
-import { useSettings } from '@/shared/settings';
 import { haptic } from '@/shared/lib/haptic';
 import { strings } from '@/shared/i18n/strings';
 import { ShowcaseScreen } from '@/widgets/mobile/ShowcaseScreen';
@@ -63,7 +62,6 @@ export function PaidMobile({ nav }: PaidMobileProps) {
   // One page, two compositions: the mini app's screen or the desktop site's.
   const Screen = useLayout() === 'desktop' ? DesktopShowcase : ShowcaseScreen;
   const { userId, status: sessionStatus, errorMessage: sessionErrorMessage } = useSession();
-  const { compactAmounts } = useSettings();
   const showcase = usePaidShowcase();
   const categories = usePaidCategories();
   const own = usePaidOwnPosition(showcase.categoryId, userId);
@@ -271,8 +269,8 @@ export function PaidMobile({ nav }: PaidMobileProps) {
         title: strings.attack.resultTitle,
         rank: null,
         note: strings.attack.resultNote(
-          formatMoney(outcome.pointsGranted, { compact: false }),
-          formatMoney(outcome.creditedPoints, { compact: false }),
+          formatMoney(outcome.pointsGranted),
+          formatMoney(outcome.creditedPoints),
           CURRENCY_SUFFIX[DEFAULT_CURRENCY],
         ),
       });
@@ -288,7 +286,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
         title: strings.raise.boostResultTitle,
         note: strings.raise.boostResultNote(
           pending.project.name,
-          formatMoney(pending.amount, { compact: false }),
+          formatMoney(pending.amount),
           CURRENCY_SUFFIX[DEFAULT_CURRENCY],
         ),
       });
@@ -301,7 +299,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
         pending.kind === 'raise' ? strings.raise.resultTitle : strings.raise.openingResultTitle,
       rank: null,
       note: strings.raise.resultNote(
-        formatMoney(pending.amount, { compact: false }),
+        formatMoney(pending.amount),
         CURRENCY_SUFFIX[DEFAULT_CURRENCY],
       ),
     });
@@ -344,7 +342,6 @@ export function PaidMobile({ nav }: PaidMobileProps) {
     <>
       <Screen
         segment="paid"
-        compactAmounts={compactAmounts}
         minStep={minStep}
         categories={categories.categories}
         categoriesLoading={categories.loading}
@@ -407,7 +404,7 @@ export function PaidMobile({ nav }: PaidMobileProps) {
           loading: today.loading,
         }}
         movement={movement}
-        activity={toActivityItems(activity.events, { compact: compactAmounts })}
+        activity={toActivityItems(activity.events)}
         onTakeSpot={(item) => {
           const target = item.paidAmount + minStep;
           if (own.project) {

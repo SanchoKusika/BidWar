@@ -54,7 +54,6 @@ export function DesktopProject({
   categoryTitle,
   isOwn,
   currency = DEFAULT_CURRENCY,
-  compactAmounts = false,
   activity,
   otherEntry,
   otherRank,
@@ -76,7 +75,7 @@ export function DesktopProject({
   const paid = segment === 'paid';
   const metric = paid ? project.paidAmount : project.votes;
   const unit = paid ? CURRENCY_SUFFIX[currency] : strings.vote.unit;
-  const exact = paid ? formatMoney(metric, { currency, compact: false }) : formatVotes(metric);
+  const exact = paid ? formatMoney(metric, { currency }) : formatVotes(metric);
   const held = rank === 1 && project.rank1Since ? formatHeldDuration(project.rank1Since) : null;
   const since = project.createdAt ? formatFullDate(project.createdAt) : null;
   // The stat tile and the tags are narrow; the facts card has room for the full date.
@@ -140,7 +139,6 @@ export function DesktopProject({
             value={metric}
             delta={valueDelta}
             currency={currency}
-            compact={compactAmounts}
             label={paid ? t.currentBid.toUpperCase() : t.votes.toUpperCase()}
             size="lg"
           />
@@ -192,7 +190,7 @@ export function DesktopProject({
                 {paid && contribution !== null && contribution > 0 && (
                   <KeyRow
                     label={w.youPutIn}
-                    value={`+${formatMoney(contribution, { currency, compact: false })} ${unit}`}
+                    value={`+${formatMoney(contribution, { currency })} ${unit}`}
                     strong
                     tone="paid"
                   />
@@ -275,7 +273,6 @@ export function DesktopProject({
                 ogImage={otherEntry.ogImageUrl ?? undefined}
                 value={otherEntry.type === 'paid' ? otherEntry.paidAmount : otherEntry.votes}
                 currency={currency}
-                compactAmounts={compactAmounts}
                 clicks={otherEntry.clicks}
                 isOwn={otherIsOwn}
                 onPress={onOpenOtherLink}

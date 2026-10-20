@@ -46,8 +46,6 @@ const s = strings.showcase;
 export interface ShowcaseScreenProps {
   segment: ShowcaseType;
   currency?: DisplayCurrency;
-  /** «12.5 mln» вместо «12 500 000» — настройка профиля (shared/settings). */
-  compactAmounts?: boolean;
   /** Минимальный шаг ставки/голоса — цена «занять место» и подсказки дистанции. */
   minStep: number;
   categories: CategoryStat[];
@@ -326,7 +324,6 @@ export function ShowcaseFeed({ props, view, className }: PartProps) {
   const {
     segment,
     currency = DEFAULT_CURRENCY,
-    compactAmounts = false,
     minStep,
     categoryId,
     userId,
@@ -423,7 +420,7 @@ export function ShowcaseFeed({ props, view, className }: PartProps) {
             const pastRank = moved && (categoryId === null ? moved.rank : moved.categoryRank);
             const spot =
               !isOwn && !todayScope && worthTaking
-                ? spotFor(item, segment, view.exact, minStep, view.unit)
+                ? spotFor(item, segment, view.money, minStep, view.unit)
                 : null;
 
             return (
@@ -450,7 +447,6 @@ export function ShowcaseFeed({ props, view, className }: PartProps) {
                     value={todayScope ? (item.todayAmount ?? 0) : metricOf(item)}
                     valueDelta={moved?.amountDelta}
                     currency={currency}
-                    compactAmounts={compactAmounts}
                     clicks={item.clicks}
                     heldFor={
                       !todayScope && rank === 1 && item.rank1Since

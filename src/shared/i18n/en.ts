@@ -527,8 +527,6 @@ export const en = {
     themeDark: 'Dark',
     vibration: 'Vibration',
     vibrationNote: 'A short buzz when a bid, attack or vote goes through',
-    compact: 'Compact amounts',
-    compactNote: '12.5 mil instead of 12 500 000',
 
     notifications: 'Notifications',
     notificationsNote: 'Sent through the bot. Attack alerts are the only way to know you were hit.',

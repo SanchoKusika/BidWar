@@ -44,8 +44,6 @@ export interface ProjectScreenProps {
   categoryTitle: string | null;
   isOwn: boolean;
   currency?: DisplayCurrency;
-  /** «12.5 mln» вместо «12 500 000» — настройка профиля (shared/settings). */
-  compactAmounts?: boolean;
   /** Кто держит позицию и с какого месяца. Нет источника — см. PREVIEW.ownerHandle. */
   owner?: { buyer: string; since: string };
   /** Лента изменений ставки — события из вьюхи `stake_activity`. */
@@ -184,7 +182,6 @@ export function ProjectScreen({
   categoryTitle,
   isOwn,
   currency = DEFAULT_CURRENCY,
-  compactAmounts = false,
   owner,
   activity,
   otherEntry,
@@ -204,8 +201,8 @@ export function ProjectScreen({
   const paid = segment === 'paid';
   const metric = paid ? project.paidAmount : project.votes;
   const value = paid
-    ? `${formatMoney(metric, { currency, compact: compactAmounts })} ${CURRENCY_SUFFIX[currency]}`
-    : formatVotes(metric, { compact: compactAmounts });
+    ? `${formatMoney(metric, { currency })} ${CURRENCY_SUFFIX[currency]}`
+    : formatVotes(metric);
 
   return (
     <>
@@ -221,7 +218,6 @@ export function ProjectScreen({
             segment={segment}
             value={metric}
             currency={currency}
-            compact={compactAmounts}
             delta={valueDelta}
             label={paid ? strings.own.bidShort : strings.own.votesShort}
             size="md"
@@ -277,7 +273,7 @@ export function ProjectScreen({
               {paid && contribution !== null && contribution > 0 && (
                 <KeyRow
                   label={strings.web.youPutIn}
-                  value={`+${formatMoney(contribution, { currency, compact: false })} ${CURRENCY_SUFFIX[currency]}`}
+                  value={`+${formatMoney(contribution, { currency })} ${CURRENCY_SUFFIX[currency]}`}
                   strong
                   tone="paid"
                 />
@@ -358,7 +354,6 @@ export function ProjectScreen({
                 ogImage={otherEntry.ogImageUrl ?? undefined}
                 value={otherEntry.type === 'paid' ? otherEntry.paidAmount : otherEntry.votes}
                 currency={currency}
-                compactAmounts={compactAmounts}
                 clicks={otherEntry.clicks}
                 isOwn={otherIsOwn}
                 onPress={onOpenOtherLink}

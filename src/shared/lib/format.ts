@@ -27,7 +27,6 @@ const rates: Record<DisplayCurrency, number> = {
 
 export interface MoneyOptions {
   currency?: DisplayCurrency;
-  compact?: boolean;
 }
 
 /** Разряды разделяются тонким пробелом, не запятой. */
@@ -35,22 +34,26 @@ export function group(n: number): string {
   return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
+/** Amounts under a hundred keep one decimal, without a trailing «.0». */
 function trim(n: number): string {
-  const s = n >= 100 ? String(Math.round(n)) : n.toFixed(1);
-  return s.replace(/\.0$/, '');
+  return n.toFixed(1).replace(/\.0$/, '');
 }
 
 export function convert(points: number, currency: DisplayCurrency): number {
   return (Number(points) || 0) * rates[currency];
 }
 
+/**
+ * Amounts are always written out in full: «110 000», not «110 тыс». Rouble
+ * stakes read fine in full; the shortening and its setting were removed on
+ * 20.10.2026 and come back with the sum market, whose numbers run to
+ * millions (13 Выход за пределы РФ).
+ */
 export function formatMoney(
   points: number,
-  { currency = DEFAULT_CURRENCY, compact = true }: MoneyOptions = {},
+  { currency = DEFAULT_CURRENCY }: MoneyOptions = {},
 ): string {
   const n = convert(points, currency);
-  if (compact && n >= 1_000_000) return `${trim(n / 1_000_000)} ${strings.units.million}`;
-  if (compact && n >= 100_000) return `${trim(n / 1000)} ${strings.units.thousand}`;
   if (n > 0 && n < 100) return trim(n);
   return group(Math.round(n));
 }
@@ -60,8 +63,8 @@ export function formatMoney(
  * только показывают, но и правят: поле ввода держит ОЧКИ (по ним считает
  * сервер), а человек видит и набирает свою валюту.
  *
- * `formatMoney` для этого не годится: он сокращает и округляет для читаемости,
- * а из его вывода нельзя вернуться к исходному числу.
+ * `formatMoney` does not fit here: it groups digits and rounds for reading,
+ * and its output is not a number to edit.
  */
 export function fromDisplay(amount: number, currency: DisplayCurrency): number {
   return Math.round((Number(amount) || 0) / rates[currency]);
@@ -76,11 +79,8 @@ export function formatEditable(points: number, currency: DisplayCurrency): strin
   return group(Math.round(convert(points, currency)));
 }
 
-export function formatVotes(value: number, { compact = true }: { compact?: boolean } = {}): string {
-  const n = Number(value) || 0;
-  if (compact && n >= 10_000)
-    return `${(n / 1000).toFixed(n >= 100_000 ? 0 : 1)} ${strings.units.thousand}`;
-  return group(n);
+export function formatVotes(value: number): string {
+  return group(Number(value) || 0);
 }
 
 /** Нейтральные счётчики — клики, просмотры. Не экономика: цвета единицы нет. */

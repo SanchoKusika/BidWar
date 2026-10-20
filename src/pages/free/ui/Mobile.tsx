@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useSession } from '@/entities/user';
 import { getPlatform } from '@/shared/platform';
-import { useSettings } from '@/shared/settings';
 import { strings } from '@/shared/i18n/strings';
 import { createProject, registerClick, type ProjectListItem } from '@/entities/project';
 import { toVoteActivityItems, useRecentVotes } from '@/entities/activity';
@@ -41,7 +40,6 @@ export function FreeMobile({ nav }: FreeMobileProps) {
     status: sessionStatus,
     errorMessage: sessionErrorMessage,
   } = useSession();
-  const { compactAmounts } = useSettings();
   const showcase = useFreeShowcase();
   const categories = useFreeCategories();
   const own = useFreeOwnPosition(showcase.categoryId, userId);
@@ -109,7 +107,6 @@ export function FreeMobile({ nav }: FreeMobileProps) {
     <>
       <Screen
         segment="free"
-        compactAmounts={compactAmounts}
         minStep={1}
         categories={categories.categories}
         categoriesLoading={categories.loading}
