@@ -54,6 +54,11 @@ export interface PaymentBounds {
   max: number;
 }
 
+const FALLBACK_BOUNDS: PaymentBounds = {
+  min: PAID_LIMITS_FALLBACK.minPaidAmount,
+  max: PAID_LIMITS_FALLBACK.maxPaymentAmount,
+};
+
 /**
  * Границы одного платежа (app_config.paid_limits). Через общий кэш: конфиг не
  * меняется в пределах сессии, а без него каждый возврат на вкладку заново
@@ -65,17 +70,9 @@ export function usePaymentBounds(): PaymentBounds {
       fetchPaidLimits()
         .then((limits) => ({ min: limits.minPaidAmount, max: limits.maxPaymentAmount }))
         // Остаёмся с запасным значением — это подсказка, не расчёт платежа.
-        .catch(() => ({
-          min: PAID_LIMITS_FALLBACK.minPaidAmount,
-          max: PAID_LIMITS_FALLBACK.maxPaymentAmount,
-        })),
+        .catch(() => FALLBACK_BOUNDS),
     [],
   );
 
   return useQuery<PaymentBounds>('paid_limits', fetcher).data ?? FALLBACK_BOUNDS;
 }
-
-const FALLBACK_BOUNDS: PaymentBounds = {
-  min: PAID_LIMITS_FALLBACK.minPaidAmount,
-  max: PAID_LIMITS_FALLBACK.maxPaymentAmount,
-};

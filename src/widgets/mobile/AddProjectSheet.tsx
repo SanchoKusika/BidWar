@@ -243,6 +243,18 @@ export function AddProjectSheet({
         />
       )}
 
+      {paid &&
+        paidOpen &&
+        bidPreset != null &&
+        maxPaymentAmount !== undefined &&
+        bidPreset > maxPaymentAmount && (
+          <SheetNote tone="paid" icon="info">
+            {t.capNote(
+              `${formatEditable(maxPaymentAmount, currency)} ${CURRENCY_SUFFIX[currency]}`,
+            )}
+          </SheetNote>
+        )}
+
       <SheetField label={t.categoryLabel}>
         <div className={styles.categories}>
           {categories.map((cat) => (

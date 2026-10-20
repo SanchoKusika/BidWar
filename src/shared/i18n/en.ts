@@ -210,6 +210,8 @@ export const en = {
       'A free entry starts at zero votes. You move it up with votes earned from tasks — no money enters the Free Top.',
     openingBidLabel: 'Opening bid',
     openingBidError: (min: string) => `Minimum opening bid is ${min}`,
+    capNote: (max: string) =>
+      `One payment is limited to ${max}. The price of this spot is higher: pay the opening bid, then raise again.`,
     footnote:
       'Two projects per account at most — one in the Paid Top, one in the Free Top. The same link may hold both, and the two entries compete separately.',
     submitFree: 'Submit project',
@@ -225,6 +227,8 @@ export const en = {
     subtitle: (name: string, rank: number) => `${name} · now #${rank}`,
     amountLabel: 'Raise amount',
     amountError: (min: string) => `Minimum raise is ${min}`,
+    capNote: (max: string) =>
+      `One payment is limited to ${max}. Raise again after this one to go further.`,
     bidNow: 'Your bid now',
     bidAfter: 'Your bid after',
     boostBidNow: 'Its bid now',

@@ -102,6 +102,12 @@ export function RaiseSheet({
         error={low ? t.amountError(`${formatEditable(minAmount, currency)} ${unit}`) : undefined}
       />
 
+      {preset != null && preset > maxAmount && (
+        <SheetFootnote tone="muted">
+          {t.capNote(`${formatEditable(maxAmount, currency)} ${unit}`)}
+        </SheetFootnote>
+      )}
+
       <SheetRows>
         <KeyRow label={boost ? t.boostBidNow : t.bidNow} value={money(project.paidAmount)} />
         <KeyRow
