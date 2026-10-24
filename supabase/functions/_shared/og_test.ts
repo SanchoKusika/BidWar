@@ -333,17 +333,17 @@ Deno.test('проверка на робота вместо страницы уз
   assertEquals(isBotChallenge(titled('Bill Gates - Gates Foundation | LinkedIn')), false);
 });
 
-Deno.test('закрытая страница: имя по ссылке, без описания, иконка сайта от Google', () => {
+Deno.test('закрытая страница: имя по ссылке, без описания, своя иконка площадки', () => {
   assertEquals(walledResult('https://www.linkedin.com/in/arnauddumasderauly/'), {
     name: 'arnauddumasderauly',
     description: null,
-    imageUrl: 'https://www.google.com/s2/favicons?domain=www.linkedin.com&sz=128',
+    imageUrl: 'https://bidwar.world/platforms/linkedin.svg',
     status: 'failed',
   });
   assertEquals(walledResult('https://www.instagram.com/kuznetsovsgallery/', '@kuznetsovsgallery'), {
     name: '@kuznetsovsgallery',
     description: null,
-    imageUrl: 'https://www.google.com/s2/favicons?domain=www.instagram.com&sz=128',
+    imageUrl: 'https://bidwar.world/platforms/instagram.svg',
     status: 'failed',
   });
 });
@@ -367,4 +367,11 @@ Deno.test('профиль, который не ответил, называет�
   // The platform's front page and ordinary sites keep the host as the name.
   assertEquals(profileHandle('https://www.linkedin.com/'), null);
   assertEquals(profileHandle('https://example.com/about'), null);
+});
+
+Deno.test('закрытая страница без своей иконки — иконка сайта от Google', () => {
+  assertEquals(
+    walledResult('https://example.com/').imageUrl,
+    'https://www.google.com/s2/favicons?domain=example.com&sz=128',
+  );
 });
