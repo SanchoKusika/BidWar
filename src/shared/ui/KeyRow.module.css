@@ -24,6 +24,8 @@
 }
 
 .value[data-strong='true'] {
+  /* A total is one number: broken across lines it reads as two. */
+  white-space: nowrap;
   font: var(--type-amount-md);
   font-family: var(--font-numeric);
   font-variant-numeric: tabular-nums;

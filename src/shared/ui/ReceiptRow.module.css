@@ -1,0 +1,71 @@
+.row {
+  --receipt-badge: 32px;
+
+  display: grid;
+  grid-template-columns: var(--receipt-badge) minmax(0, 1fr) auto;
+  grid-template-areas:
+    'badge subject amount'
+    'badge meta meta';
+  align-items: center;
+  column-gap: var(--space-5);
+  row-gap: var(--space-1);
+  padding: var(--space-5) 0;
+  border-bottom: var(--border-w) solid var(--border-subtle);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.row > :first-child {
+  grid-area: badge;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--receipt-badge);
+  height: var(--receipt-badge);
+  border-radius: var(--radius-sm);
+  background: var(--paid-tint);
+  color: var(--paid-text);
+}
+
+.row[data-kind='attack'] .badge {
+  background: var(--attack-tint);
+  color: var(--attack-text);
+}
+
+/* One line each: a handle is not a sentence, and wrapping it is what broke the row. */
+.subject,
+.meta {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.subject {
+  grid-area: subject;
+  font: var(--type-body-sm);
+  color: var(--text-primary);
+}
+
+.meta {
+  grid-area: meta;
+  font: var(--type-caption);
+  color: var(--text-muted);
+}
+
+.amount {
+  grid-area: amount;
+  font: var(--type-amount-sm);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tight);
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+.row[data-kind='attack'] .amount {
+  color: var(--attack-text);
+}
