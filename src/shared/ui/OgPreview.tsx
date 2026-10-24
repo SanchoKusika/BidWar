@@ -28,6 +28,20 @@ type Fit = 'cover' | 'contain';
 const MAX_SQUARE_RATIO = 1.25;
 
 /**
+ * Our own platform icons (public/platforms, picked by the server for Instagram
+ * and LinkedIn) are drawn for any ground: the light one under them only framed
+ * them in white.
+ */
+function isOwnPlatformIcon(src: string): boolean {
+  try {
+    const url = new URL(src);
+    return url.hostname === 'bidwar.world' && url.pathname.startsWith('/platforms/');
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Превью подтягивается автоматически по ссылке проекта, вручную его не загрузить.
  * Отсутствующая картинка — норма: сайт мог не отдать og-теги. Все три состояния
  * живут здесь, чтобы вызывающий код о них не думал.
@@ -75,6 +89,7 @@ export function OgPreview({
           alt=""
           data-state={state}
           data-fit={fit}
+          data-ground={isOwnPlatformIcon(src) ? 'none' : undefined}
           className={styles.image}
           // The picture lives on the project's own server. Without a referrer
           // it learns nothing about which page showed it, and the servers

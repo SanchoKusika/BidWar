@@ -28,6 +28,11 @@
   transition: opacity var(--dur-base) var(--ease-out);
 }
 
+/* Our own platform icons need no light ground (OgPreview.tsx). */
+.image[data-ground='none'] {
+  background: none;
+}
+
 /* A banner is shown whole, not cut to a square from its middle. */
 .image[data-fit='contain'] {
   object-fit: contain;
