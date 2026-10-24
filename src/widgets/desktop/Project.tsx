@@ -68,6 +68,7 @@ export function DesktopProject({
   onVote,
   onOpenOther,
   onOpenOtherLink,
+  onEdit,
 }: ProjectScreenProps) {
   const t = strings.project;
   const w = strings.web;
@@ -215,6 +216,19 @@ export function DesktopProject({
               {project.ogDescription && (
                 <p className={styles.description}>{project.ogDescription}</p>
               )}
+              {onEdit && (
+                <div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon="pencil"
+                    onClick={onEdit}
+                    className={styles.editButton}
+                  >
+                    {t.edit}
+                  </Button>
+                </div>
+              )}
               <div className={styles.tags}>
                 {tags.map((tag) => (
                   <span key={tag} className={styles.tag}>
@@ -235,15 +249,26 @@ export function DesktopProject({
             </div>
           </div>
           <div className={styles.linkRow}>
-            <Button variant="primary" size="lg" icon="external-link" onClick={onOpenLink}>
-              {t.open(displayUrl(project.url))}
-            </Button>
-            <Button variant="secondary" size="lg" icon={copied ? 'check' : 'copy'} onClick={copy}>
-              <span key={String(copied)} className={swapped ? styles.swap : undefined}>
-                {copied ? w.linkCopied : w.copyLink}
-              </span>
-            </Button>
-            <span className={styles.linkNote}>{w.clicksNote}</span>
+            <div className={styles.linkButtons}>
+              <Button
+                variant="primary"
+                size="lg"
+                icon="external-link"
+                onClick={onOpenLink}
+                className={styles.openButton}
+              >
+                <span className={styles.openLabel}>{t.open(displayUrl(project.url))}</span>
+              </Button>
+              <Button variant="secondary" size="lg" icon={copied ? 'check' : 'copy'} onClick={copy}>
+                <span key={String(copied)} className={swapped ? styles.swap : undefined}>
+                  {copied ? w.linkCopied : w.copyLink}
+                </span>
+              </Button>
+            </div>
+            <p className={styles.linkNote}>
+              <Icon name="mouse-pointer-click" size={14} className={styles.linkNoteIcon} />
+              {w.clicksNote}
+            </p>
           </div>
         </section>
 

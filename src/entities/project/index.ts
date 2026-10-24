@@ -11,6 +11,8 @@ export {
   createProject,
   registerClick,
   removeMyProjects,
+  editProject,
+  EDIT_LIMITS,
 } from './api';
 export {
   useShowcase,
@@ -34,5 +36,6 @@ export type {
   NeighborProject,
   CreateProjectParams,
   RegisterClickParams,
+  EditProjectParams,
 } from './api';
 export type { ShowcaseState, OwnPositionState, TopProjectState, TodayBoardState } from './model';

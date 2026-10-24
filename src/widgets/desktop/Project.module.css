@@ -157,19 +157,51 @@
 
 .linkRow {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-4);
+  flex-direction: column;
+  gap: var(--space-5);
   padding-top: var(--space-6);
   border-top: var(--border-w) solid var(--border-subtle);
 }
 
+/* The note used to share this row: with a long link the buttons filled it and
+   the note dropped under the copy button, ragged at the right edge. Now the
+   buttons own the row and the note reads as a caption under them. */
+.linkButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+/* A long address ends in an ellipsis instead of pushing «Copy» to a new line. */
+.openButton {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.openButton svg {
+  flex: 0 0 auto;
+}
+
+.openLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .linkNote {
-  margin-left: auto;
-  max-width: 34ch;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin: 0;
   font: var(--type-caption);
   color: var(--text-muted);
   text-wrap: pretty;
+}
+
+.linkNoteIcon {
+  flex: 0 0 auto;
+  margin-top: 2px;
 }
 
 .columns {
@@ -190,4 +222,9 @@
    old in one frame. */
 .swap {
   animation: ds-fade-in var(--dur-fast) var(--ease-out);
+}
+
+/* A ghost button: its label, not its invisible padding, lines up with the text. */
+.editButton {
+  margin-inline-start: calc(-1 * var(--btn-px));
 }

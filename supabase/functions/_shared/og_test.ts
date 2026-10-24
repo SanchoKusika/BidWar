@@ -2,6 +2,7 @@ import { assertEquals } from 'jsr:@std/assert@1';
 import {
   parseOgHtml,
   pickAvatar,
+  profileHandle,
   telegramUserpic,
   withoutInstagramLoginWall,
   type PageCard,
@@ -331,4 +332,25 @@ Deno.test('Instagram: пост и служебные страницы не пр�
 Deno.test('Instagram: сайт с названием «Instagram» на другом домене не трогается', () => {
   const page = parseOgHtml(INSTAGRAM_WALL, BASE);
   assertEquals(withoutInstagramLoginWall(page, BASE), page);
+});
+
+Deno.test('профиль, который не ответил, называется по ссылке, а не по хосту', () => {
+  assertEquals(
+    profileHandle('https://www.linkedin.com/in/arnauddumasderauly/'),
+    'arnauddumasderauly',
+  );
+  assertEquals(profileHandle('https://www.youtube.com/@mrbeast'), 'mrbeast');
+  assertEquals(profileHandle('https://github.com/denoland'), 'denoland');
+  assertEquals(
+    profileHandle('https://www.linkedin.com/company/telegram-messenger'),
+    'telegram-messenger',
+  );
+  // A post, a video, a repository page and service paths are not accounts.
+  assertEquals(profileHandle('https://www.youtube.com/watch?v=abc'), null);
+  assertEquals(profileHandle('https://www.instagram.com/p/CxYz123/'), null);
+  assertEquals(profileHandle('https://github.com/denoland/deno/tree/main'), null);
+  assertEquals(profileHandle('https://www.instagram.com/explore/'), null);
+  // The platform's front page and ordinary sites keep the host as the name.
+  assertEquals(profileHandle('https://www.linkedin.com/'), null);
+  assertEquals(profileHandle('https://example.com/about'), null);
 });

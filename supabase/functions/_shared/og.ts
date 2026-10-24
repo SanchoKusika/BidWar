@@ -19,8 +19,9 @@ import { imageSize, type ImageSize } from './image_size.ts';
 const MAX_REDIRECTS = 3;
 const FETCH_TIMEOUT_MS = 6000;
 const MAX_BODY_BYTES = 512 * 1024;
-const MAX_DESCRIPTION_LENGTH = 300;
-const MAX_NAME_LENGTH = 120;
+/** Shared with edit-project: an owner's own text fits where a fetched one does. */
+export const MAX_DESCRIPTION_LENGTH = 300;
+export const MAX_NAME_LENGTH = 120;
 const ALLOWED_SCHEMES = new Set(['http:', 'https:']);
 const BLOCKED_HOSTNAMES = new Set(['localhost', 'metadata.google.internal']);
 
@@ -531,6 +532,41 @@ function onProfilePlatform(pageUrl: string): boolean {
   }
 }
 
+/**
+ * A name for a profile page that would not answer: the last part of its path
+ * (linkedin.com/in/<slug>, youtube.com/@<handle>). LinkedIn refuses the cloud
+ * with HTTP 999, and "www.linkedin.com" named every such project the same.
+ */
+export function profileHandle(pageUrl: string): string | null {
+  if (!onProfilePlatform(pageUrl)) return null;
+  const url = new URL(pageUrl);
+  const segments = url.pathname.split('/').filter(Boolean);
+  const [first, second] = segments;
+
+  // Only the shapes that name an account. A post, a video or a repository
+  // page is named by its host, as before: "watch" or "CxYz123" is not a name.
+  let raw: string | undefined;
+  if (first?.startsWith('@'))
+    raw = first; // youtube.com/@x, tiktok.com/@x
+  else if (segments.length === 2 && first && PROFILE_PREFIXES.has(first.toLowerCase())) {
+    raw = second; // linkedin.com/in/x, linkedin.com/company/x
+  } else if (segments.length === 1 && !url.search) raw = first; // github.com/x, vk.com/x
+  if (!raw) return null;
+
+  let handle: string;
+  try {
+    handle = decodeURIComponent(raw);
+  } catch {
+    handle = raw;
+  }
+  handle = handle.replace(/^@/, '').trim();
+  if (!handle || INSTAGRAM_SERVICE_PATHS.has(handle.toLowerCase())) return null;
+  return handle.slice(0, MAX_NAME_LENGTH);
+}
+
+/** Path prefixes after which a profile platform puts the account's handle. */
+const PROFILE_PREFIXES = new Set(['in', 'company', 'school', 'showcase', 'c', 'user']);
+
 /** Google's copy of a site's icon: it knows the touch icons pages do not link. */
 function googleFavicon(pageUrl: string): string | null {
   try {
@@ -647,7 +683,7 @@ export async function fetchOg(url: string): Promise<OgResult> {
     );
     // A Telegram account's picture needs no page: the username is the address.
     return {
-      name: hostnameOf(url),
+      name: profileHandle(url) ?? hostnameOf(url),
       description: null,
       imageUrl: telegramUserpic(url),
       status: 'failed',

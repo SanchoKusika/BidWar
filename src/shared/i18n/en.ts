@@ -485,6 +485,20 @@ export const en = {
     rulesButton: 'Rules of the game',
     missingTitle: 'No such project',
     missingNote: 'It may have left the top, or the link is wrong.',
+    edit: 'Edit name and description',
+  },
+
+  editProject: {
+    title: 'Name and description',
+    subtitle: 'Shown on this project’s card and page. The link stays as it is.',
+    nameLabel: 'Name',
+    namePlaceholder: 'What the project is called',
+    descriptionLabel: 'Description',
+    descriptionPlaceholder: 'One or two lines: what it is and who it is for',
+    counter: (used: number, max: number) => `${used} / ${max}`,
+    note: 'Some sites, Instagram and LinkedIn among them, do not show us a profile without signing in — the card then knows only the link. Here you say it yourself.',
+    save: 'Save',
+    genericError: 'Could not save — try again',
   },
 
   profile: {

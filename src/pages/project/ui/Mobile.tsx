@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { getPlatform } from '@/shared/platform';
 import { useGuestSignIn, useSession } from '@/entities/user';
 import { categoryTitle, useCategoryStats } from '@/entities/category';
 import {
+  editProject,
   registerClick,
   useMovement24h,
   type ProjectListItem,
@@ -17,8 +19,10 @@ import {
   ProjectScreenSkeleton,
   type ActivityEntry,
 } from '@/widgets/mobile/ProjectScreen';
+import { EditProjectSheet } from '@/widgets/mobile/EditProjectSheet';
 import { DesktopProject, DesktopProjectSkeleton } from '@/widgets/desktop/Project';
 import { useLayout } from '@/shared/lib/layout';
+import { dropQueryCache } from '@/shared/lib/query';
 import { useMyContribution, useProject } from '../model';
 import styles from './Mobile.module.css';
 
@@ -58,7 +62,14 @@ export function ProjectPage({
   // without one is asked to sign in, not sent to a sheet that cannot pay.
   const signIn = useGuestSignIn();
   const categories = useCategoryStats(segment);
-  const { project, rank, otherEntry, otherRank, status } = useProject(id, segment);
+  const { project, rank, otherEntry, otherRank, status, patch } = useProject(id, segment);
+  const [editOpen, setEditOpen] = useState(false);
+  // Another project on the same page component: the sheet belonged to the old one.
+  const [editFor, setEditFor] = useState(id);
+  if (editFor !== id) {
+    setEditFor(id);
+    setEditOpen(false);
+  }
   // Хук стоит до ранних возвратов ниже и потому берёт id из пропа, а не из
   // загруженного проекта: порядок хуков обязан быть одинаковым на каждый рендер.
   const events = useProjectActivity(id);
@@ -97,6 +108,7 @@ export function ProjectPage({
   }
 
   const category = categories.categories.find((c) => c.categoryId === project.categoryId);
+  const isOwn = userId !== null && project.userId === userId;
 
   // Три типа событий леджера читаются с точки зрения ЭТОГО проекта: свой
   // Raise и прилетевшее зачисление за атаку поднимают ставку, полученная
@@ -117,50 +129,73 @@ export function ProjectPage({
   }));
 
   return (
-    <Screen
-      project={project}
-      segment={project.type}
-      rank={rank}
-      categoryTitle={category ? categoryTitle(category.slug, category.title) : null}
-      isOwn={userId !== null && project.userId === userId}
-      owner={PREVIEW.ownerHandle ? OWNER_FIXTURE : undefined}
-      activity={activity}
-      otherEntry={otherEntry}
-      otherRank={otherRank}
-      otherIsOwn={userId !== null && otherEntry?.userId === userId}
-      valueDelta={movement.get(project.id)?.amountDelta}
-      rankDelta={(() => {
-        const past = movement.get(project.id)?.rank;
-        return past !== undefined && rank !== null ? past - rank : undefined;
-      })()}
-      contribution={contribution}
-      onBack={onBack}
-      onOpenLink={() => {
-        const initData = getPlatform().getInitData();
-        // Счётчик не должен задерживать переход — отправляем и не ждём.
-        if (initData) registerClick({ initData, projectId: project.id }).catch(() => {});
-        getPlatform().openLink(project.url);
-      }}
-      // Свой проект поднимают на вкладке Paid обычным Raise; чужой — донатом,
-      // и цель надо донести до вкладки, иначе шторка не знает, кого поднимать.
-      onRaise={
-        signIn ??
-        (() => (userId !== null && project.userId === userId ? onGoPaid() : onBoost(project, rank)))
-      }
-      onAttack={signIn ?? (() => onAttack(project, rank))}
-      onVote={signIn ?? (() => onVote(project, rank))}
-      // Вторая запись того же аккаунта — такой же проект со своей страницей.
-      // Оба действия карточки были пустыми функциями: «Подробнее» никуда не
-      // вело, тап по телу не открывал ссылку — то есть блок выглядел рабочим и
-      // не делал ничего.
-      onOpenOther={() => otherEntry && onOpenProject(otherEntry.id, otherEntry.type)}
-      onOpenOtherLink={() => {
-        if (!otherEntry) return;
-        const initData = getPlatform().getInitData();
-        if (initData) registerClick({ initData, projectId: otherEntry.id }).catch(() => {});
-        getPlatform().openLink(otherEntry.url);
-      }}
-      onRules={() => onRules(project.type === 'paid' ? 'attacks' : 'votes')}
-    />
+    <>
+      <Screen
+        project={project}
+        segment={project.type}
+        rank={rank}
+        categoryTitle={category ? categoryTitle(category.slug, category.title) : null}
+        isOwn={isOwn}
+        owner={PREVIEW.ownerHandle ? OWNER_FIXTURE : undefined}
+        activity={activity}
+        otherEntry={otherEntry}
+        otherRank={otherRank}
+        otherIsOwn={userId !== null && otherEntry?.userId === userId}
+        valueDelta={movement.get(project.id)?.amountDelta}
+        rankDelta={(() => {
+          const past = movement.get(project.id)?.rank;
+          return past !== undefined && rank !== null ? past - rank : undefined;
+        })()}
+        contribution={contribution}
+        onBack={onBack}
+        onOpenLink={() => {
+          const initData = getPlatform().getInitData();
+          // Счётчик не должен задерживать переход — отправляем и не ждём.
+          if (initData) registerClick({ initData, projectId: project.id }).catch(() => {});
+          getPlatform().openLink(project.url);
+        }}
+        // Свой проект поднимают на вкладке Paid обычным Raise; чужой — донатом,
+        // и цель надо донести до вкладки, иначе шторка не знает, кого поднимать.
+        onRaise={
+          signIn ??
+          (() =>
+            userId !== null && project.userId === userId ? onGoPaid() : onBoost(project, rank))
+        }
+        onAttack={signIn ?? (() => onAttack(project, rank))}
+        onVote={signIn ?? (() => onVote(project, rank))}
+        // Вторая запись того же аккаунта — такой же проект со своей страницей.
+        // Оба действия карточки были пустыми функциями: «Подробнее» никуда не
+        // вело, тап по телу не открывал ссылку — то есть блок выглядел рабочим и
+        // не делал ничего.
+        onOpenOther={() => otherEntry && onOpenProject(otherEntry.id, otherEntry.type)}
+        onOpenOtherLink={() => {
+          if (!otherEntry) return;
+          const initData = getPlatform().getInitData();
+          if (initData) registerClick({ initData, projectId: otherEntry.id }).catch(() => {});
+          getPlatform().openLink(otherEntry.url);
+        }}
+        onRules={() => onRules(project.type === 'paid' ? 'attacks' : 'votes')}
+        onEdit={isOwn ? () => setEditOpen(true) : undefined}
+      />
+      {isOwn && (
+        <EditProjectSheet
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          segment={project.type}
+          name={project.name}
+          description={project.ogDescription}
+          onSubmit={async ({ name, description }) => {
+            const initData = getPlatform().getInitData();
+            if (!initData) throw new Error(strings.common.sessionExpired);
+            const saved = await editProject({ initData, projectId: project.id, name, description });
+            patch({ name: saved.name, ogDescription: saved.description });
+            // The tops and the other entry's page hold the old name in the
+            // shared cache; drop it, so they ask again instead of showing it.
+            dropQueryCache();
+            setEditOpen(false);
+          }}
+        />
+      )}
+    </>
   );
 }

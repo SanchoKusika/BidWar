@@ -1,4 +1,5 @@
 import { getSupabase, functionErrorMessage } from '@/shared/api';
+import { strings } from '@/shared/i18n/strings';
 import type { Tables } from '@/shared/api';
 import type {
   Movement24h,
@@ -381,6 +382,36 @@ export async function removeMyProjects(initData: string): Promise<number> {
   );
   if (error) throw new Error(await functionErrorMessage(error, 'Не удалось убрать проекты'));
   return data?.removed ?? 0;
+}
+
+/**
+ * Length limits of a hand-written name and description. The server's are the
+ * link preview's (`MAX_NAME_LENGTH`, `MAX_DESCRIPTION_LENGTH` in _shared/og.ts)
+ * and it checks them itself; these only stop the field before the request
+ * would be refused.
+ */
+export const EDIT_LIMITS = { name: 120, description: 300 } as const;
+
+export interface EditProjectParams {
+  initData: string;
+  projectId: number;
+  name: string;
+  description: string;
+}
+
+/** The owner's own name and description; returns them as the server stored them. */
+export async function editProject(
+  params: EditProjectParams,
+): Promise<{ name: string; description: string | null }> {
+  const { data, error } = await getSupabase().functions.invoke<{
+    name: string;
+    description: string | null;
+  }>('edit-project', { method: 'POST', body: params });
+  if (error) {
+    throw new Error(await functionErrorMessage(error, strings.editProject.genericError));
+  }
+  if (!data) throw new Error(strings.editProject.genericError);
+  return data;
 }
 
 export interface RegisterClickParams {
