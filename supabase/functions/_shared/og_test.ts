@@ -1,5 +1,11 @@
 import { assertEquals } from 'jsr:@std/assert@1';
-import { parseOgHtml, pickAvatar, telegramUserpic, type PageCard } from './og.ts';
+import {
+  parseOgHtml,
+  pickAvatar,
+  telegramUserpic,
+  withoutInstagramLoginWall,
+  type PageCard,
+} from './og.ts';
 import type { ImageSize } from './image_size.ts';
 
 const BASE = 'https://example.com/page';
@@ -273,4 +279,56 @@ Deno.test('Telegram: адрес по юзернейму, без единого �
     'https://t.me/i/userpic/320/durov.jpg',
   );
   assertEquals(asked, []);
+});
+
+/** What Instagram serves a cloud address instead of the profile (24.10.2026). */
+const INSTAGRAM_WALL = `
+  <head>
+    <title>Instagram</title>
+    <meta property="og:title" content="Instagram">
+    <meta property="og:description" content="Create an account or log in to Instagram - Share what you're into with the people who get you.">
+    <meta property="og:image" content="https://static.cdninstagram.com/rsrc.php/v4/yD/r/R0fBIMurK8v.png">
+  </head>`;
+
+Deno.test('Instagram: страница входа — имя из ссылки, без описания, логотип остаётся', () => {
+  const url = 'https://www.instagram.com/kuznetsovsgallery/';
+  const { name, description, socialImage } = withoutInstagramLoginWall(
+    parseOgHtml(INSTAGRAM_WALL, url),
+    url,
+  );
+  assertEquals(
+    { name, description, socialImage },
+    {
+      name: '@kuznetsovsgallery',
+      description: null,
+      socialImage: 'https://static.cdninstagram.com/rsrc.php/v4/yD/r/R0fBIMurK8v.png',
+    },
+  );
+});
+
+Deno.test('Instagram: настоящий профиль не трогается', () => {
+  const url = 'https://www.instagram.com/kuznetsovsgallery/';
+  const html = `
+    <head>
+      <meta property="og:title" content="Kuznetsovs Gallery (@kuznetsovsgallery)">
+      <meta property="og:description" content="5,493 Followers, 365 Posts">
+    </head>`;
+  const page = parseOgHtml(html, url);
+  assertEquals(withoutInstagramLoginWall(page, url), page);
+});
+
+Deno.test('Instagram: пост и служебные страницы не превращаются в имя', () => {
+  for (const url of [
+    'https://www.instagram.com/',
+    'https://www.instagram.com/p/C1a2b3/',
+    'https://www.instagram.com/accounts/login/',
+  ]) {
+    const page = parseOgHtml(INSTAGRAM_WALL, url);
+    assertEquals(withoutInstagramLoginWall(page, url), page, url);
+  }
+});
+
+Deno.test('Instagram: сайт с названием «Instagram» на другом домене не трогается', () => {
+  const page = parseOgHtml(INSTAGRAM_WALL, BASE);
+  assertEquals(withoutInstagramLoginWall(page, BASE), page);
 });

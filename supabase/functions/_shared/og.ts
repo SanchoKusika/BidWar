@@ -452,6 +452,47 @@ export function telegramUserpic(projectUrl: string): string | null {
   return `https://t.me/i/userpic/320/${username}.jpg`;
 }
 
+const INSTAGRAM_HOSTS = new Set(['instagram.com', 'www.instagram.com', 'm.instagram.com']);
+
+/** instagram.com paths that are Instagram's own pages or a post, not a handle. */
+const INSTAGRAM_SERVICE_PATHS = new Set([
+  'accounts',
+  'explore',
+  'p',
+  'reel',
+  'reels',
+  'stories',
+  'tv',
+  'direct',
+  'about',
+  'legal',
+]);
+
+/**
+ * Instagram answers a cloud address with its login page under the profile's
+ * own URL: og:title "Instagram", the app's logo and "Create an account or log
+ * in". Taken as is, every Instagram project was called Instagram and described
+ * by the login form. The handle in the link is the one true thing left, so it
+ * becomes the name and the form's text is dropped; the logo stays as the
+ * picture — it at least says where the link leads.
+ */
+export function withoutInstagramLoginWall(card: PageCard, pageUrl: string): PageCard {
+  let url: URL;
+  try {
+    url = new URL(pageUrl);
+  } catch {
+    return card;
+  }
+  if (!INSTAGRAM_HOSTS.has(url.hostname.toLowerCase())) return card;
+  if (card.name.trim().toLowerCase() !== 'instagram') return card;
+
+  const [handle] = url.pathname.split('/').filter(Boolean);
+  if (!handle || INSTAGRAM_SERVICE_PATHS.has(handle.toLowerCase())) return card;
+  if (!/^[a-z0-9._]{1,30}$/i.test(handle)) return card;
+
+  return { ...card, name: `@${handle}`, description: null };
+}
+
 /**
  * Platforms where a page belongs to someone — a channel, a profile, a
  * company — and its og:image is their picture. Anywhere else og:image is a
@@ -589,7 +630,9 @@ export async function pickAvatar(
 export async function fetchOg(url: string): Promise<OgResult> {
   try {
     const { finalUrl, body } = await fetchPage(url);
-    const card = parseOgHtml(body, finalUrl);
+    // The handle is read from the link the owner gave: Instagram may answer it
+    // from /accounts/login/, where no handle is left to read.
+    const card = withoutInstagramLoginWall(parseOgHtml(body, finalUrl), url);
     const imageUrl = telegramUserpic(url) ?? (await pickAvatar(card, finalUrl));
     return { name: card.name, description: card.description, imageUrl, status: 'ok' };
   } catch (error) {
