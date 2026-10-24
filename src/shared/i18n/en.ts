@@ -592,9 +592,12 @@ export const en = {
     // среза Attack на Pay-шторку попасть не мог. Бот уведомлений не рассылает.
     attackWarning: (rival: string) =>
       `The charge goes to the platform, never to ${rival}. Once the provider confirms it, it cannot be undone.`,
-    submit: (amount: string, provider: string) => `Pay ${amount} via ${provider}`,
+    // The method is picked right above; the button carries the price, unit included.
+    submit: (amount: string) => `Pay ${amount}`,
     footnote: (provider: string) =>
       `The payment opens on ${provider}'s own secure page and applies when ${provider} confirms it. BidWar keeps no balance for you — there is no wallet to top up and nothing of yours sitting with us.`,
+    unavailable:
+      'Payments are not available yet: we are connecting the payment system. Nothing has been charged — please try again later.',
     footnoteMock:
       'Test payment has no secure page of its own — it confirms immediately, right on this screen, and moves no real money. BidWar keeps no balance for you either way.',
   },

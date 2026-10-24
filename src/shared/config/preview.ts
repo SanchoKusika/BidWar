@@ -42,8 +42,24 @@ export const PREVIEW = {
    *
    * It also gates the development-only "Delete my projects" row in settings,
    * which wipes the account's projects and payment history for real.
+   *
+   * Local dev only since 24.10.2026: the bank's moderator walks the live site,
+   * and an instant free «Test payment» there reads as a product given away.
+   * The live site shows the real method and `paymentsStub` instead.
    */
-  mockPayments: true,
+  mockPayments: import.meta.env.DEV,
+
+  /**
+   * The real method is shown, the Pay button presses, and instead of a charge
+   * the sheet says payments are not available yet; nothing is sent to the
+   * server. The bank's moderation asks for exactly this: the whole way to a
+   * purchase with a concrete price, and a placeholder where the provider will
+   * be (Platega's guide, 24.10.2026).
+   *
+   * Goes away in slice 1.10 together with `mockPayments`, when Platega is
+   * connected.
+   */
+  paymentsStub: true,
 } as const;
 
 export type PreviewFlag = keyof typeof PREVIEW;

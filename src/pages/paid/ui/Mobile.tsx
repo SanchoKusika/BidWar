@@ -519,10 +519,10 @@ export function PaidMobile({ nav }: PaidMobileProps) {
             : null
         }
         onClose={() => setPending(null)}
-        // providerId игнорируется: сейчас активен один способ (mock, флаг
-        // PREVIEW.mockPayments), и createRaisePayment вообще не принимает
-        // провайдера. Как только в Срезе 1.10 включатся настоящие способы,
-        // это место придётся пересмотреть — сигнала одному providerId нет.
+        // providerId is ignored: there is one method at a time (the mock in
+        // local dev, Platega behind PREVIEW.paymentsStub on the live site, so
+        // `pay` is never reached there), and createRaisePayment takes no
+        // provider. Slice 1.10 has to revisit this once Platega is real.
         onConfirm={pay}
       />
 
