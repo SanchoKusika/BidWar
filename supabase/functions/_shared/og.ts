@@ -45,6 +45,16 @@ export interface OgResult {
 
 class BlockedUrlError extends Error {}
 
+/** The page answered, with a refusal: the site is there, it just will not show us the page. */
+class HttpStatusError extends BlockedUrlError {
+  constructor(readonly status: number) {
+    super(`HTTP ${status}`);
+  }
+}
+
+/** Refusals that mean "not to bots", not "no such page": LinkedIn's 999, rate limits, bans. */
+const WALL_STATUSES = new Set([403, 429, 999]);
+
 export function isBlockedIp(ip: string): boolean {
   const v4 = ip.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (v4) {
@@ -158,7 +168,7 @@ async function guardedFetch(
 
       if (!response.ok) {
         await response.body?.cancel();
-        throw new BlockedUrlError(`HTTP ${response.status}`);
+        throw new HttpStatusError(response.status);
       }
 
       const contentType = response.headers.get('content-type') ?? '';
@@ -473,25 +483,50 @@ const INSTAGRAM_SERVICE_PATHS = new Set([
  * Instagram answers a cloud address with its login page under the profile's
  * own URL: og:title "Instagram", the app's logo and "Create an account or log
  * in". Taken as is, every Instagram project was called Instagram and described
- * by the login form. The handle in the link is the one true thing left, so it
- * becomes the name and the form's text is dropped; the logo stays as the
- * picture — it at least says where the link leads.
+ * by the login form. Returns the handle from the link when the page is that
+ * wall, null otherwise.
  */
-export function withoutInstagramLoginWall(card: PageCard, pageUrl: string): PageCard {
+export function instagramWallHandle(card: PageCard, pageUrl: string): string | null {
   let url: URL;
   try {
     url = new URL(pageUrl);
   } catch {
-    return card;
+    return null;
   }
-  if (!INSTAGRAM_HOSTS.has(url.hostname.toLowerCase())) return card;
-  if (card.name.trim().toLowerCase() !== 'instagram') return card;
+  if (!INSTAGRAM_HOSTS.has(url.hostname.toLowerCase())) return null;
+  if (card.name.trim().toLowerCase() !== 'instagram') return null;
 
   const [handle] = url.pathname.split('/').filter(Boolean);
-  if (!handle || INSTAGRAM_SERVICE_PATHS.has(handle.toLowerCase())) return card;
-  if (!/^[a-z0-9._]{1,30}$/i.test(handle)) return card;
+  if (!handle || INSTAGRAM_SERVICE_PATHS.has(handle.toLowerCase())) return null;
+  if (!/^[a-z0-9._]{1,30}$/i.test(handle)) return null;
+  return handle;
+}
 
-  return { ...card, name: `@${handle}`, description: null };
+/**
+ * A bot check served with 200 in place of the page: LinkedIn's reCAPTCHA,
+ * Cloudflare's "Just a moment…". Its title named one project "Checking your
+ * browser - reCAPTCHA".
+ */
+const CHALLENGE_TITLE =
+  /^(checking your browser|just a moment|attention required|security check|access denied)\b|verify (that )?you are (a )?human|are you a robot|enable javascript and cookies to continue/i;
+
+export function isBotChallenge(card: PageCard): boolean {
+  return CHALLENGE_TITLE.test(card.name);
+}
+
+/**
+ * What a project is shown by when its site would not show us the page: the
+ * name from the link, no description — the owner writes one — and the site's
+ * own icon from Google. The page told us nothing true, but the site is real,
+ * and its icon says where the link leads better than a letter does.
+ */
+export function walledResult(url: string, name?: string | null): OgResult {
+  return {
+    name: name || profileHandle(url) || hostnameOf(url),
+    description: null,
+    imageUrl: telegramUserpic(url) ?? googleFavicon(url),
+    status: 'failed',
+  };
 }
 
 /**
@@ -666,9 +701,15 @@ export async function pickAvatar(
 export async function fetchOg(url: string): Promise<OgResult> {
   try {
     const { finalUrl, body } = await fetchPage(url);
+    const card = parseOgHtml(body, finalUrl);
     // The handle is read from the link the owner gave: Instagram may answer it
     // from /accounts/login/, where no handle is left to read.
-    const card = withoutInstagramLoginWall(parseOgHtml(body, finalUrl), url);
+    const wallHandle = instagramWallHandle(card, url);
+    if (wallHandle) return walledResult(url, `@${wallHandle}`);
+    if (isBotChallenge(card)) {
+      console.warn(JSON.stringify({ level: 'warn', fn: 'og', message: 'bot challenge', url }));
+      return walledResult(url);
+    }
     const imageUrl = telegramUserpic(url) ?? (await pickAvatar(card, finalUrl));
     return { name: card.name, description: card.description, imageUrl, status: 'ok' };
   } catch (error) {
@@ -681,6 +722,9 @@ export async function fetchOg(url: string): Promise<OgResult> {
         error: String(error),
       }),
     );
+    if (error instanceof HttpStatusError && WALL_STATUSES.has(error.status)) {
+      return walledResult(url);
+    }
     // A Telegram account's picture needs no page: the username is the address.
     return {
       name: profileHandle(url) ?? hostnameOf(url),

@@ -4,7 +4,9 @@ import {
   pickAvatar,
   profileHandle,
   telegramUserpic,
-  withoutInstagramLoginWall,
+  instagramWallHandle,
+  isBotChallenge,
+  walledResult,
   type PageCard,
 } from './og.ts';
 import type { ImageSize } from './image_size.ts';
@@ -291,20 +293,9 @@ const INSTAGRAM_WALL = `
     <meta property="og:image" content="https://static.cdninstagram.com/rsrc.php/v4/yD/r/R0fBIMurK8v.png">
   </head>`;
 
-Deno.test('Instagram: страница входа — имя из ссылки, без описания, логотип остаётся', () => {
+Deno.test('Instagram: страница входа узнаётся, имя берётся из ссылки', () => {
   const url = 'https://www.instagram.com/kuznetsovsgallery/';
-  const { name, description, socialImage } = withoutInstagramLoginWall(
-    parseOgHtml(INSTAGRAM_WALL, url),
-    url,
-  );
-  assertEquals(
-    { name, description, socialImage },
-    {
-      name: '@kuznetsovsgallery',
-      description: null,
-      socialImage: 'https://static.cdninstagram.com/rsrc.php/v4/yD/r/R0fBIMurK8v.png',
-    },
-  );
+  assertEquals(instagramWallHandle(parseOgHtml(INSTAGRAM_WALL, url), url), 'kuznetsovsgallery');
 });
 
 Deno.test('Instagram: настоящий профиль не трогается', () => {
@@ -314,8 +305,7 @@ Deno.test('Instagram: настоящий профиль не трогается'
       <meta property="og:title" content="Kuznetsovs Gallery (@kuznetsovsgallery)">
       <meta property="og:description" content="5,493 Followers, 365 Posts">
     </head>`;
-  const page = parseOgHtml(html, url);
-  assertEquals(withoutInstagramLoginWall(page, url), page);
+  assertEquals(instagramWallHandle(parseOgHtml(html, url), url), null);
 });
 
 Deno.test('Instagram: пост и служебные страницы не превращаются в имя', () => {
@@ -324,14 +314,38 @@ Deno.test('Instagram: пост и служебные страницы не пр�
     'https://www.instagram.com/p/C1a2b3/',
     'https://www.instagram.com/accounts/login/',
   ]) {
-    const page = parseOgHtml(INSTAGRAM_WALL, url);
-    assertEquals(withoutInstagramLoginWall(page, url), page, url);
+    assertEquals(instagramWallHandle(parseOgHtml(INSTAGRAM_WALL, url), url), null, url);
   }
 });
 
 Deno.test('Instagram: сайт с названием «Instagram» на другом домене не трогается', () => {
-  const page = parseOgHtml(INSTAGRAM_WALL, BASE);
-  assertEquals(withoutInstagramLoginWall(page, BASE), page);
+  assertEquals(instagramWallHandle(parseOgHtml(INSTAGRAM_WALL, BASE), BASE), null);
+});
+
+Deno.test('проверка на робота вместо страницы узнаётся по заголовку', () => {
+  const titled = (title: string) => parseOgHtml(`<head><title>${title}</title></head>`, BASE);
+  assertEquals(isBotChallenge(titled('Checking your browser - reCAPTCHA')), true);
+  assertEquals(isBotChallenge(titled('Just a moment...')), true);
+  assertEquals(isBotChallenge(titled('Attention Required! | Cloudflare')), true);
+  assertEquals(isBotChallenge(titled('Kuznetsovs Gallery')), false);
+  // A project about captchas is still a project.
+  assertEquals(isBotChallenge(titled('2Captcha — captcha solving service')), false);
+  assertEquals(isBotChallenge(titled('Bill Gates - Gates Foundation | LinkedIn')), false);
+});
+
+Deno.test('закрытая страница: имя по ссылке, без описания, иконка сайта от Google', () => {
+  assertEquals(walledResult('https://www.linkedin.com/in/arnauddumasderauly/'), {
+    name: 'arnauddumasderauly',
+    description: null,
+    imageUrl: 'https://www.google.com/s2/favicons?domain=www.linkedin.com&sz=128',
+    status: 'failed',
+  });
+  assertEquals(walledResult('https://www.instagram.com/kuznetsovsgallery/', '@kuznetsovsgallery'), {
+    name: '@kuznetsovsgallery',
+    description: null,
+    imageUrl: 'https://www.google.com/s2/favicons?domain=www.instagram.com&sz=128',
+    status: 'failed',
+  });
 });
 
 Deno.test('профиль, который не ответил, называется по ссылке, а не по хосту', () => {
