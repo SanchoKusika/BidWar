@@ -29,8 +29,8 @@ ID-токен на час; функция `auth-web` проверяет его �
 и выдаёт сайту свой вход на 30 дней в формате старого Login Widget. Этот вход
 хранится на устройстве и уходит на сервер вместо `initData`:
 `_shared/telegram.ts` различает два формата подписи, поэтому остальные функции
-ради сайта не менялись. Client ID — это id бота из `BOT_TOKEN` функций (сейчас
-`@BidWarTest_bot`), сайт берёт его из `health`; Client Secret не нужен и нигде
+ради сайта не менялись. Client ID — это id бота из `BOT_TOKEN` функций
+(`@bidwar_bot`), сайт берёт его из `health`; Client Secret не нужен и нигде
 не хранится. В BotFather (мини-апп → бот → Login Widget) должны стоять
 **Trusted Origin** `https://bidwar.world` и **Redirect URI**
 `https://bidwar.world/` — окно всегда открывается с корня сайта, какая бы

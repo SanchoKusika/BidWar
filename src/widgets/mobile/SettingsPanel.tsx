@@ -3,7 +3,7 @@ import { SkeletonBlock } from '@/shared/ui/Skeleton';
 import { SettingsGroup, SettingsRow } from '@/shared/ui/Settings';
 import { Switch } from '@/shared/ui/Switch';
 import type { AppSettings, ThemeChoice } from '@/shared/settings';
-import { brand, getPaymentProviders, type DocId } from '@/shared/content';
+import { brand, getDocs, getPaymentProviders, type DocId } from '@/shared/content';
 import { strings } from '@/shared/i18n/strings';
 import { LOCALES, type Locale } from '@/shared/i18n/locale';
 import { getPlatform } from '@/shared/platform';
@@ -240,13 +240,27 @@ export function SettingsPanel({
 
       <SettingsGroup label={t.account}>
         <SettingsRow icon="gavel" title={t.rules} onPress={onRules} />
+        {/* Each legal page gets its own row: the bank's reviewer has to find
+            the tariffs, terms and privacy without hunting through tabs. */}
+        <SettingsRow icon="info" title={getDocs().about.title} onPress={() => onDoc('about')} />
+        <SettingsRow
+          icon="banknote"
+          title={getDocs().tariffs.title}
+          onPress={() => onDoc('tariffs')}
+        />
         <SettingsRow icon="send" title={t.bot} value={brand.bot} onPress={() => onDoc('bot')} />
         <SettingsRow icon="life-buoy" title={t.support} onPress={() => onDoc('support')} />
         <SettingsRow
           icon="file-text"
-          title={t.terms}
+          title={getDocs().terms.title}
           value={brand.legalVersion}
           onPress={() => onDoc('terms')}
+        />
+        <SettingsRow
+          icon="lock"
+          title={getDocs().privacy.title}
+          value={brand.legalVersion}
+          onPress={() => onDoc('privacy')}
         />
         {onRemoveProjects && (
           <SettingsRow

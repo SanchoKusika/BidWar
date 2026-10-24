@@ -514,7 +514,6 @@ export const ru: PartialStrings = {
     rules: 'Правила игры',
     bot: 'Телеграм-бот',
     support: 'Поддержка',
-    terms: 'Условия и приватность',
 
     removeProjects: 'Удалить мои проекты',
     removeProjectsNote: 'Удалит проекты и историю платежей — аккаунт станет как новый',
