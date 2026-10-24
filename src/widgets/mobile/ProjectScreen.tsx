@@ -72,6 +72,8 @@ export interface ProjectScreenProps {
   /** Тап по телу карточки второй записи — переход на сам сайт проекта. */
   onOpenOtherLink: () => void;
   onRules: () => void;
+  /** The owner's name and description sheet; absent — no edit button. */
+  onEdit?: () => void;
 }
 
 /**
@@ -197,6 +199,7 @@ export function ProjectScreen({
   onOpenOther,
   onOpenOtherLink,
   onRules,
+  onEdit,
 }: ProjectScreenProps) {
   const paid = segment === 'paid';
   const metric = paid ? project.paidAmount : project.votes;
@@ -255,6 +258,20 @@ export function ProjectScreen({
             </div>
 
             {project.ogDescription && <p className={styles.description}>{project.ogDescription}</p>}
+
+            {onEdit && (
+              <div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon="pencil"
+                  onClick={onEdit}
+                  className={styles.editButton}
+                >
+                  {project.ogDescription ? t.edit : t.addDescription}
+                </Button>
+              </div>
+            )}
 
             <div>
               {rank !== null && <KeyRow label={t.position} value={`#${rank}`} />}

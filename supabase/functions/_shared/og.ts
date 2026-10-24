@@ -19,8 +19,9 @@ import { imageSize, type ImageSize } from './image_size.ts';
 const MAX_REDIRECTS = 3;
 const FETCH_TIMEOUT_MS = 6000;
 const MAX_BODY_BYTES = 512 * 1024;
-const MAX_DESCRIPTION_LENGTH = 300;
-const MAX_NAME_LENGTH = 120;
+/** Shared with edit-project: an owner's own text fits where a fetched one does. */
+export const MAX_DESCRIPTION_LENGTH = 300;
+export const MAX_NAME_LENGTH = 120;
 const ALLOWED_SCHEMES = new Set(['http:', 'https:']);
 const BLOCKED_HOSTNAMES = new Set(['localhost', 'metadata.google.internal']);
 
@@ -531,6 +532,26 @@ function onProfilePlatform(pageUrl: string): boolean {
   }
 }
 
+/**
+ * A name for a profile page that would not answer: the last part of its path
+ * (linkedin.com/in/<slug>, youtube.com/@<handle>). LinkedIn refuses the cloud
+ * with HTTP 999, and "www.linkedin.com" named every such project the same.
+ */
+export function profileHandle(pageUrl: string): string | null {
+  if (!onProfilePlatform(pageUrl)) return null;
+  const segments = new URL(pageUrl).pathname.split('/').filter(Boolean);
+  const last = segments[segments.length - 1];
+  if (!last) return null;
+  let handle: string;
+  try {
+    handle = decodeURIComponent(last);
+  } catch {
+    handle = last;
+  }
+  handle = handle.replace(/^@/, '').trim();
+  return handle ? handle.slice(0, MAX_NAME_LENGTH) : null;
+}
+
 /** Google's copy of a site's icon: it knows the touch icons pages do not link. */
 function googleFavicon(pageUrl: string): string | null {
   try {
@@ -647,7 +668,7 @@ export async function fetchOg(url: string): Promise<OgResult> {
     );
     // A Telegram account's picture needs no page: the username is the address.
     return {
-      name: hostnameOf(url),
+      name: profileHandle(url) ?? hostnameOf(url),
       description: null,
       imageUrl: telegramUserpic(url),
       status: 'failed',

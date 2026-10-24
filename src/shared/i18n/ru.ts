@@ -452,6 +452,20 @@ export const ru: PartialStrings = {
     rulesButton: 'Правила игры',
     missingTitle: 'Такого проекта нет',
     missingNote: 'Возможно, он ушёл из топа или ссылка с ошибкой.',
+    edit: 'Изменить',
+    addDescription: 'Добавить описание',
+  },
+
+  editProject: {
+    title: 'Название и описание',
+    subtitle: 'Видны на карточке в обоих топах. Ссылка остаётся прежней.',
+    nameLabel: 'Название',
+    namePlaceholder: 'Как называется проект',
+    descriptionLabel: 'Описание',
+    descriptionPlaceholder: 'Одна-две строки: что это и для кого',
+    note: 'Некоторые площадки, среди них Instagram и LinkedIn, не показывают нам профиль без входа — тогда карточка знает только ссылку. Здесь ты говоришь о проекте сам.',
+    save: 'Сохранить',
+    genericError: 'Не удалось сохранить — попробуй ещё раз',
   },
 
   profile: {

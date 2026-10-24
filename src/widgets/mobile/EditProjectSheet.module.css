@@ -1,0 +1,60 @@
+/* The fields are AddProjectSheet's link field: same height, border and type.
+   The spacing between blocks is the sheet's own (.panel { gap }). */
+
+.input,
+.textarea {
+  padding: 0 14px;
+  border: var(--border-w) solid var(--border-default);
+  border-radius: var(--radius-control);
+  background: var(--surface-card);
+  /* 16px, not a type token: iOS zooms the page into a field under 16px. */
+  font-family: var(--font-ui);
+  font-size: 16px;
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.input {
+  height: 48px;
+}
+
+.textarea {
+  min-height: 112px;
+  padding-block: 12px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: var(--border-focus);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.input:disabled,
+.textarea:disabled {
+  opacity: 0.6;
+}
+
+/* The caps label on the left, how much is left on the right. */
+.labelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.counter {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: normal;
+}
+
+.error {
+  font: var(--type-caption);
+  color: var(--attack-text);
+}

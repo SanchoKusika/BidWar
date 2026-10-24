@@ -23,6 +23,8 @@ export interface ProjectState {
    * request that failed.
    */
   status: 'loading' | 'ready' | 'missing' | 'error';
+  /** Puts the owner's saved edit on screen without fetching the project again. */
+  patch: (fields: Partial<Pick<ProjectListItem, 'name' | 'ogDescription'>>) => void;
 }
 
 function metricOf(row: ProjectListItem): number {
@@ -102,7 +104,12 @@ export function useProject(id: number, fallbackSegment: ShowcaseType): ProjectSt
     };
   }, [id, fallbackSegment]);
 
-  return { project, rank, otherEntry: other.entry, otherRank: other.rank, status };
+  const patch = useCallback<ProjectState['patch']>(
+    (fields) => setProject((current) => (current ? { ...current, ...fields } : current)),
+    [],
+  );
+
+  return { project, rank, otherEntry: other.entry, otherRank: other.rank, status, patch };
 }
 
 /**

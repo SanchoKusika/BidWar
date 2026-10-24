@@ -46,3 +46,8 @@
   flex-direction: column;
   gap: var(--stack-gap);
 }
+
+/* A ghost button: its label, not its invisible padding, lines up with the text. */
+.editButton {
+  margin-inline-start: calc(-1 * var(--btn-px));
+}
