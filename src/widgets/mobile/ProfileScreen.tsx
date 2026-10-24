@@ -30,13 +30,15 @@ const t = strings.profile;
 /** Placeholder receipt rows: label widths vary so the block does not read as a grid. */
 const RECEIPT_PLACEHOLDERS = [148, 112, 132] as const;
 
-/** Строка чека: что списали, когда и через кого. */
+/**
+ * A receipt line: what was charged and when. The provider is not shown: with
+ * one provider it would repeat the same word on every line.
+ */
 export interface Receipt {
   id: string;
   /** The project paid for, or the one attacked. */
   subject: string;
   when: string;
-  provider?: string;
   /**
    * Сумма и валюта списания — ровно те, что ушли с карты. В валюту показа не
    * пересчитываются никогда (04 Платежи и валюты): чек отвечает на вопрос
@@ -360,7 +362,6 @@ export function ProfileScreen({
                         kind={r.kind}
                         subject={r.subject}
                         when={r.when}
-                        provider={r.provider}
                         // `money` здесь был бы ошибкой: он переводит очки в
                         // валюту зрителя, а чек показывает списанное как есть.
                         amount={`−${formatCharged(r.charged, r.currency)}`}

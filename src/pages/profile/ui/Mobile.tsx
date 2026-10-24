@@ -23,21 +23,19 @@ export interface ProfilePageProps {
   nav: Navigation;
 }
 
-/** Строка чека из ответа `my-spending`. Провайдер в подписи — как в ките. */
+/** A receipt line from the `my-spending` answer. */
 function toReceipt(row: {
   id: string;
   intent: 'raise' | 'attack';
   subject: string | null;
   charged: number;
   currency: string;
-  provider: string;
   confirmedAt: string;
 }): Receipt {
   return {
     id: row.id,
     subject: row.subject ?? strings.profile.unknownProject,
     when: formatReceiptDate(row.confirmedAt),
-    provider: row.provider,
     charged: row.charged,
     currency: row.currency,
     kind: row.intent,

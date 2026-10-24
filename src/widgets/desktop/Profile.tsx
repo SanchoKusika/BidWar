@@ -215,7 +215,6 @@ export function DesktopProfile({
                         kind={r.kind}
                         subject={r.subject}
                         when={r.when}
-                        provider={r.provider}
                         // Charged as is: a receipt is never converted (04 Платежи и валюты).
                         amount={`−${formatCharged(r.charged, r.currency)}`}
                       />

@@ -12,7 +12,6 @@ export interface ReceiptRowProps {
   subject: string;
   /** Already formatted date and time of the charge. */
   when: string;
-  provider?: string;
   /** The charged amount as is, already formatted with its unit. */
   amount: string;
 }
@@ -25,8 +24,8 @@ const ICON = { raise: 'chevrons-up', entry: 'chevrons-up', attack: 'swords' } as
  * long handle pushed the amount onto two lines and «−10 000 ₽» read as «−10»
  * over «000 ₽».
  */
-export function ReceiptRow({ kind, subject, when, provider, amount }: ReceiptRowProps) {
-  const meta = [strings.profile.receiptKind[kind], when, provider].filter(Boolean).join(' · ');
+export function ReceiptRow({ kind, subject, when, amount }: ReceiptRowProps) {
+  const meta = `${strings.profile.receiptKind[kind]} · ${when}`;
   return (
     <div className={styles.row} data-kind={kind}>
       <span className={styles.badge} aria-hidden="true">
