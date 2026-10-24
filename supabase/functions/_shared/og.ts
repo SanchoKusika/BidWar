@@ -539,18 +539,33 @@ function onProfilePlatform(pageUrl: string): boolean {
  */
 export function profileHandle(pageUrl: string): string | null {
   if (!onProfilePlatform(pageUrl)) return null;
-  const segments = new URL(pageUrl).pathname.split('/').filter(Boolean);
-  const last = segments[segments.length - 1];
-  if (!last) return null;
+  const url = new URL(pageUrl);
+  const segments = url.pathname.split('/').filter(Boolean);
+  const [first, second] = segments;
+
+  // Only the shapes that name an account. A post, a video or a repository
+  // page is named by its host, as before: "watch" or "CxYz123" is not a name.
+  let raw: string | undefined;
+  if (first?.startsWith('@'))
+    raw = first; // youtube.com/@x, tiktok.com/@x
+  else if (segments.length === 2 && first && PROFILE_PREFIXES.has(first.toLowerCase())) {
+    raw = second; // linkedin.com/in/x, linkedin.com/company/x
+  } else if (segments.length === 1 && !url.search) raw = first; // github.com/x, vk.com/x
+  if (!raw) return null;
+
   let handle: string;
   try {
-    handle = decodeURIComponent(last);
+    handle = decodeURIComponent(raw);
   } catch {
-    handle = last;
+    handle = raw;
   }
   handle = handle.replace(/^@/, '').trim();
-  return handle ? handle.slice(0, MAX_NAME_LENGTH) : null;
+  if (!handle || INSTAGRAM_SERVICE_PATHS.has(handle.toLowerCase())) return null;
+  return handle.slice(0, MAX_NAME_LENGTH);
 }
+
+/** Path prefixes after which a profile platform puts the account's handle. */
+const PROFILE_PREFIXES = new Set(['in', 'company', 'school', 'showcase', 'c', 'user']);
 
 /** Google's copy of a site's icon: it knows the touch icons pages do not link. */
 function googleFavicon(pageUrl: string): string | null {

@@ -7,6 +7,9 @@ import { SheetHeader } from './SheetHeader';
 import { SheetActions, SheetField, SheetNote } from './SheetParts';
 import styles from './EditProjectSheet.module.css';
 
+/** What the server stores: one line, as the card shows it (edit-project/validate.ts). */
+const oneLine = (value: string) => value.replace(/\s+/g, ' ').trim();
+
 export interface EditProjectSheetProps {
   open: boolean;
   onClose: () => void;
@@ -47,10 +50,10 @@ export function EditProjectSheet({
     }
   }
 
-  const trimmedName = draftName.trim();
-  const changed =
-    trimmedName !== name.trim() || draftDescription.trim() !== (description ?? '').trim();
-  const canSubmit = trimmedName.length > 0 && changed && !submitting;
+  const nextName = oneLine(draftName);
+  const nextDescription = oneLine(draftDescription);
+  const changed = nextName !== oneLine(name) || nextDescription !== oneLine(description ?? '');
+  const canSubmit = nextName.length > 0 && changed && !submitting;
 
   const handleClose = () => {
     if (submitting) return;
@@ -62,7 +65,7 @@ export function EditProjectSheet({
     setSubmitting(true);
     setError(null);
     try {
-      await onSubmit({ name: trimmedName, description: draftDescription.trim() });
+      await onSubmit({ name: nextName, description: nextDescription });
     } catch (e) {
       setError(e instanceof Error ? e.message : t.genericError);
     } finally {
@@ -92,7 +95,7 @@ export function EditProjectSheet({
           <span className={styles.labelRow}>
             {t.descriptionLabel}
             <span className={styles.counter}>
-              {t.counter(draftDescription.length, EDIT_LIMITS.description)}
+              {t.counter(nextDescription.length, EDIT_LIMITS.description)}
             </span>
           </span>
         }

@@ -268,7 +268,7 @@ export function ProjectScreen({
                   onClick={onEdit}
                   className={styles.editButton}
                 >
-                  {project.ogDescription ? t.edit : t.addDescription}
+                  {t.edit}
                 </Button>
               </div>
             )}

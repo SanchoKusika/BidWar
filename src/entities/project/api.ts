@@ -1,4 +1,5 @@
 import { getSupabase, functionErrorMessage } from '@/shared/api';
+import { strings } from '@/shared/i18n/strings';
 import type { Tables } from '@/shared/api';
 import type {
   Movement24h,
@@ -406,8 +407,10 @@ export async function editProject(
     name: string;
     description: string | null;
   }>('edit-project', { method: 'POST', body: params });
-  if (error) throw new Error(await functionErrorMessage(error, 'Не удалось сохранить'));
-  if (!data) throw new Error('Пустой ответ edit-project');
+  if (error) {
+    throw new Error(await functionErrorMessage(error, strings.editProject.genericError));
+  }
+  if (!data) throw new Error(strings.editProject.genericError);
   return data;
 }
 

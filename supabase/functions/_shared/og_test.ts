@@ -341,6 +341,15 @@ Deno.test('профиль, который не ответил, называет�
   );
   assertEquals(profileHandle('https://www.youtube.com/@mrbeast'), 'mrbeast');
   assertEquals(profileHandle('https://github.com/denoland'), 'denoland');
+  assertEquals(
+    profileHandle('https://www.linkedin.com/company/telegram-messenger'),
+    'telegram-messenger',
+  );
+  // A post, a video, a repository page and service paths are not accounts.
+  assertEquals(profileHandle('https://www.youtube.com/watch?v=abc'), null);
+  assertEquals(profileHandle('https://www.instagram.com/p/CxYz123/'), null);
+  assertEquals(profileHandle('https://github.com/denoland/deno/tree/main'), null);
+  assertEquals(profileHandle('https://www.instagram.com/explore/'), null);
   // The platform's front page and ordinary sites keep the host as the name.
   assertEquals(profileHandle('https://www.linkedin.com/'), null);
   assertEquals(profileHandle('https://example.com/about'), null);

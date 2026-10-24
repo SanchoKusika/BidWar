@@ -485,13 +485,12 @@ export const en = {
     rulesButton: 'Rules of the game',
     missingTitle: 'No such project',
     missingNote: 'It may have left the top, or the link is wrong.',
-    edit: 'Edit',
-    addDescription: 'Add a description',
+    edit: 'Edit name and description',
   },
 
   editProject: {
     title: 'Name and description',
-    subtitle: 'Shown on the card in both tops. The link stays as it is.',
+    subtitle: 'Shown on this project’s card and page. The link stays as it is.',
     nameLabel: 'Name',
     namePlaceholder: 'What the project is called',
     descriptionLabel: 'Description',

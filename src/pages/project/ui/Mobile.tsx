@@ -22,6 +22,7 @@ import {
 import { EditProjectSheet } from '@/widgets/mobile/EditProjectSheet';
 import { DesktopProject, DesktopProjectSkeleton } from '@/widgets/desktop/Project';
 import { useLayout } from '@/shared/lib/layout';
+import { dropQueryCache } from '@/shared/lib/query';
 import { useMyContribution, useProject } from '../model';
 import styles from './Mobile.module.css';
 
@@ -63,6 +64,12 @@ export function ProjectPage({
   const categories = useCategoryStats(segment);
   const { project, rank, otherEntry, otherRank, status, patch } = useProject(id, segment);
   const [editOpen, setEditOpen] = useState(false);
+  // Another project on the same page component: the sheet belonged to the old one.
+  const [editFor, setEditFor] = useState(id);
+  if (editFor !== id) {
+    setEditFor(id);
+    setEditOpen(false);
+  }
   // Хук стоит до ранних возвратов ниже и потому берёт id из пропа, а не из
   // загруженного проекта: порядок хуков обязан быть одинаковым на каждый рендер.
   const events = useProjectActivity(id);
@@ -182,6 +189,9 @@ export function ProjectPage({
             if (!initData) throw new Error(strings.common.sessionExpired);
             const saved = await editProject({ initData, projectId: project.id, name, description });
             patch({ name: saved.name, ogDescription: saved.description });
+            // The tops and the other entry's page hold the old name in the
+            // shared cache; drop it, so they ask again instead of showing it.
+            dropQueryCache();
             setEditOpen(false);
           }}
         />

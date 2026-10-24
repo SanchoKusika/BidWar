@@ -452,13 +452,12 @@ export const ru: PartialStrings = {
     rulesButton: 'Правила игры',
     missingTitle: 'Такого проекта нет',
     missingNote: 'Возможно, он ушёл из топа или ссылка с ошибкой.',
-    edit: 'Изменить',
-    addDescription: 'Добавить описание',
+    edit: 'Изменить название и описание',
   },
 
   editProject: {
     title: 'Название и описание',
-    subtitle: 'Видны на карточке в обоих топах. Ссылка остаётся прежней.',
+    subtitle: 'Видны на карточке и странице этого проекта. Ссылка остаётся прежней.',
     nameLabel: 'Название',
     namePlaceholder: 'Как называется проект',
     descriptionLabel: 'Описание',
