@@ -45,9 +45,11 @@ export const PREVIEW = {
    *
    * Local dev only since 24.10.2026: the bank's moderator walks the live site,
    * and an instant free «Test payment» there reads as a product given away.
-   * The live site shows the real method and `paymentsStub` instead.
+   * The live site shows the real method and `paymentsStub` instead. A build
+   * that should still take test payments (a Pages preview) sets
+   * `VITE_MOCK_PAYMENTS=true`.
    */
-  mockPayments: import.meta.env.DEV,
+  mockPayments: import.meta.env.DEV || import.meta.env.VITE_MOCK_PAYMENTS === 'true',
 
   /**
    * The real method is shown, the Pay button presses, and instead of a charge

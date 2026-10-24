@@ -160,8 +160,9 @@ export function ProfilePage({ nav }: ProfilePageProps) {
           }
         : undefined,
     // Development tool: wipes projects and payment history for real. Shown
-    // only while payments run on the mock, the same boundary the server
-    // function checks; in production this lives in the admin panel.
+    // only in builds that take test payments (PREVIEW.mockPayments); the
+    // server keeps its own lock on PAYMENT_PROVIDER=mock. In production this
+    // lives in the admin panel.
     onRemoveProjects:
       PREVIEW.mockPayments && mine.projects.length > 0
         ? () => {

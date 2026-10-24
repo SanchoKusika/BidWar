@@ -187,8 +187,10 @@ export function PaySheet({
         {mock ? t.chargeNoteMock : t.chargeNote(provider.name, provider.currency)}
       </SheetFootnote>
 
+      {/* alert, not status: it is announced when inserted with its text,
+          and an empty status region would take a flex gap in the sheet. */}
       {unavailable && (
-        <div role="status">
+        <div role="alert">
           <SheetNote tone="muted" icon="clock">
             {t.unavailable}
           </SheetNote>

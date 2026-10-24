@@ -56,6 +56,10 @@ export function paymentProviders(locale: Locale): readonly [PaymentProvider, ...
  * While payments go through the mock, Platega must not be shown here: a real
  * provider's name over an instant free confirmation is a plain lie. The mock
  * calls itself the mock. The list changes in slice 1.10.
+ *
+ * Until then a build without the mock shows Platega over a server that is
+ * still the mock — honest only because `PREVIEW.paymentsStub` stops the sheet
+ * from sending anything. The two flags go together.
  */
 export function paymentMethods(locale: Locale): readonly [PaymentProvider, ...PaymentProvider[]] {
   if (!PREVIEW.mockPayments) return paymentProviders(locale);
