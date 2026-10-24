@@ -10,7 +10,7 @@ export const brand: Brand = {
   // Delete the line once the desk is registered; every use below follows.
   reviewCode: 'OPLAT',
   year: 2026,
-  legalVersion: 'v2.0',
+  legalVersion: 'v1.0',
 };
 
 /** The temporary review row of the About facts; empty once the code is gone. */

@@ -547,7 +547,6 @@ export const en = {
     rules: 'Rules of the game',
     bot: 'Telegram bot',
     support: 'Support',
-    terms: 'Terms & privacy',
 
     removeProjects: 'Delete my projects',
     removeProjectsNote: 'Deletes projects and payment history — a fresh account',

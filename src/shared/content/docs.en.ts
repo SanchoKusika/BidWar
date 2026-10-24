@@ -200,7 +200,7 @@ export const docsEn = {
     title: 'Telegram bot',
     lead: 'The bot is the notification channel and the fastest way in. The mini app and the site show the same account.',
     facts: [
-      ['Handle', '@bidwar_bot'],
+      ['Handle', brand.bot],
       ['Alerts', 'Attacks · positions · tasks'],
       ['Login', 'Telegram'],
     ],
