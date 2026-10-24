@@ -9,19 +9,21 @@
   border: var(--border-w) solid var(--border-subtle);
 }
 
-/* Under a picture that has come in, the tile turns light in either theme: a
+/* Under a picture that has come in, the ground turns light in either theme: a
    site's icon is drawn for a light browser tab, and a black glyph on a
    transparent ground vanished on the dark tile. A face or an app icon covers
-   the tile whole and is not affected. */
-.preview[data-state='ready'] {
-  background: var(--og-tile);
-}
+   it whole and is not affected.
 
+   The light ground is the picture's own background, not the tile's. On the
+   tile it was clipped twice along the same curve — by the tile's corner and
+   again around the picture — and the two edges never meet to the pixel: in the
+   dark theme a light hairline showed through at every rounded corner. */
 .image {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  background: var(--og-tile);
   opacity: 0;
   transition: opacity var(--dur-base) var(--ease-out);
 }

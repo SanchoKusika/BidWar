@@ -515,16 +515,36 @@ export function isBotChallenge(card: PageCard): boolean {
 }
 
 /**
+ * Our own copies of the icons of platforms that wall the server off, served
+ * by the site itself (public/platforms). Google's 128 px copy of Instagram's
+ * icon was a blurry glyph on a white square. A path, not an address: the
+ * picture comes from whichever of our hosts shows the card.
+ */
+const PLATFORM_ICONS: Record<string, string> = {
+  'instagram.com': '/platforms/instagram.svg',
+  'linkedin.com': '/platforms/linkedin.svg',
+};
+
+function platformIcon(pageUrl: string): string | null {
+  try {
+    const host = new URL(pageUrl).hostname.toLowerCase().replace(/^(www|m)\./, '');
+    return PLATFORM_ICONS[host] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * What a project is shown by when its site would not show us the page: the
- * name from the link, no description — the owner writes one — and the site's
- * own icon from Google. The page told us nothing true, but the site is real,
+ * name from the link, no description — the owner writes one — and the
+ * platform's icon: our own copy, else the site's icon from Google. The page told us nothing true, but the site is real,
  * and its icon says where the link leads better than a letter does.
  */
 export function walledResult(url: string, name?: string | null): OgResult {
   return {
     name: name || profileHandle(url) || hostnameOf(url),
     description: null,
-    imageUrl: telegramUserpic(url) ?? googleFavicon(url),
+    imageUrl: telegramUserpic(url) ?? platformIcon(url) ?? googleFavicon(url),
     status: 'failed',
   };
 }
