@@ -1,6 +1,6 @@
 import type { DocPage } from './types';
 import type { DocId } from './docs.en';
-import { brand, reviewFact } from './brand';
+import { brand, editionFact, reviewFact } from './brand';
 
 /**
  * Правовые и справочные страницы по-русски.
@@ -106,6 +106,7 @@ export const docsRu: Record<DocId, DocPage> = {
     title: 'Условия использования',
     lead: 'Пользовательское соглашение сервиса BidWar. Полный текст ниже, он доступен всегда, без запроса.',
     facts: [
+      editionFact('Редакция', 'от'),
       ['Записей на аккаунт', '2'],
       ['Денежный счёт', 'Нет'],
       ['Голоса ↔ деньги', 'Никогда'],
@@ -163,6 +164,7 @@ export const docsRu: Record<DocId, DocPage> = {
     title: 'Конфиденциальность',
     lead: 'Политика конфиденциальности сервиса BidWar. Мы храним наименьший набор данных, при котором рейтингу можно доверять.',
     facts: [
+      editionFact('Редакция', 'от'),
       ['Регион данных', 'Германия · Франкфурт'],
       ['Продажа данных', 'Никогда'],
       ['Платёжные реквизиты', 'Не храним'],
