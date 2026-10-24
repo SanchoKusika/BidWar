@@ -10,6 +10,7 @@ import {
 } from '@/shared/lib/format';
 import { strings } from '@/shared/i18n/strings';
 import { getPaymentMethods } from '@/shared/content';
+import { PREVIEW } from '@/shared/config/preview';
 import { useLingering } from '@/shared/lib/presence';
 import { Sheet } from './Sheet';
 import { SheetHeader } from './SheetHeader';
@@ -75,6 +76,8 @@ export function PaySheet({
   // медленной сети успевал уйти вторым запросом create-payment ещё до того,
   // как первый вернулся и закрыл шторку через pending — двойной платёж.
   const [submitting, setSubmitting] = useState(false);
+  // Pay was pressed while the provider is not connected (PREVIEW.paymentsStub).
+  const [unavailable, setUnavailable] = useState(false);
 
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
@@ -82,6 +85,7 @@ export function PaySheet({
     if (open) {
       setProviderId(methods[0].id);
       setSubmitting(false);
+      setUnavailable(false);
     }
   }
 
@@ -100,6 +104,11 @@ export function PaySheet({
 
   const handleConfirm = async () => {
     if (submitting) return;
+    if (PREVIEW.paymentsStub && !mock) {
+      haptic('warning');
+      setUnavailable(true);
+      return;
+    }
     setSubmitting(true);
     try {
       await onConfirm(provider.id);
@@ -178,6 +187,16 @@ export function PaySheet({
         {mock ? t.chargeNoteMock : t.chargeNote(provider.name, provider.currency)}
       </SheetFootnote>
 
+      {/* alert, not status: it is announced when inserted with its text,
+          and an empty status region would take a flex gap in the sheet. */}
+      {unavailable && (
+        <div role="alert">
+          <SheetNote tone="muted" icon="clock">
+            {t.unavailable}
+          </SheetNote>
+        </div>
+      )}
+
       <SheetActions onSecondary={handleClose} secondaryDisabled={submitting}>
         <Button
           variant={attack ? 'attack' : 'paid'}
@@ -187,7 +206,7 @@ export function PaySheet({
           disabled={submitting}
           onClick={handleConfirm}
         >
-          {t.submit(amount, provider.name)}
+          {t.submit(`${amount} ${CURRENCY_SUFFIX[currency]}`)}
         </Button>
       </SheetActions>
 
