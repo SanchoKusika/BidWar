@@ -5,7 +5,7 @@ export const docsEn = {
   about: {
     icon: 'info',
     title: 'About BidWar',
-    lead: 'A ranking you can buy your way up, run in the open. What the platform earns is published on this page.',
+    lead: 'A ranking you can buy your way up, run in the open. How the platform earns is written on this page.',
     facts: [
       ['Revenue source', 'Every payment'],
       ['Cut taken from your bid', 'None'],
@@ -15,7 +15,7 @@ export const docsEn = {
     sections: [
       {
         h: 'What this is',
-        p: 'Two rankings of projects — channels, bots, sites, businesses. One is ordered by money, the other by votes earned from tasks. A high position sends real traffic: the click counter on every row is the only promise we make.',
+        p: 'Two rankings of projects — channels, bots, sites, businesses. One is ordered by money, the other by votes earned from tasks. A high position is a place in plain sight, and the click counter on every row shows how many people came through it.',
       },
       {
         h: 'Where your money goes',
@@ -23,7 +23,7 @@ export const docsEn = {
       },
       {
         h: 'Why the numbers are public',
-        p: 'A paid ranking only works if nobody suspects the operator of bidding in its own list. So we publish what we earn and how much traffic the board sent. If the ledger and the board ever disagree, tell support and we will explain it in public.',
+        p: 'A paid ranking only works if nobody suspects the operator of bidding in its own list. So every project’s bid, votes and clicks are visible to everyone, and the rules of the calculation are published in full. If something in the list does not add up, tell support.',
       },
       {
         h: 'What we will never do',
@@ -61,32 +61,35 @@ export const docsEn = {
       },
       {
         h: 'What is not sold',
-        p: 'Votes are earned by completing tasks in the Free Top and are never sold. Refunds are not provided.',
+        p: 'Votes are earned by completing tasks in the Free Top and are never sold.',
+      },
+      {
+        h: 'Refunds',
+        p: 'A bid or an attack that took effect is not refunded. If money was charged and the bid or attack did not take effect, it is returned — the details are in the terms, section 5.',
       },
     ],
   },
   support: {
     icon: 'life-buoy',
     title: 'Support',
-    lead: 'One team, two languages, one queue. Payment problems jump the queue.',
+    lead: 'Support answers by email, in Russian and English.',
     facts: [
       ['Email', brand.supportEmail],
       ['Response time', 'under 24 h'],
-      ['Hours', '09:00 – 21:00 (MSK)'],
       ['Languages', 'RU · EN'],
     ],
     sections: [
       {
-        h: 'Fastest route',
-        p: `Write to ${brand.supportEmail}, or to the Telegram bot from the account that owns the project — there we already see your projects, bids and last payments.`,
+        h: 'How to reach us',
+        p: `Write to ${brand.supportEmail} and include your Telegram username or a link to your project: that is enough for us to find your projects, bids and payments.`,
       },
       {
         h: 'Payment problems',
-        p: 'Send the payment id from Profile → Payment receipts. A Platega id is enough to trace a charge without any payment details.',
+        p: 'Send the payment id from Profile → Payment receipts; if the charge is not there, send the time, the amount and the receipt from your bank app. No payment details are needed. If money was charged and the bid or attack did not take effect, that is a refund — see the terms, section 5.',
       },
       {
         h: 'Disputes between projects',
-        p: 'Attacks are a mechanic, not a violation, and are never reversed. Impersonation, stolen previews and fake verification are — send the link and a screenshot.',
+        p: 'Attacks are a mechanic, not a violation, and are never reversed. Impersonation and stolen previews are — send the link and a screenshot.',
       },
     ],
   },
@@ -98,7 +101,7 @@ export const docsEn = {
       ['Entries per account', '2'],
       ['Money balance', 'None'],
       ['Votes ↔ money', 'Never'],
-      ['Refunds', 'Not provided'],
+      ['Refunds', 'If the bid did not apply'],
     ],
     sections: [
       {
@@ -119,7 +122,7 @@ export const docsEn = {
       },
       {
         h: '5. Refunds',
-        p: '5.1. Refunds are not provided: a paid amount is not returned, in full or in part, including after leaving a ranking, being outbid, changing the link or deleting the project. 5.2. An attack cannot be withdrawn: the rival’s bid changes the moment the payment is confirmed. 5.3. The user undertakes not to dispute a payment through payment systems without first contacting support. A disputed payment may freeze the account until the provider decides.',
+        p: `5.1. A bid or an attack that took effect is not returned, in full or in part, including after leaving a ranking, being outbid or deleting the project: the service is rendered the moment the payment is confirmed. 5.2. Money is returned if a payment was charged and the bid or attack did not take effect: because of a technical error of the Service, a double charge, or because by the time the payment was confirmed the attack no longer fit the rules. 5.3. To get a refund, the user writes to ${brand.supportEmail} with the payment id or the time and amount of the charge. The Administration checks the payment against its records and, once confirmed, returns the money within 10 days. 5.4. An attack cannot be withdrawn: the rival’s bid changes the moment the payment is confirmed. 5.5. The user undertakes not to dispute a payment through payment systems without first contacting support. A disputed payment may freeze the account until the provider decides.`,
       },
       {
         h: '6. Votes',
@@ -143,7 +146,7 @@ export const docsEn = {
       },
       {
         h: '11. Contacts',
-        p: `Questions about the Agreement and payments: ${brand.supportEmail}, or the Telegram bot ${brand.bot}.`,
+        p: `Questions about the Agreement and payments: ${brand.supportEmail}.`,
       },
     ],
   },
@@ -153,7 +156,7 @@ export const docsEn = {
     lead: 'The privacy policy of BidWar. We keep the smallest set of data that lets a ranking be trusted.',
     facts: [
       ['Data region', 'Germany · Frankfurt'],
-      ['Retention', '18 months'],
+      ['Data sold', 'Never'],
       ['Payment credentials stored', 'None'],
     ],
     sections: [
@@ -163,7 +166,7 @@ export const docsEn = {
       },
       {
         h: '2. What data we receive',
-        p: '2.1. Telegram account data: the numeric id, username and name that Telegram passes on sign-in. 2.2. Data about use of the Service: the links of added projects, bids, attacks, votes, tasks, vote balance, settings and interface language. 2.3. Payment data limited to the payment number and amount reported by the provider Platega. 2.4. Technical data: IP address, device and browser in server logs. 2.5. We do not ask for passport data, documents or photos. We do not store card or wallet numbers, CVV, bank statements, your Telegram messages or contact lists.',
+        p: '2.1. Telegram account data: the numeric id, username, name and profile photo that Telegram passes on sign-in. 2.2. Data about use of the Service: the links of added projects, bids, attacks, votes, tasks, vote balance, who invited the user, settings and interface language, plus Telegram’s answers when tasks are checked: channel subscription, boost, Telegram Premium. 2.3. Payment data limited to the payment number and amount reported by the provider Platega. 2.4. Technical data: IP address, device and browser in server logs. 2.5. We do not ask for passport data, documents or photos. We do not store card or wallet numbers, CVV, bank statements, your Telegram messages or contact lists.',
       },
       {
         h: '3. How we use data',
@@ -171,7 +174,7 @@ export const docsEn = {
       },
       {
         h: '4. What others can see',
-        p: 'Public: project name, link, position, bid or vote count, click counter, verification mark. Private: your vote balance, receipts and settings. A referral link carries a code, not your identity.',
+        p: 'Public: project name, link, position, bid or vote count, click counter. Private: your vote balance, receipts and settings. A referral link carries a code, not your identity.',
       },
       {
         h: '5. Disclosure to third parties',
@@ -179,11 +182,11 @@ export const docsEn = {
       },
       {
         h: '6. Storage and protection',
-        p: '6.1. Data is kept in a data centre in Germany (Frankfurt) for no longer than 18 months after the last activity, unless a longer period is needed for payment records. 6.2. We take reasonable protection measures, but absolute security of data over the internet cannot be guaranteed.',
+        p: '6.1. Data is kept by a hosting provider in a data centre in Germany (Frankfurt) for as long as the account exists. Once the account is deleted, the data is erased except for payment records, which stay in anonymised form for accounting. 6.2. We take reasonable protection measures, but absolute security of data over the internet cannot be guaranteed.',
       },
       {
         h: '7. User rights',
-        p: `The user may ask for an export or deletion of their data from the bot ${brand.bot} or by email to ${brand.supportEmail}. Deletion removes the account and hides the projects; payment records stay in anonymised form.`,
+        p: `The user may ask for an export or deletion of their data by email to ${brand.supportEmail}. Deletion removes the account and hides the projects; payment records stay in anonymised form.`,
       },
       {
         h: '8. Liability',
@@ -198,20 +201,16 @@ export const docsEn = {
   bot: {
     icon: 'send',
     title: 'Telegram bot',
-    lead: 'The bot is the notification channel and the fastest way in. The mini app and the site show the same account.',
+    lead: 'The bot sends notifications and opens the mini app. The mini app and the site show the same account.',
     facts: [
       ['Handle', brand.bot],
-      ['Alerts', 'Attacks · positions · tasks'],
+      ['Alerts', 'Attacks · first place · votes · friends'],
       ['Login', 'Telegram'],
     ],
     sections: [
       {
         h: 'What it sends',
-        p: 'You were attacked, you lost a position, a task was verified, a payment succeeded or failed. Each alert type is switchable in Profile → Notifications.',
-      },
-      {
-        h: 'Commands',
-        p: '/top — your positions · /votes — your vote balance · /raise — raise a bid · /tasks — today’s tasks · /support — open a ticket.',
+        p: 'You were attacked, you lost first place, someone gave votes to your project, a friend you invited brought a reward. Each kind can be switched off in Settings, under Notifications.',
       },
       {
         h: 'Mini app or site',
