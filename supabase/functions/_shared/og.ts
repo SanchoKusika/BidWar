@@ -517,12 +517,13 @@ export function isBotChallenge(card: PageCard): boolean {
 /**
  * Our own copies of the icons of platforms that wall the server off, served
  * by the site itself (public/platforms). Google's 128 px copy of Instagram's
- * icon was a blurry glyph on a white square. A path, not an address: the
- * picture comes from whichever of our hosts shows the card.
+ * icon was a blurry glyph on a white square. A full address like every other
+ * picture: whatever reads it later — a bot message, a link preview — is not on
+ * our host.
  */
 const PLATFORM_ICONS: Record<string, string> = {
-  'instagram.com': '/platforms/instagram.svg',
-  'linkedin.com': '/platforms/linkedin.svg',
+  'instagram.com': 'https://bidwar.world/platforms/instagram.svg',
+  'linkedin.com': 'https://bidwar.world/platforms/linkedin.svg',
 };
 
 function platformIcon(pageUrl: string): string | null {

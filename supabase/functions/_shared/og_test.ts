@@ -337,13 +337,13 @@ Deno.test('закрытая страница: имя по ссылке, без �
   assertEquals(walledResult('https://www.linkedin.com/in/arnauddumasderauly/'), {
     name: 'arnauddumasderauly',
     description: null,
-    imageUrl: '/platforms/linkedin.svg',
+    imageUrl: 'https://bidwar.world/platforms/linkedin.svg',
     status: 'failed',
   });
   assertEquals(walledResult('https://www.instagram.com/kuznetsovsgallery/', '@kuznetsovsgallery'), {
     name: '@kuznetsovsgallery',
     description: null,
-    imageUrl: '/platforms/instagram.svg',
+    imageUrl: 'https://bidwar.world/platforms/instagram.svg',
     status: 'failed',
   });
 });
