@@ -68,4 +68,6 @@ export interface Brand {
    * поменяли, а его забыли.
    */
   legalVersion: string;
+  /** The date of that edition, shown on the terms and privacy pages; bumped with it. */
+  legalDate: string;
 }

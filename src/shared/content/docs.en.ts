@@ -1,5 +1,5 @@
 import type { DocPage } from './types';
-import { brand, reviewFact } from './brand';
+import { brand, editionFact, reviewFact } from './brand';
 
 export const docsEn = {
   about: {
@@ -98,6 +98,7 @@ export const docsEn = {
     title: 'Terms of use',
     lead: 'The user agreement of BidWar. The full text is below and is always available, no request needed.',
     facts: [
+      editionFact('Edition', 'of'),
       ['Entries per account', '2'],
       ['Money balance', 'None'],
       ['Votes ↔ money', 'Never'],
@@ -155,6 +156,7 @@ export const docsEn = {
     title: 'Privacy',
     lead: 'The privacy policy of BidWar. We keep the smallest set of data that lets a ranking be trusted.',
     facts: [
+      editionFact('Edition', 'of'),
       ['Data region', 'Germany · Frankfurt'],
       ['Data sold', 'Never'],
       ['Payment credentials stored', 'None'],

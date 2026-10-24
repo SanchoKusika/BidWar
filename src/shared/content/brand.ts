@@ -10,8 +10,14 @@ export const brand: Brand = {
   // Delete the line once the desk is registered; every use below follows.
   reviewCode: 'OPLAT',
   year: 2026,
-  legalVersion: 'v1.0',
+  legalVersion: 'v1.1',
+  legalDate: '24.10.2026',
 };
+
+/** The edition row of the terms and privacy facts: the bank asks for a current date. */
+export function editionFact(label: string, joiner: string): Fact {
+  return [label, `${brand.legalVersion} ${joiner} ${brand.legalDate}`];
+}
 
 /** The temporary review row of the About facts; empty once the code is gone. */
 export function reviewFact(label: string): readonly Fact[] {
