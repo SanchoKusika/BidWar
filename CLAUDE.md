@@ -137,7 +137,7 @@ Edge Functions `PAYMENT_PROVIDER=mock`, а не флаг `PREVIEW.mockPayments`:
 `PAYMENT_PROVIDER` не `mock`, а строка видна только под `PREVIEW.mockPayments`.
 У пользователей боевой версии такой кнопки не будет — это действие админ-панели.
 
-**Тесты есть, раннер `deno test`.** `npm run test` — 166 быстрых тестов без базы,
+**Тесты есть, раннер `deno test`.** `npm run test` — 168 быстрых тестов без базы,
 входит в `npm run check` и в CI. `npm run test:db` — интеграционные тесты
 хранимок против живой базы, требует `SUPABASE_DB_URL`, в `check` и CI не
 входит намеренно.
