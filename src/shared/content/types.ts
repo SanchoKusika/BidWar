@@ -62,12 +62,9 @@ export interface Brand {
   reviewCode?: string;
   year: number;
   /**
-   * Редакция правовых страниц. Стоит рядом со ссылкой на них в настройках,
-   * чтобы человек видел, на какую версию соглашался. Поднимать при каждом
-   * изменении текста в `docs.ts` — число врёт ровно в тот день, когда текст
-   * поменяли, а его забыли.
+   * The date of the current terms and privacy text, shown on both pages: the
+   * provider's bank asks for it. Bump it with every change to that text — the
+   * date lies exactly on the day the text changed and it was forgotten.
    */
-  legalVersion: string;
-  /** The date of that edition, shown on the terms and privacy pages; bumped with it. */
   legalDate: string;
 }

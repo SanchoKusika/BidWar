@@ -253,15 +253,9 @@ export function SettingsPanel({
         <SettingsRow
           icon="file-text"
           title={getDocs().terms.title}
-          value={brand.legalVersion}
           onPress={() => onDoc('terms')}
         />
-        <SettingsRow
-          icon="lock"
-          title={getDocs().privacy.title}
-          value={brand.legalVersion}
-          onPress={() => onDoc('privacy')}
-        />
+        <SettingsRow icon="lock" title={getDocs().privacy.title} onPress={() => onDoc('privacy')} />
         {onRemoveProjects && (
           <SettingsRow
             icon="trash-2"
