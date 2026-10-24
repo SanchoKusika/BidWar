@@ -5,6 +5,7 @@ import { Icon } from '@/shared/ui/Icon';
 import { KeyRow } from '@/shared/ui/KeyRow';
 import { OgPreview } from '@/shared/ui/OgPreview';
 import { ProjectCard, ProjectCardSkeleton } from '@/shared/ui/ProjectCard';
+import { ReceiptRow, ReceiptRowSkeleton } from '@/shared/ui/ReceiptRow';
 import { SkeletonText } from '@/shared/ui/Skeleton';
 import { ReferralShareCard } from '@/shared/ui/ReferralShareCard';
 import { SectionLabel } from '@/shared/ui/SectionLabel';
@@ -27,12 +28,13 @@ import styles from './ProfileScreen.module.css';
 const t = strings.profile;
 
 /** Placeholder receipt rows: label widths vary so the block does not read as a grid. */
-const RECEIPT_PLACEHOLDERS = [184, 148, 168] as const;
+const RECEIPT_PLACEHOLDERS = [148, 112, 132] as const;
 
 /** Строка чека: что списали, когда и через кого. */
 export interface Receipt {
   id: string;
-  label: string;
+  /** The project paid for, or the one attacked. */
+  subject: string;
   when: string;
   provider?: string;
   /**
@@ -349,25 +351,23 @@ export function ProfileScreen({
                   />
                   {!spending ? (
                     RECEIPT_PLACEHOLDERS.map((width) => (
-                      <KeyRow
-                        key={width}
-                        label={<SkeletonText width={width} />}
-                        value={<SkeletonText>−000 000</SkeletonText>}
-                      />
+                      <ReceiptRowSkeleton key={width} width={width} />
                     ))
                   ) : spending.receipts.length > 0 ? (
                     spending.receipts.map((r) => (
-                      <KeyRow
+                      <ReceiptRow
                         key={r.id}
-                        label={`${r.label} · ${r.when}${r.provider ? ` · ${r.provider}` : ''}`}
+                        kind={r.kind}
+                        subject={r.subject}
+                        when={r.when}
+                        provider={r.provider}
                         // `money` здесь был бы ошибкой: он переводит очки в
                         // валюту зрителя, а чек показывает списанное как есть.
-                        value={`−${formatCharged(r.charged, r.currency)}`}
-                        tone={r.kind === 'attack' ? 'attack' : undefined}
+                        amount={`−${formatCharged(r.charged, r.currency)}`}
                       />
                     ))
                   ) : (
-                    <KeyRow label={t.noReceipts} value="" />
+                    <p className={styles.receiptsNote}>{t.noReceipts}</p>
                   )}
                 </RowsCard>
               </Gutter>

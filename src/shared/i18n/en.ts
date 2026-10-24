@@ -520,10 +520,8 @@ export const en = {
     receipts: 'Payment receipts',
     paidLast30: 'Paid in the last 30 days',
     noReceipts: 'No payments yet. Raise, attack or an opening bid will show up here.',
-    receiptRaise: (project: string) => `Raise · ${project}`,
-    receiptEntry: (project: string) => `Opening bid · ${project}`,
-    receiptAttack: (target: string) => `Attack on ${target}`,
-    unknownProject: 'a removed project',
+    receiptKind: { raise: 'Raise', entry: 'Opening bid', attack: 'Attack' },
+    unknownProject: 'Removed project',
     referralShareText:
       'Add your project to BidWar — the top where position is bought and votes are earned.',
   },

@@ -4,6 +4,7 @@ import { EmptyState } from '@/shared/ui/EmptyState';
 import { KeyRow } from '@/shared/ui/KeyRow';
 import { OgPreview } from '@/shared/ui/OgPreview';
 import { ProjectCard, ProjectCardSkeleton } from '@/shared/ui/ProjectCard';
+import { ReceiptRow, ReceiptRowSkeleton } from '@/shared/ui/ReceiptRow';
 import { ReferralShareCard } from '@/shared/ui/ReferralShareCard';
 import { SignInCard } from '@/shared/ui/SignInCard';
 import { SkeletonText } from '@/shared/ui/Skeleton';
@@ -22,7 +23,7 @@ import { SettingsPanel, type SettingsPanelProps } from '@/widgets/mobile/Setting
 import { FeedSection, PageBand, PageGrid, RailCard } from './Chrome';
 import styles from './Profile.module.css';
 
-const RECEIPT_PLACEHOLDERS = [184, 148, 168] as const;
+const RECEIPT_PLACEHOLDERS = [148, 112, 132] as const;
 
 /**
  * The profile for a viewer with no account: the way in, and the device's own
@@ -205,20 +206,18 @@ export function DesktopProfile({
                 <div aria-busy={!spending}>
                   {!spending ? (
                     RECEIPT_PLACEHOLDERS.map((width) => (
-                      <KeyRow
-                        key={width}
-                        label={<SkeletonText width={width} />}
-                        value={<SkeletonText>−000 000</SkeletonText>}
-                      />
+                      <ReceiptRowSkeleton key={width} width={width} />
                     ))
                   ) : spending.receipts.length > 0 ? (
                     spending.receipts.map((r) => (
-                      <KeyRow
+                      <ReceiptRow
                         key={r.id}
-                        label={`${r.label} · ${r.when}${r.provider ? ` · ${r.provider}` : ''}`}
+                        kind={r.kind}
+                        subject={r.subject}
+                        when={r.when}
+                        provider={r.provider}
                         // Charged as is: a receipt is never converted (04 Платежи и валюты).
-                        value={`−${formatCharged(r.charged, r.currency)}`}
-                        tone={r.kind === 'attack' ? 'attack' : undefined}
+                        amount={`−${formatCharged(r.charged, r.currency)}`}
                       />
                     ))
                   ) : (

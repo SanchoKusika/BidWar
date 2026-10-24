@@ -33,13 +33,9 @@ function toReceipt(row: {
   provider: string;
   confirmedAt: string;
 }): Receipt {
-  const subject = row.subject ?? strings.profile.unknownProject;
   return {
     id: row.id,
-    label:
-      row.intent === 'attack'
-        ? strings.profile.receiptAttack(subject)
-        : strings.profile.receiptRaise(subject),
+    subject: row.subject ?? strings.profile.unknownProject,
     when: formatReceiptDate(row.confirmedAt),
     provider: row.provider,
     charged: row.charged,

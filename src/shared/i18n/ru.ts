@@ -486,10 +486,8 @@ export const ru: PartialStrings = {
     receipts: 'Чеки',
     paidLast30: 'Заплачено за 30 дней',
     noReceipts: 'Платежей пока нет. Повышение, атака или открывающая ставка появятся здесь.',
-    receiptRaise: (project: string) => `Повышение · ${project}`,
-    receiptEntry: (project: string) => `Открывающая ставка · ${project}`,
-    receiptAttack: (target: string) => `Атака на «${target}»`,
-    unknownProject: 'удалённый проект',
+    receiptKind: { raise: 'Повышение', entry: 'Открывающая ставка', attack: 'Атака' },
+    unknownProject: 'Удалённый проект',
     referralShareText:
       'Добавь свой проект в BidWar — топ, где позицию покупают, а голоса зарабатывают.',
   },
